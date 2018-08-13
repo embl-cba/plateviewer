@@ -1,5 +1,5 @@
 import bdv.util.Bdv;
-import de.embl.cba.plateviewer.MolDevCellImgLoader;
+import de.embl.cba.plateviewer.PlateImgLoader;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
@@ -19,14 +19,14 @@ public class MolDevPlateViewerTest
 
 		ImageJ.main( args );
 
-		String file = "/Users/tischer/Documents/andrea-callegari-stitching--data/MolDev/2018-08-10-raw-test--processed/180730-Nup93-mEGFP-clone79-imaging-pipeline_H02_w2.tif";
+		String file = "/Users/tischer/Documents/andrea-callegari-stitching--data/MolDev/2018-08-10-raw-test--processed/“";
 
 		final ImagePlus imp = IJ.openImage( file );
 
 		// assuming we know it is a 3D, 16-bit stack...
 		final long[] dimensions = new long[]{
-				imp.getWidth() * 2,
-				imp.getHeight() * 2
+				imp.getWidth() * 12,
+				imp.getHeight() * 8
 		};
 
 		// set up cell size such that one cell is one plane
@@ -35,7 +35,7 @@ public class MolDevPlateViewerTest
 				imp.getHeight(),
 		};
 
-		final MolDevCellImgLoader molDevLoader = new MolDevCellImgLoader( imp.getWidth(), imp.getHeight() );
+		final PlateImgLoader molDevLoader = new PlateImgLoader( imp.getWidth(), imp.getHeight(), imp.getBitDepth(), cellFileMap );
 
 		// create a CellImg with that CellLoader
 		final Img< UnsignedShortType > img = new ReadOnlyCachedCellImgFactory().create(
