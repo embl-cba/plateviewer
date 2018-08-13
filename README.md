@@ -1,1 +1,1 @@
-# fiji-plugin-plateViewer
+# fiji-plugin-yaml-metadata
