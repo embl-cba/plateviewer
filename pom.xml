@@ -112,6 +112,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer-vistools</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>ome</groupId>
 			<artifactId>formats-api</artifactId>
 		</dependency>

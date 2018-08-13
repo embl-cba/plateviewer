@@ -1,4 +1,4 @@
-package de.embl.cba.metadata;
+package de.embl.cba.plateviewer;
 
 import ij.IJ;
 import net.imagej.DatasetService;
@@ -15,7 +15,6 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Map;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Metadata>Metadata to YAML" )

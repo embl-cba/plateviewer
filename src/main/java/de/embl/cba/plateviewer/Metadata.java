@@ -1,4 +1,4 @@
-package de.embl.cba.metadata;
+package de.embl.cba.plateviewer;
 
 import loci.common.services.ServiceFactory;
 import loci.formats.IFormatReader;
@@ -12,7 +12,7 @@ import ome.units.quantity.Time;
 import java.io.File;
 import java.util.*;
 
-import static de.embl.cba.metadata.Utils.log;
+import static de.embl.cba.plateviewer.Utils.log;
 
 public class Metadata
 {
@@ -43,7 +43,7 @@ public class Metadata
 	{
 		try
 		{
-			// create OME-XML metadata store
+			// create OME-XML plateviewer store
 			ServiceFactory factory = new ServiceFactory();
 			OMEXMLService service = factory.getInstance( OMEXMLService.class );
 			meta = service.createOMEXMLMetadata();

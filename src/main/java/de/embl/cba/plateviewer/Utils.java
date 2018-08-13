@@ -1,4 +1,4 @@
-package de.embl.cba.metadata;
+package de.embl.cba.plateviewer;
 
 import ij.IJ;
 

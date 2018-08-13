@@ -1,29 +1,18 @@
 
-import de.embl.cba.metadata.Metadata;
 import ij.IJ;
 import ij.ImageJ;
-import loci.common.services.ServiceFactory;
-import loci.formats.IFormatReader;
-import loci.formats.ImageReader;
-import loci.formats.meta.IMetadata;
-import loci.formats.services.OMEXMLService;
+import ij.ImagePlus;
 
-import ome.units.quantity.Length;
-import ome.units.quantity.Time;
-import ome.units.UNITS;
-
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
-
-
-import java.io.FileWriter;
-import java.util.*;
-
-import static de.embl.cba.metadata.Utils.log;
+import net.imglib2.cache.img.CellLoader;
+import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
+import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
+import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 
 /**
  * Uses Bio-Formats to extract some basic standardized
- * (format-independent) metadata.
+ * (format-independent) plateviewer.
  */
 public class CellImgLoaderTest
 {
@@ -32,21 +21,41 @@ public class CellImgLoaderTest
 
 		ImageJ.main( args );
 
-		String file = "/Volumes/cba/exchange/OeyvindOedegaard/yaml_project/20180627_LSM780M2_208_ibidi1_fcs_B_Posx96.lsm";
+		String file = "/Users/tischer/Documents/andrea-callegari-stitching--data/MolDev/2018-08-10-raw-test--processed/180730-Nup93-mEGFP-clone79-imaging-pipeline_H02_w2.tif";
 
-		final Metadata metadata = new Metadata( file );
+		final ImagePlus imp = IJ.openImage( file );
 
-		final Map< String, Object > map = metadata.getMap();
+		// assuming we know it is a 3D, 16-bit stack...
+		final long[] dimensions = new long[] {
+				imp.getWidth() * 2 ,
+				imp.getHeight() * 2
+		};
 
-		final DumperOptions dumperOptions = new DumperOptions();
-		dumperOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+		// set up cell size such that one cell is one plane
+		final int[] cellDimensions = new int[] {
+				imp.getWidth(),
+				imp.getHeight(),
+		};
 
-		String outputPath = "/Volumes/cba/exchange/OeyvindOedegaard/yaml_project/test.yaml";
-		Yaml yaml = new Yaml( dumperOptions );
-		FileWriter writer = new FileWriter( outputPath );
-		yaml.dump(map, writer);
+		// make a CellLoader that copies one plane of data from the virtual stack
+		final CellLoader< UnsignedShortType > loader = new CellLoader< UnsignedShortType >()
+		{
+			@Override
+			public void load( final SingleCellArrayImg< UnsignedShortType, ? > cell ) throws Exception
+			{
+				final int z = ( int ) cell.min( 2 );
+				final short[] impdata = ( short[] ) imp.getStack().getProcessor( 1 + z ).getPixels();
+				final short[] celldata = ( short[] ) cell.getStorageArray();
+				System.arraycopy( impdata, 0, celldata, 0, celldata.length );
+			}
+		};
 
-		IJ.open( outputPath );
+		// create a CellImg with that CellLoader
+		final Img< UnsignedShortType > img = new ReadOnlyCachedCellImgFactory().create(
+				dimensions,
+				new UnsignedShortType(),
+				loader,
+				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 
 
 
