@@ -6,6 +6,7 @@ import ij.ImageJ;
 import net.imglib2.img.Img;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Map;
 
 
@@ -22,16 +23,19 @@ public class PlateViewerTest
 	{
 		ImageJ.main( args );
 
-		String directoryName = "/Users/tischer/Documents/andrea-callegari-stitching--data/MolDev/2018-08-10-raw-test--processed/";
+//		String directoryName = "/Users/tischer/Documents/andrea-callegari-stitching--data/MolDev/2018-08-10-raw-test--processed/";
+		String directoryName = "/Users/tischer/Documents/andrea-callegari-stitching--data/MolDev/2018-08-10-raw-test--processed--subset/";
 
-		final Map< String, File > cellFileMap = CellFileMaps.create( Utils.WELL_PLATE_96, directoryName );
-
+		final ArrayList< Map< String, File > > cellFileMaps = CellFileMaps.create( directoryName );
+		
+		/*
 		final CachedCellImgs cachedCellImgs = new CachedCellImgs( cellFileMap, Utils.WELL_PLATE_96 );
 		final Img img = cachedCellImgs.create( );
 		final int[] cellDimensions = cachedCellImgs.getCellDimensions();
 
 		final PlateView plateView = new PlateView( img, cellDimensions, cellFileMap );
 		plateView.show();
+		*/
 
 	}
 

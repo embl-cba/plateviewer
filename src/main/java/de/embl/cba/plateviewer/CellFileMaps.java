@@ -8,11 +8,10 @@ import java.util.regex.Pattern;
 public abstract class CellFileMaps
 {
 
-	public static Map< String, File > create( String plateType, String directoryName )
+	public static ArrayList< Map< String, File > > create( String directoryName )
 	{
-		final Map< String, File > cellFileMap = new HashMap<>();
-
-		final long[] dimensions = getDimensions( plateType );
+		final ArrayList< Map< String, File > > cellFileMaps = new ArrayList<>(  );
+		cellFileMaps.add( new HashMap<>() );
 
 		final ArrayList< File > files = Utils.getFiles( directoryName );
 
@@ -20,13 +19,38 @@ public abstract class CellFileMaps
 		{
 			final String pattern = getPattern( file );
 
-			final int[] cell = getCell( file, pattern );
+			final String cell = Utils.getCellString( getCell( file, pattern ) );
 
-			cellFileMap.put( Utils.getCellString( cell ), file );
+			putCellToMaps( cellFileMaps, cell, file );
+
 		}
 
-		return cellFileMap;
+		return cellFileMaps;
 
+	}
+
+	public static void putCellToMaps( ArrayList< Map< String, File > > cellFileMaps,
+									  String cell,
+									  File file )
+	{
+		boolean cellCouldBePlaceInExistingMap = false;
+
+		for( int iMap = 0; iMap < cellFileMaps.size(); ++iMap )
+		{
+			if ( !cellFileMaps.get( iMap ).containsKey( cell ) )
+			{
+				cellFileMaps.get( iMap ).put( cell, file );
+				cellCouldBePlaceInExistingMap = true;
+				break;
+			}
+		}
+
+		if ( ! cellCouldBePlaceInExistingMap )
+		{
+			// new channel
+			cellFileMaps.add( new HashMap<>() );
+			cellFileMaps.get( cellFileMaps.size() - 1 ).put( cell, file );
+		}
 	}
 
 	public static String getPattern( File file )
