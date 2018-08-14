@@ -5,19 +5,19 @@ import ij.ImagePlus;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
 
+import java.io.File;
 import java.util.Map;
+import java.util.Set;
 
 public class PlateImgLoader implements CellLoader
 {
-	final long cellWidth;
-	final long cellHeight;
+	final int[] cellDimensions;
 	final int bitDepth;
-	final Map< long[], String > cellFileMap;
+	final Map< String, File > cellFileMap;
 
-	public PlateImgLoader( long cellWidth, long cellHeight, int bitDepth, Map< long[], String > cellFileMap )
+	public PlateImgLoader( int[] cellDimensions, int bitDepth, Map< String, File > cellFileMap )
 	{
-		this.cellWidth = cellWidth;
-		this.cellHeight = cellHeight;
+		this.cellDimensions = cellDimensions;
 		this.bitDepth = bitDepth;
 		this.cellFileMap = cellFileMap;
 	}
@@ -25,34 +25,40 @@ public class PlateImgLoader implements CellLoader
 	@Override
 	public void load( final SingleCellArrayImg cell ) throws Exception
 	{
-		final long[] position = { cell.min( 0 ) / cellWidth, cell.min( 1 ) / cellHeight };
+		final int[] position = new int[ 2 ];
 
-		if ( cellFileMap.containsKey( position ) )
+		for ( int d = 0; d < 2; ++d )
 		{
-			loadImageIntoCell( cell, cellFileMap.get( position ) );
+			position[ d ] = (int) cell.min( d ) / cellDimensions[ d ];
+		}
+
+		String key = Utils.getCellString( position );
+
+		if ( cellFileMap.containsKey( key ) )
+		{
+			loadImageIntoCell( cell, cellFileMap.get( key ) );
 		}
 
 	}
 
-	private void loadImageIntoCell( SingleCellArrayImg cell, String file )
+	private void loadImageIntoCell( SingleCellArrayImg cell, File file )
 	{
+		final ImagePlus imp = IJ.openImage( file.getAbsolutePath() );
+
 		if ( bitDepth == 8 )
 		{
-			final ImagePlus imp = IJ.openImage( file );
 			final byte[] impdata = ( byte[] ) imp.getProcessor().getPixels();
 			final byte[] celldata = ( byte[] ) cell.getStorageArray();
 			System.arraycopy( impdata, 0, celldata, 0, celldata.length );
 		}
 		else if ( bitDepth == 16 )
 		{
-			final ImagePlus imp = IJ.openImage( file );
 			final short[] impdata = ( short[] ) imp.getProcessor().getPixels();
 			final short[] celldata = ( short[] ) cell.getStorageArray();
 			System.arraycopy( impdata, 0, celldata, 0, celldata.length );
 		}
 		else if ( bitDepth == 32 )
 		{
-			final ImagePlus imp = IJ.openImage( file );
 			final float[] impdata = ( float[] ) imp.getProcessor().getPixels();
 			final float[] celldata = ( float[] ) cell.getStorageArray();
 			System.arraycopy( impdata, 0, celldata, 0, celldata.length );

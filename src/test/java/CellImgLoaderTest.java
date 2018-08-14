@@ -3,10 +3,7 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
 
-import net.imglib2.cache.img.CellLoader;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
-import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.cache.img.*;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 
@@ -51,7 +48,7 @@ public class CellImgLoaderTest
 		};
 
 		// create a CellImg with that CellLoader
-		final Img< UnsignedShortType > img = new ReadOnlyCachedCellImgFactory().create(
+		final CachedCellImg img = new ReadOnlyCachedCellImgFactory().create(
 				dimensions,
 				new UnsignedShortType(),
 				loader,
