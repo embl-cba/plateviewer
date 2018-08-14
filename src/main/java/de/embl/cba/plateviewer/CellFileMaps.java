@@ -14,7 +14,7 @@ public abstract class CellFileMaps
 
 		final long[] dimensions = getDimensions( plateType );
 
-		final ArrayList< File > files = getFiles( directoryName );
+		final ArrayList< File > files = Utils.getFiles( directoryName );
 
 		for ( File file : files )
 		{
@@ -68,35 +68,6 @@ public abstract class CellFileMaps
 
 	}
 
-
-	public static ArrayList< File > getFiles( String directoryName )
-	{
-		final ArrayList< File > files = new ArrayList<>();
-		populateFileList( directoryName, files );
-		return files;
-	}
-
-	public static void populateFileList( String directoryName, List<File> files) {
-
-		File directory = new File( directoryName );
-
-		// Get all the files from a directory.
-		File[] fList = directory.listFiles();
-		if( fList != null )
-		{
-			for (File file : fList)
-			{
-				if (file.isFile())
-				{
-					files.add(file);
-				}
-				else if (file.isDirectory())
-				{
-					populateFileList( file.getAbsolutePath(), files );
-				}
-			}
-		}
-	}
 
 	private static long[] getDimensions( String plateType )
 	{

@@ -2,10 +2,8 @@ package de.embl.cba.plateviewer;
 
 import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
-import ij.IJ;
 import net.imglib2.RealPoint;
 import net.imglib2.img.Img;
-import net.imglib2.util.Util;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -29,12 +27,20 @@ public class PlateView
 
 	public void show()
 	{
-		bdv = BdvFunctions.show( img, "", Bdv.options().is2D() );
-		addBehaviors();
+
+		bdv = BdvFunctions.show( img, "",
+				Bdv.options()
+						.is2D()
+						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
+
+		addAndChangeBdvBehaviors();
+
 	}
 
-	private void addBehaviors()
+	private void addAndChangeBdvBehaviors()
 	{
+
+
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "my-new-behaviours" );
 

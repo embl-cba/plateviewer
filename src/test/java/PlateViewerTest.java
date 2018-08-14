@@ -12,9 +12,14 @@ import java.util.Map;
 public class PlateViewerTest
 {
 
+	// TODO
+	// Naming schemes
+	// - ALMF_SCHEME: /Volumes/almfscreen/Sabine/CrispRCoating/Experiment_2018_08_07/24h/20180807_CrispR_20xd1_Dapi
+	// - SCAN_R: movies: /Volumes/almfscreen/Sabine/Temp_test_38gC_002/data
+
+
 	public static void main(String[] args) throws Exception
 	{
-
 		ImageJ.main( args );
 
 		String directoryName = "/Users/tischer/Documents/andrea-callegari-stitching--data/MolDev/2018-08-10-raw-test--processed/";
@@ -27,7 +32,6 @@ public class PlateViewerTest
 
 		final PlateView plateView = new PlateView( img, cellDimensions, cellFileMap );
 		plateView.show();
-
 
 	}
 

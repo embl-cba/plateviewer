@@ -2,6 +2,10 @@ package de.embl.cba.plateviewer;
 
 import ij.IJ;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Utils
 {
 
@@ -18,5 +22,34 @@ public class Utils
 	public static String getCellString( int[] cellPos )
 	{
 		return "" + cellPos[ 0] + "_" + cellPos[ 1 ];
+	}
+
+	public static ArrayList< File > getFiles( String directoryName )
+	{
+		final ArrayList< File > files = new ArrayList<>();
+		populateFileList( directoryName, files );
+		return files;
+	}
+
+	public static void populateFileList( String directoryName, List<File> files) {
+
+		File directory = new File( directoryName );
+
+		// Get all the files from a directory.
+		File[] fList = directory.listFiles();
+		if( fList != null )
+		{
+			for (File file : fList)
+			{
+				if (file.isFile())
+				{
+					files.add(file);
+				}
+				else if (file.isDirectory())
+				{
+					populateFileList( file.getAbsolutePath(), files );
+				}
+			}
+		}
 	}
 }
