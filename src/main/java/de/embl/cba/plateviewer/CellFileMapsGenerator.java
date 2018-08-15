@@ -1,5 +1,7 @@
 package de.embl.cba.plateviewer;
 
+import net.imglib2.ops.parse.token.Int;
+
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -125,6 +127,7 @@ public class CellFileMapsGenerator
 	public static int getNumWells( ArrayList< File > files )
 	{
 		Set< String > wells = new HashSet<>( );
+		int maxWellNum = 0;
 
 		for ( File file : files )
 		{
@@ -135,10 +138,29 @@ public class CellFileMapsGenerator
 			if ( matcher.matches() )
 			{
 				wells.add( matcher.group( 1 ) );
+
+				if ( pattern.equals( Utils.PATTERN_W0001_P000  ) )
+				{
+					int wellNum = Integer.parseInt( matcher.group( 1 ) );
+
+					if ( wellNum > maxWellNum )
+					{
+						maxWellNum = wellNum;
+					}
+				}
 			}
 		}
 
-		return wells.size();
+
+		if ( maxWellNum > wells.size() )
+		{
+			return maxWellNum;
+		}
+		else
+		{
+			return wells.size();
+		}
+
 	}
 
 	public static void putCellToMaps( ArrayList< Map< String, File > > cellFileMaps,
