@@ -2,6 +2,8 @@ package de.embl.cba.plateviewer;
 
 import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
+import bdv.util.BdvOptions;
+import bdv.util.BdvSource;
 import net.imglib2.RealPoint;
 import net.imglib2.img.Img;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -13,41 +15,62 @@ import java.util.Map;
 
 public class PlateView
 {
-	final Img img;
-	final int[] cellDimensions;
+	final int[] imageDimensions;
 	final Map< String, File > cellFileMap;
 	Bdv bdv;
 
-	public PlateView( Img img, int[] cellDimensions, Map< String, File > cellFileMap )
+	public PlateView( CachedPlateViewImg cachedPlateViewImg )
 	{
-		this.img = img;
-		this.cellDimensions = cellDimensions;
-		this.cellFileMap = cellFileMap;
+		this.imageDimensions = cachedPlateViewImg.getImageDimensions();
+		this.cellFileMap = cachedPlateViewImg.getCellFileMap();
+
+		addChannel( cachedPlateViewImg );
 	}
 
-	public void show()
+	private BdvSource initBdv( Img img, double[] lutMinMax )
 	{
 
-		bdv = BdvFunctions.show( img, "",
+		BdvSource bdvSource = BdvFunctions.show( img, "",
 				Bdv.options()
 						.is2D()
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 
+
+
+		bdv = bdvSource.getBdvHandle();
+
 		addAndChangeBdvBehaviors();
+
+		return bdvSource;
 
 	}
 
+	public void addChannel( CachedPlateViewImg cachedPlateViewImg )
+	{
+		BdvSource bdvSource;
+
+		if ( bdv == null )
+		{
+			bdvSource = initBdv( cachedPlateViewImg.getImg(), cachedPlateViewImg.getLutMinMax() );
+		}
+		else
+		{
+			bdvSource = BdvFunctions.show( cachedPlateViewImg.getImg(), "", BdvOptions.options().addTo( bdv ) );
+		}
+
+		bdvSource.setDisplayRange( cachedPlateViewImg.getLutMinMax()[ 0 ], cachedPlateViewImg.getLutMinMax()[ 1 ] );
+
+	}
+
+
 	private void addAndChangeBdvBehaviors()
 	{
-
-
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "my-new-behaviours" );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showImageName( );
 		}, "print image name", "P" );
-
 	}
 
 	private void showImageName( )
@@ -73,7 +96,7 @@ public class PlateView
 
 		for ( int d = 0; d < 2; ++d )
 		{
-			cellPos[ d ] = (int) ( position.getDoublePosition( d ) / cellDimensions[ d ] );
+			cellPos[ d ] = (int) ( position.getDoublePosition( d ) / imageDimensions[ d ] );
 		}
 
 		return cellPos;

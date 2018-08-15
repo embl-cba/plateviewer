@@ -8,18 +8,21 @@ import net.imglib2.cache.img.SingleCellArrayImg;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PlateImgLoader implements CellLoader
 {
 	final int[] cellDimensions;
 	final int bitDepth;
 	final Map< String, File > cellFileMap;
+	AtomicLong counter;
 
 	public PlateImgLoader( int[] cellDimensions, int bitDepth, Map< String, File > cellFileMap )
 	{
 		this.cellDimensions = cellDimensions;
 		this.bitDepth = bitDepth;
 		this.cellFileMap = cellFileMap;
+		this.counter = new AtomicLong( 0 );
 	}
 
 	@Override
@@ -36,6 +39,8 @@ public class PlateImgLoader implements CellLoader
 
 		if ( cellFileMap.containsKey( key ) )
 		{
+			Utils.debug( "PlateImgLoader counter: " + this.counter.incrementAndGet() );
+
 			loadImageIntoCell( cell, cellFileMap.get( key ) );
 		}
 

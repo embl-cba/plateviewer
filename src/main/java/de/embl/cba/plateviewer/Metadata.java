@@ -43,12 +43,12 @@ public class Metadata
 	{
 		try
 		{
-			// create OME-XML plateviewer store
+			// getImg OME-XML plateviewer store
 			ServiceFactory factory = new ServiceFactory();
 			OMEXMLService service = factory.getInstance( OMEXMLService.class );
 			meta = service.createOMEXMLMetadata();
 
-			// create format reader
+			// getImg format reader
 			reader = new ImageReader();
 			reader.setMetadataStore( meta );
 

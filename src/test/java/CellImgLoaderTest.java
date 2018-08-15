@@ -47,7 +47,7 @@ public class CellImgLoaderTest
 			}
 		};
 
-		// create a CellImg with that CellLoader
+		// getImg a CellImg with that CellLoader
 		final CachedCellImg img = new ReadOnlyCachedCellImgFactory().create(
 				dimensions,
 				new UnsignedShortType(),
