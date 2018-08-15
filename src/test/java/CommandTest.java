@@ -1,4 +1,4 @@
-import de.embl.cba.plateviewer.MetadataCommand;
+import de.embl.cba.plateviewer.PlateViewCommand;
 import net.imagej.ImageJ;
 
 public class CommandTest
@@ -10,7 +10,7 @@ public class CommandTest
 		ij.ui().showUI();
 
 		// invoke the plugin
-		ij.command().run( MetadataCommand.class, true );
+		ij.command().run( PlateViewCommand.class, true );
 	}
 
 }

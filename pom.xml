@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>fiji-plugin-plateViewer</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.00</version>
 
 	<name>Fiji Plugin PlateViewer</name>
 	<description>TODO</description>
@@ -136,11 +136,6 @@
 			<artifactId>bio-formats_plugins</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.yaml</groupId>
-			<artifactId>snakeyaml</artifactId>
-			<version>1.16</version>
-		</dependency>
 
 	</dependencies>
 

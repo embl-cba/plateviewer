@@ -70,7 +70,7 @@ public class PlateView
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showImageName( );
-		}, "print image name", "P" );
+		}, "log image info", "I" );
 	}
 
 	private void showImageName( )
