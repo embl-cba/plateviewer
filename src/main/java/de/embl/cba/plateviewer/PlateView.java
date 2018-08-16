@@ -4,6 +4,8 @@ import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
 import bdv.util.BdvSource;
+import bdv.util.volatiles.SharedQueue;
+import bdv.util.volatiles.VolatileViews;
 import net.imglib2.RealPoint;
 import net.imglib2.img.Img;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -17,12 +19,17 @@ public class PlateView
 {
 	final int[] imageDimensions;
 	final Map< String, File > cellFileMap;
+	final int numIoThreads;
+	final SharedQueue queue;
 	Bdv bdv;
 
-	public PlateView( CachedPlateViewImg cachedPlateViewImg )
+	public PlateView( CachedPlateViewImg cachedPlateViewImg, int numIoThreads )
 	{
 		this.imageDimensions = cachedPlateViewImg.getImageDimensions();
 		this.cellFileMap = cachedPlateViewImg.getCellFileMap();
+		this.numIoThreads = numIoThreads;
+
+		queue = new SharedQueue( numIoThreads );
 
 		addChannel( cachedPlateViewImg );
 	}
@@ -30,12 +37,13 @@ public class PlateView
 	private BdvSource initBdv( Img img, double[] lutMinMax )
 	{
 
-		BdvSource bdvSource = BdvFunctions.show( img, "",
+		BdvSource bdvSource = BdvFunctions.show(
+				VolatileViews.wrapAsVolatile( img, queue ),
+				"",
 				Bdv.options()
 						.is2D()
+						.doubleBuffered( false )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
-
-
 
 		bdv = bdvSource.getBdvHandle();
 
@@ -55,7 +63,10 @@ public class PlateView
 		}
 		else
 		{
-			bdvSource = BdvFunctions.show( cachedPlateViewImg.getImg(), "", BdvOptions.options().addTo( bdv ) );
+			bdvSource = BdvFunctions.show(
+					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getImg(), queue ),
+					"",
+					BdvOptions.options().addTo( bdv ) );
 		}
 
 		bdvSource.setDisplayRange( cachedPlateViewImg.getLutMinMax()[ 0 ], cachedPlateViewImg.getLutMinMax()[ 1 ] );

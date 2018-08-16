@@ -38,11 +38,11 @@ public class PlateViewerTest
 
 		for ( int channel = 0; channel < cellFileMaps.size(); ++channel )
 		{
-			final CachedPlateViewImg cachedPlateViewImg = new CachedPlateViewImg( cellFileMaps.get( channel ), wellDimensions, siteDimensions );
+			final CachedPlateViewImg cachedPlateViewImg = new CachedPlateViewImg( cellFileMaps.get( channel ), wellDimensions, siteDimensions, 5 );
 
 			if ( channel == 0 )
 			{
-				plateView = new PlateView( cachedPlateViewImg );
+				plateView = new PlateView( cachedPlateViewImg, 5 );
 			}
 			else
 			{

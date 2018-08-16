@@ -1,7 +1,6 @@
 package de.embl.cba.plateviewer;
 
 import org.scijava.command.Command;
-import org.scijava.command.CommandModule;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
 import org.scijava.plugin.Parameter;
@@ -26,7 +25,8 @@ public class PlateViewCommand implements Command
 	@Parameter (label = "Only load files matching" )
 	public String fileNameRegExp = ".*.tif";
 
-
+//	@Parameter (label = "Number of IO threads" )
+	public int numIoThreads = 1;
 
 	public void run()
 	{
@@ -40,11 +40,12 @@ public class PlateViewCommand implements Command
 
 		for ( int channel = 0; channel < cellFileMaps.size(); ++channel )
 		{
-			final CachedPlateViewImg cachedPlateViewImg = new CachedPlateViewImg( cellFileMaps.get( channel ), wellDimensions, siteDimensions );
+			final CachedPlateViewImg cachedPlateViewImg = new CachedPlateViewImg(
+					cellFileMaps.get( channel ), wellDimensions, siteDimensions, numIoThreads );
 
 			if ( channel == 0 )
 			{
-				plateView = new PlateView( cachedPlateViewImg );
+				plateView = new PlateView( cachedPlateViewImg, numIoThreads );
 			}
 			else
 			{

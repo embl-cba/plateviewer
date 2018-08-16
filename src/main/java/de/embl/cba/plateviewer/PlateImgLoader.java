@@ -7,7 +7,9 @@ import net.imglib2.cache.img.SingleCellArrayImg;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class PlateImgLoader implements CellLoader
@@ -15,14 +17,16 @@ public class PlateImgLoader implements CellLoader
 	final int[] cellDimensions;
 	final int bitDepth;
 	final Map< String, File > cellFileMap;
-	AtomicLong counter;
+	final int numIoThreads;
+	final ExecutorService executorService;
 
-	public PlateImgLoader( int[] cellDimensions, int bitDepth, Map< String, File > cellFileMap )
+	public PlateImgLoader( int[] cellDimensions, int bitDepth, Map< String, File > cellFileMap, int numIoThreads )
 	{
 		this.cellDimensions = cellDimensions;
 		this.bitDepth = bitDepth;
 		this.cellFileMap = cellFileMap;
-		this.counter = new AtomicLong( 0 );
+		this.numIoThreads = numIoThreads;
+		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
 	@Override
@@ -39,9 +43,14 @@ public class PlateImgLoader implements CellLoader
 
 		if ( cellFileMap.containsKey( key ) )
 		{
-			Utils.debug( "PlateImgLoader counter: " + this.counter.incrementAndGet() );
-
-			loadImageIntoCell( cell, cellFileMap.get( key ) );
+			executorService.submit( new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					loadImageIntoCell( cell, cellFileMap.get( key ) );
+				}
+			});
 		}
 
 	}

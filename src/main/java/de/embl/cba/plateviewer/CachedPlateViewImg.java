@@ -21,14 +21,16 @@ public class CachedPlateViewImg
 	private long[] dimensions;
 	private int[] imageDimensions;
 	private double[] lutMinMax;
+	private final int numIoThreads;
 
 	private int bitDepth;
 
-	public CachedPlateViewImg( Map< String, File > cellFileMap, int[] wellDimensions , int[] siteDimensions )
+	public CachedPlateViewImg( Map< String, File > cellFileMap, int[] wellDimensions, int[] siteDimensions, int numIoThreads )
 	{
 		this.cellFileMap = cellFileMap;
 		this.wellDimensions = wellDimensions;
 		this.siteDimensions = siteDimensions;
+		this.numIoThreads = numIoThreads;
 
 		setImageProperties();
 	}
@@ -100,7 +102,7 @@ public class CachedPlateViewImg
 
 	public CachedCellImg getImg( )
 	{
-		final PlateImgLoader loader = new PlateImgLoader( imageDimensions, bitDepth, cellFileMap );
+		final PlateImgLoader loader = new PlateImgLoader( imageDimensions, bitDepth, cellFileMap, numIoThreads );
 
 		switch ( bitDepth )
 		{
