@@ -20,7 +20,7 @@ public class PlateView
 	final int[] imageDimensions;
 	final Map< String, File > cellFileMap;
 	final int numIoThreads;
-	final SharedQueue queue;
+	final SharedQueue loadingQueue;
 	Bdv bdv;
 
 	public PlateView( CachedPlateViewImg cachedPlateViewImg, int numIoThreads )
@@ -29,7 +29,7 @@ public class PlateView
 		this.cellFileMap = cachedPlateViewImg.getCellFileMap();
 		this.numIoThreads = numIoThreads;
 
-		queue = new SharedQueue( numIoThreads );
+		loadingQueue = new SharedQueue( numIoThreads );
 
 		addChannel( cachedPlateViewImg );
 	}
@@ -38,7 +38,7 @@ public class PlateView
 	{
 
 		BdvSource bdvSource = BdvFunctions.show(
-				VolatileViews.wrapAsVolatile( img, queue ),
+				VolatileViews.wrapAsVolatile( img, loadingQueue ),
 				"",
 				Bdv.options()
 						.is2D()
@@ -64,7 +64,7 @@ public class PlateView
 		else
 		{
 			bdvSource = BdvFunctions.show(
-					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getImg(), queue ),
+					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getImg(), loadingQueue ),
 					"",
 					BdvOptions.options().addTo( bdv ) );
 		}

@@ -16,6 +16,8 @@ public class CellFileMapsGenerator
 	int numSites, numWells;
 	int[] siteDimensions;
 	int[] wellDimensions;
+	int[] maxWellDimensionsInData;
+	int[] maxSiteDimensionsInData;
 
 	final ArrayList< Map< String, File > > cellFileMaps;
 
@@ -23,7 +25,9 @@ public class CellFileMapsGenerator
 	{
 		this.directoryName = directoryName;
 		this.fileNameRegExp = fileNameRegExp;
-		this.cellFileMaps =  new ArrayList<>(  );
+		this.cellFileMaps =  new ArrayList<>();
+		this.maxWellDimensionsInData = new int[ 2 ];
+		this.maxSiteDimensionsInData = new int[ 2 ];
 		createCellFileMaps();
 	}
 
@@ -57,12 +61,12 @@ public class CellFileMapsGenerator
 		numWells = getNumWells( files );
 		wellDimensions = new int[ 2 ];
 
-		if ( numWells < 24 )
+		if ( numWells <= 24 )
 		{
 			wellDimensions[ 0 ] = 6;
 			wellDimensions[ 1 ] = 4;
 		}
-		else if ( numWells < 96  )
+		else if ( numWells <= 96  )
 		{
 			wellDimensions[ 0 ] = 12;
 			wellDimensions[ 1 ] = 8;
@@ -198,7 +202,7 @@ public class CellFileMapsGenerator
 	}
 
 
-	public static int[] getCell( File file, String pattern, int numWellColumns, int numSiteColumns )
+	public int[] getCell( File file, String pattern, int numWellColumns, int numSiteColumns )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -206,13 +210,16 @@ public class CellFileMapsGenerator
 
 		if ( matcher.matches() )
 		{
-			final int[] xy = new int[ 2 ];
+			int[] wellPosition = new int[ 2 ];
+			int[] sitePosition = new int[ 2 ];
 
 			if ( pattern.equals( Utils.PATTERN_A01 ) )
 			{
 				String well = matcher.group( 1 );
-				xy[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
-				xy[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
+
+				wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
+				wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
+
 			}
 			else if ( pattern.equals( Utils.PATTERN_W0001_P000 ) )
 			{
@@ -220,17 +227,20 @@ public class CellFileMapsGenerator
 				int wellNum = Integer.parseInt( matcher.group( 1 ) );
 				int siteNum = Integer.parseInt( matcher.group( 2 ) );
 
-				int wellY = wellNum / numWellColumns * numSiteColumns;
-				int wellX = wellNum % numWellColumns * numSiteColumns;
-				int siteY = siteNum / numSiteColumns;
-				int siteX = siteNum % numSiteColumns;
+				wellPosition[ 1 ] = wellNum / numWellColumns * numSiteColumns;
+				wellPosition[ 0 ] = wellNum % numWellColumns * numSiteColumns;
 
-				xy[ 0 ] = wellX + siteX;
-				xy[ 1 ] = wellY + siteY;
+				sitePosition[ 1 ] = siteNum / numSiteColumns;
+				sitePosition[ 0 ] = siteNum % numSiteColumns;
 
 			}
 
-			return xy;
+			updateMaxWellDimensionInData( wellPosition );
+			updateMaxSiteDimensionInData( sitePosition );
+
+			final int[] cellPosition = computeCellPosition( wellPosition, sitePosition );
+
+			return cellPosition;
 
 		}
 		else
@@ -238,6 +248,39 @@ public class CellFileMapsGenerator
 			return null;
 		}
 
+	}
+
+	public int[] computeCellPosition( int[] wellPosition, int[] sitePosition )
+	{
+		final int[] cellPosition = new int[ 2 ];
+
+		for ( int d = 0; d < 2; ++d )
+		{
+			cellPosition[ d ] = wellPosition[ d ] + sitePosition[ d ];
+		}
+		return cellPosition;
+	}
+
+	public void updateMaxWellDimensionInData( int[] wellPosition )
+	{
+		for ( int d = 0; d < 2; ++d )
+		{
+			if ( wellPosition[ d ] >= maxWellDimensionsInData[ d ] )
+			{
+				maxWellDimensionsInData[ d ] = wellPosition[ d ];
+			}
+		}
+	}
+
+	public void updateMaxSiteDimensionInData( int[] sitePosition )
+	{
+		for ( int d = 0; d < 2; ++d )
+		{
+			if ( sitePosition[ d ] >= maxSiteDimensionsInData[ d ] )
+			{
+				maxSiteDimensionsInData[ d ] = sitePosition[ d ];
+			}
+		}
 	}
 
 
