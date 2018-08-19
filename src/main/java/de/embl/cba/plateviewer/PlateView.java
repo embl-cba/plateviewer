@@ -1,14 +1,16 @@
 package de.embl.cba.plateviewer;
 
-import bdv.util.Bdv;
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
-import bdv.util.BdvSource;
+import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import net.imglib2.RealPoint;
 import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImg;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.img.basictypeaccess.array.LongArray;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.realtransform.Scale;
+import net.imglib2.type.logic.BitType;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -19,6 +21,8 @@ import java.util.Map;
 public class PlateView
 {
 	final int[] imageDimensions;
+	int[] bdvWindowDimensions;
+
 	final Map< String, File > cellFileMap;
 	final int numIoThreads;
 	final SharedQueue loadingQueue;
@@ -30,62 +34,90 @@ public class PlateView
 		this.cellFileMap = cachedPlateViewImg.getCellFileMap();
 		this.numIoThreads = numIoThreads;
 
+		setBdvWindowDimensions();
+
 		loadingQueue = new SharedQueue( numIoThreads );
 
 		addChannel( cachedPlateViewImg );
 
-//		zoomToCell( new int[]{ 0, 0 } );
+//		zoomToImage( new int[]{ 0, 0 } );
 
 	}
 
+	public void setBdvWindowDimensions()
+	{
+		bdvWindowDimensions = new int[ 2 ];
+		bdvWindowDimensions[ 0 ] = 800;
+		bdvWindowDimensions[ 1 ] = 800;
+	}
 
-	public void zoomToCell( int[] cellCoordinates )
+
+	public void zoomToImage( int[] imageCoordinates )
 	{
 
-		final AffineTransform3D affineTransform3D = getCellZoomTransform( cellCoordinates );
+		final AffineTransform3D affineTransform3D = getImageZoomTransform( imageCoordinates );
 
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
 
 	}
 
-	public AffineTransform3D getCellZoomTransform( int[] cellCoordinates )
+	public AffineTransform3D getImageZoomTransform( int[] imageCoordinates )
 	{
-		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-		affineTransform3D.scale( 1 );
-
-		double[] translation = new double[3];
+		int[] imageCenterCoordinatesInPixels = new int[ 2 ];
 
 		for( int d = 0; d < 2; ++d )
 		{
-			translation[ d ] = - cellCoordinates[ d ] * imageDimensions[ d ];
-//			translation[ d ] -= imageDimensions[ d ] / 2.0;
+			imageCenterCoordinatesInPixels[ d ] = imageCoordinates[ d ] * imageDimensions[ d ];
+			imageCenterCoordinatesInPixels[ d ] += imageDimensions[ d ] / 2.0;
 		}
 
-		affineTransform3D.translate( translation );
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-		affineTransform3D.scale( 1 );
+		double[] shiftToImage = new double[ 3 ];
+
+		for( int d = 0; d < 2; ++d )
+		{
+			shiftToImage[ d ] = -imageCenterCoordinatesInPixels[ d ];
+		}
+
+		affineTransform3D.translate( shiftToImage );
+
+		affineTransform3D.scale(  1.05 * bdvWindowDimensions[ 0 ] / imageDimensions[ 0 ] );
+
+		double[] shiftToBdvWindowCenter = new double[ 3 ];
+
+		for( int d = 0; d < 2; ++d )
+		{
+			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
+		}
+
+		affineTransform3D.translate( shiftToBdvWindowCenter );
 
 		return affineTransform3D;
 	}
 
 
-	private BdvSource initBdv( Img img, double[] lutMinMax )
+	private BdvSource initBdv( Img img )
 	{
 
+		// TODO:
+		// - first show overlay, then zoom in, then add channel
+
+		final ArrayImg< BitType, LongArray > dummyImageForInitialisation = ArrayImgs.bits( new long[]{ 100, 100 } );
+
 		BdvSource bdvSource = BdvFunctions.show(
-				VolatileViews.wrapAsVolatile( img, loadingQueue ),
+				dummyImageForInitialisation,
 				"",
 				Bdv.options()
 						.is2D()
 						.preferredSize( 800, 800 )
-						.sourceTransform( getCellZoomTransform( new int[]{ 0, 0} ) )
 						.doubleBuffered( false )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 
 		bdv = bdvSource.getBdvHandle();
 
-		zoomToCell( new int[]{ 0, 0 } );
+		zoomToImage( new int[]{ 0, 0 } );
 
 		setBdvBehaviors();
 
@@ -99,18 +131,19 @@ public class PlateView
 
 		if ( bdv == null )
 		{
-			bdvSource = initBdv( cachedPlateViewImg.getImg(), cachedPlateViewImg.getLutMinMax() );
+			bdvSource = initBdv( cachedPlateViewImg.getImg() );
 		}
-		else
-		{
+
+//		else
+//		{
 			bdvSource = BdvFunctions.show(
 					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getImg(), loadingQueue ),
 					"",
 					BdvOptions.options().addTo( bdv ) );
-		}
+//		}
 
 		bdvSource.setDisplayRange( cachedPlateViewImg.getLutMinMax()[ 0 ], cachedPlateViewImg.getLutMinMax()[ 1 ] );
-
+		
 	}
 
 
