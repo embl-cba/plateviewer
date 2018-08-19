@@ -38,9 +38,15 @@ public class PlateView
 
 		loadingQueue = new SharedQueue( numIoThreads );
 
+		final BdvSource tmpSource = initBdv();
+
 		addChannel( cachedPlateViewImg );
 
-//		zoomToImage( new int[]{ 0, 0 } );
+		tmpSource.removeFromBdv();
+
+		final int[] imagePos = Utils.getCellPos( cellFileMap.keySet().iterator().next() );
+
+		zoomToImage( imagePos );
 
 	}
 
@@ -98,7 +104,7 @@ public class PlateView
 	}
 
 
-	private BdvSource initBdv( Img img )
+	private BdvSource initBdv( )
 	{
 
 		// TODO:
@@ -127,23 +133,13 @@ public class PlateView
 
 	public void addChannel( CachedPlateViewImg cachedPlateViewImg )
 	{
-		BdvSource bdvSource;
-
-		if ( bdv == null )
-		{
-			bdvSource = initBdv( cachedPlateViewImg.getImg() );
-		}
-
-//		else
-//		{
-			bdvSource = BdvFunctions.show(
+		BdvSource bdvSource = BdvFunctions.show(
 					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getImg(), loadingQueue ),
 					"",
 					BdvOptions.options().addTo( bdv ) );
-//		}
 
 		bdvSource.setDisplayRange( cachedPlateViewImg.getLutMinMax()[ 0 ], cachedPlateViewImg.getLutMinMax()[ 1 ] );
-		
+
 	}
 
 

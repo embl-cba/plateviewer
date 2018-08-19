@@ -32,6 +32,20 @@ public class Utils
 		return "" + cellPos[ 0] + "_" + cellPos[ 1 ];
 	}
 
+	public static int[] getCellPos( String cellPosString )
+	{
+		int[] cellPos = new int[ 2 ];
+		final String[] split = cellPosString.split( "_" );
+
+		for ( int d = 0; d < 2; ++d )
+		{
+			cellPos[ d ] = Integer.parseInt( split[ d ] );
+		}
+
+		return cellPos;
+	}
+
+
 	public static ArrayList< File > getFiles( String directoryName, String fileNameRegExp )
 	{
 		final ArrayList< File > files = new ArrayList<>();
