@@ -8,6 +8,7 @@ import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import net.imglib2.RealPoint;
 import net.imglib2.img.Img;
+import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -32,7 +33,42 @@ public class PlateView
 		loadingQueue = new SharedQueue( numIoThreads );
 
 		addChannel( cachedPlateViewImg );
+
+//		zoomToCell( new int[]{ 0, 0 } );
+
 	}
+
+
+	public void zoomToCell( int[] cellCoordinates )
+	{
+
+		final AffineTransform3D affineTransform3D = getCellZoomTransform( cellCoordinates );
+
+		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
+
+	}
+
+	public AffineTransform3D getCellZoomTransform( int[] cellCoordinates )
+	{
+		final AffineTransform3D affineTransform3D = new AffineTransform3D();
+
+		affineTransform3D.scale( 1 );
+
+		double[] translation = new double[3];
+
+		for( int d = 0; d < 2; ++d )
+		{
+			translation[ d ] = - cellCoordinates[ d ] * imageDimensions[ d ];
+//			translation[ d ] -= imageDimensions[ d ] / 2.0;
+		}
+
+		affineTransform3D.translate( translation );
+
+		affineTransform3D.scale( 1 );
+
+		return affineTransform3D;
+	}
+
 
 	private BdvSource initBdv( Img img, double[] lutMinMax )
 	{
@@ -42,12 +78,16 @@ public class PlateView
 				"",
 				Bdv.options()
 						.is2D()
+						.preferredSize( 800, 800 )
+						.sourceTransform( getCellZoomTransform( new int[]{ 0, 0} ) )
 						.doubleBuffered( false )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 
 		bdv = bdvSource.getBdvHandle();
 
-		addAndChangeBdvBehaviors();
+		zoomToCell( new int[]{ 0, 0 } );
+
+		setBdvBehaviors();
 
 		return bdvSource;
 
@@ -74,7 +114,7 @@ public class PlateView
 	}
 
 
-	private void addAndChangeBdvBehaviors()
+	private void setBdvBehaviors()
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "my-new-behaviours" );

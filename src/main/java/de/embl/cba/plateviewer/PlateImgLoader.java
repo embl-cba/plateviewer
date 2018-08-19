@@ -57,6 +57,8 @@ public class PlateImgLoader implements CellLoader
 
 	private void loadImageIntoCell( SingleCellArrayImg cell, File file )
 	{
+		Utils.debug( "Loading: " + file.getName() );
+
 		final ImagePlus imp = IJ.openImage( file.getAbsolutePath() );
 
 		if ( bitDepth == 8 )
