@@ -3,6 +3,7 @@ package de.embl.cba.multipositionviewer;
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
+import net.imglib2.FinalInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
@@ -25,7 +26,7 @@ public class MultiPositionViewer
 	int[] imageDimensions;
 	int[] bdvWindowDimensions;
 
-	final Bdv bdv;
+	Bdv bdv;
 
 	public MultiPositionViewer( MultiPositionImagesSource source, int numIoThreads )
 	{
@@ -37,7 +38,7 @@ public class MultiPositionViewer
 
 		loadingQueue = new SharedQueue( numIoThreads );
 
-		this.bdv = createBdv( source );
+		setBdv( source );
 
 	}
 
@@ -49,17 +50,16 @@ public class MultiPositionViewer
 	}
 
 
-	public void zoomToImage( long[] imageCoordinates, int[] imageDimensions )
+	public void zoomToImage( FinalInterval interval )
 	{
-
-		final AffineTransform3D affineTransform3D = getImageZoomTransform( imageCoordinates, imageDimensions );
+		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
 
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
 
 	}
 
 
-	public AffineTransform3D getImageZoomTransform( long[] imageCenterCoordinates, int[] imageDimensions )
+	public AffineTransform3D getImageZoomTransform( FinalInterval interval )
 	{
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
@@ -68,12 +68,12 @@ public class MultiPositionViewer
 
 		for( int d = 0; d < 2; ++d )
 		{
-			shiftToImage[ d ] = -imageCenterCoordinates[ d ];
+			shiftToImage[ d ] = - ( interval.min( d ) + interval.dimension( d ) / 2.0 ) ;
 		}
 
 		affineTransform3D.translate( shiftToImage );
 
-		affineTransform3D.scale(  1.05 * bdvWindowDimensions[ 0 ] / imageDimensions[ 0 ] );
+		affineTransform3D.scale(  1.05 * bdvWindowDimensions[ 0 ] / interval.dimension( 0 ) );
 
 		double[] shiftToBdvWindowCenter = new double[ 3 ];
 
@@ -100,7 +100,7 @@ public class MultiPositionViewer
 	}
 
 
-	private Bdv createBdv( MultiPositionImagesSource source )
+	private void setBdv( MultiPositionImagesSource source )
 	{
 
 		// TODO:
@@ -117,17 +117,15 @@ public class MultiPositionViewer
 						.doubleBuffered( false )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 
-		Bdv bdv = bdvTmpSource.getBdvHandle();
+		bdv = bdvTmpSource.getBdvHandle();
+
+		zoomToImage( source.getImageFile( 0 ).getInterval() );
 
 		addSourceToBdv( source );
 
 		bdvTmpSource.removeFromBdv();
 
-		zoomToImage( source.getImageFile( 0 ).centerCoordinates, source.getImageFile( 0 ).dimensions );
-
 		setBdvBehaviors();
-
-		return bdv;
 
 	}
 

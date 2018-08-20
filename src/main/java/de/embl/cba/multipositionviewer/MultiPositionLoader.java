@@ -2,8 +2,12 @@ package de.embl.cba.multipositionviewer;
 
 import ij.IJ;
 import ij.ImagePlus;
+import net.imglib2.FinalInterval;
+import net.imglib2.Interval;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.util.Intervals;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,7 +23,7 @@ public class MultiPositionLoader implements CellLoader
 	final int numIoThreads;
 	final ExecutorService executorService;
 
-	final ArrayList< ImageFile > imageFileList;
+	final ArrayList< ImageFile > imageFiles;
 
 	public MultiPositionLoader( ArrayList< File > files, String multipositionFilenamePattern, int[] imageDimensions, int bitDepth, int numIoThreads )
 	{
@@ -33,20 +37,24 @@ public class MultiPositionLoader implements CellLoader
 		if ( multipositionFilenamePattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 		{
 			ImageFileListGeneratorALMFScreening ImageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
-			imageFileList = ImageFileListGeneratorALMFScreening.getList();
+			imageFiles = ImageFileListGeneratorALMFScreening.getList();
 		}
 		else
 		{
-			imageFileList = null;
+			imageFiles = null;
 		}
 
 	}
 
 	public ImageFile getImageFile( int index )
 	{
-		return imageFileList.get( index );
+		return imageFiles.get( index );
 	}
 
+	public ArrayList< ImageFile > getImageFiles()
+	{
+		return imageFiles;
+	}
 
 	@Override
 	public void load( final SingleCellArrayImg cell ) throws Exception
@@ -70,25 +78,52 @@ public class MultiPositionLoader implements CellLoader
 
 	private ImageFile getImageFile( SingleCellArrayImg cell )
 	{
+		Interval requestedInterval = Intervals.largestContainedInterval( cell );
 
-		long[] coordinates = new long[ 2 ];
-		cell.min( coordinates );
+		for ( ImageFile imageFile : imageFiles )
+		{
+			FinalInterval imageInterval = imageFile.getInterval();
+			FinalInterval intersect = Intervals.intersect( requestedInterval, imageInterval );
 
-		return getImageFile( coordinates );
+			int n = intersect.numDimensions();
 
+			boolean isIntersecting = true;
+
+			for ( int d = 0; d < n; ++d )
+			{
+				if ( intersect.dimension( d ) <= 0 )
+				{
+					isIntersecting = false;
+				}
+			}
+
+			if ( isIntersecting )
+			{
+				return imageFile;
+			}
+		}
+
+		return null;
 	}
 
 	public ImageFile getImageFile( long[] coordinates )
 	{
-		for ( ImageFile imageFile : imageFileList )
+		for ( ImageFile imageFile : imageFiles )
 		{
-			boolean matches = true;
+			boolean matches = false;
 
-			for ( int d = 0; d < 2; ++d )
+			FinalInterval interval = imageFile.getInterval();
+
+			for ( int d = 0; d < interval.numDimensions(); ++d )
 			{
-				if ( ! ( imageFile.centerCoordinates[ d ] >= coordinates[ d ] && imageFile.centerCoordinates[ d ] <= coordinates[ d ] ) )
+				if ( interval.min( d ) <= coordinates[ d ] && coordinates[ d ] <= interval.max( d ) )
+				{
+					matches = true;
+				}
+				else
 				{
 					matches = false;
+					break;
 				}
 			}
 

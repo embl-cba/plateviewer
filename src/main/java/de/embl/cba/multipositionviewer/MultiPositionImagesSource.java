@@ -2,14 +2,14 @@ package de.embl.cba.multipositionviewer;
 
 import ij.IJ;
 import ij.ImagePlus;
+import net.imglib2.FinalInterval;
 import net.imglib2.cache.img.CachedCellImg;
-import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Intervals;
 
 import java.io.File;
 import java.util.*;
@@ -31,13 +31,16 @@ public class MultiPositionImagesSource
 	private int bitDepth;
 
 	final ArrayList< File > files;
-	final String fileNamePattern;
+	final String filenamePattern;
 	final MultiPositionLoader loader;
 
-	public MultiPositionImagesSource( ArrayList< File > files, String multipositionFilenamePattern  )
+	final int numIoThreads;
+
+	public MultiPositionImagesSource( ArrayList< File > files, String filenamePattern, int numIoThreads )
 	{
 		this.files = files;
-		this.fileNamePattern = multipositionFilenamePattern;
+		this.filenamePattern = filenamePattern;
+		this.numIoThreads = numIoThreads;
 
 		setImageProperties();
 
@@ -46,11 +49,35 @@ public class MultiPositionImagesSource
 		this.maxWellDimensionsInData = new int[ 2 ];
 		this.maxSiteDimensionsInData = new int[ 2 ];
 
+		setMultiPositionViewDimensions();
+
+
+	}
+
+	public void setMultiPositionViewDimensions()
+	{
+		final ArrayList< ImageFile > imageFiles = loader.getImageFiles();
+
+		FinalInterval union = new FinalInterval( imageFiles.get( 0 ).getInterval() );
+
+		for ( ImageFile imageFile : imageFiles )
+		{
+			union = Intervals.union( imageFile.getInterval(), union );
+		}
+
+		// TODO: better making this smaller and with an offset...
+
+		dimensions = new long[ 2 ];
+
+		for ( int d = 0; d < 2; ++d )
+		{
+			dimensions[ d ] = union.max( d );
+		}
 	}
 
 	private MultiPositionLoader createMultiPositionLoader()
 	{
-		MultiPositionLoader loader = new MultiPositionLoader( files, multipositionFilenamePattern, imageDimensions, bitDepth, numIoThreads );
+		MultiPositionLoader loader = new MultiPositionLoader( files, filenamePattern, imageDimensions, bitDepth, numIoThreads );
 
 		return loader;
 	}
@@ -72,17 +99,8 @@ public class MultiPositionImagesSource
 
 	public ImageFile getImageFile( long[] coordinates )
 	{
-		return loader.getImageFile( index );
+		return loader.getImageFile( coordinates );
 	}
-
-	public void getImageCenterCoordinates( long[] imageCoordinates, int[] imageDimensions )
-	{
-		final AffineTransform3D affineTransform3D = getImageZoomTransform( imageCoordinates, imageDimensions );
-
-		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
-	}
-
-
 
 	private void setImageProperties()
 	{
@@ -105,9 +123,7 @@ public class MultiPositionImagesSource
 
 	private ImagePlus getFirstImage()
 	{
-		final String next = cellFileMap.keySet().iterator().next();
-		File file = cellFileMap.get( next );
-		return IJ.openImage( file.getAbsolutePath() );
+		return IJ.openImage( files.get( 0 ).getAbsolutePath() );
 	}
 
 	private void setImageBitDepth( ImagePlus imagePlus )
@@ -120,13 +136,6 @@ public class MultiPositionImagesSource
 		imageDimensions = new int[ 2 ];
 		imageDimensions[ 0 ] = imagePlus.getWidth();
 		imageDimensions[ 1 ] = imagePlus.getHeight();
-
-		dimensions = new long[ 2 ];
-
-		for ( int d = 0; d < 2; ++d )
-		{
-			dimensions[ d ] = imageDimensions[ d ] * wellDimensions[ d ] * siteDimensions[ d ];
-		}
 	}
 
 	public CachedCellImg getCachedCellImg( )

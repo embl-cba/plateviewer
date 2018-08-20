@@ -1,5 +1,7 @@
 package de.embl.cba.multipositionviewer;
 
+import net.imglib2.FinalInterval;
+
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -19,7 +21,7 @@ public class ImageFileListGeneratorALMFScreening
 
 	final ArrayList< ImageFile > list;
 
-	final String multipositionFilenamePattern = Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
+	final String filenamePattern = Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
 	public ImageFileListGeneratorALMFScreening( ArrayList< File > files, int[] imageDimensions )
 	{
@@ -56,9 +58,7 @@ public class ImageFileListGeneratorALMFScreening
 			final ImageFile imageFile = new ImageFile();
 
 			imageFile.file = file;
-			imageFile.centerCoordinates = getCenterCoordinates( file, multipositionFilenamePattern, wellDimensions[ 0 ], siteDimensions[ 0 ] );
-			imageFile.dimensions = imageDimensions;
-
+			imageFile.interval = getInterval( file, filenamePattern, wellDimensions[ 0 ], siteDimensions[ 0 ] );
 			list.add( imageFile );
 
 		}
@@ -118,7 +118,7 @@ public class ImageFileListGeneratorALMFScreening
 
 			if ( matcher.matches() )
 			{
-				if ( multipositionFilenamePattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+				if ( filenamePattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 				{
 					sites.add( matcher.group( 2 ) );
 				}
@@ -143,7 +143,9 @@ public class ImageFileListGeneratorALMFScreening
 
 		for ( File file : files )
 		{
-			final Matcher matcher = Pattern.compile( multipositionFilenamePattern ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( filenamePattern ).matcher( file.getName() );
+
+			matcher.matches();
 
 			wells.add( matcher.group( 1 ) );
 
@@ -168,7 +170,7 @@ public class ImageFileListGeneratorALMFScreening
 	}
 
 
-	public long[] getCenterCoordinates( File file, String pattern, int numWellColumns, int numSiteColumns )
+	public FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -191,9 +193,14 @@ public class ImageFileListGeneratorALMFScreening
 			updateMaxWellDimensionInData( wellPosition );
 			updateMaxSiteDimensionInData( sitePosition );
 
-			final long[] centerCoordinates = computeCenterCoordinates( wellPosition, sitePosition );
+			final long[] min = computeMinCoordinates( wellPosition, sitePosition );
+			final long[] max = new long[ min.length ];
+			for ( int d = 0; d < min.length; ++d )
+			{
+				max[ d ] = min[ d ] + imageDimensions[ d ] - 1;
+			}
 
-			return centerCoordinates;
+			return new FinalInterval( min, max );
 
 		}
 		else
@@ -203,17 +210,17 @@ public class ImageFileListGeneratorALMFScreening
 
 	}
 
-	public long[] computeCenterCoordinates( int[] wellPosition, int[] sitePosition )
+	public long[] computeMinCoordinates( int[] wellPosition, int[] sitePosition )
 	{
-		final long[] center = new long[ 2 ];
+		final long[] min = new long[ 2 ];
 
 		for ( int d = 0; d < 2; ++d )
 		{
-			center[ d ] = wellPosition[ d ] + sitePosition[ d ];
-			center[ d ] *= imageDimensions[ d ];
+			min[ d ] = wellPosition[ d ] + sitePosition[ d ];
+			min[ d ] *= imageDimensions[ d ];
 		}
 
-		return center;
+		return min;
 	}
 
 	public void updateMaxWellDimensionInData( int[] wellPosition )
