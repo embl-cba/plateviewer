@@ -1,4 +1,4 @@
-import de.embl.cba.plateviewer.PlateViewCommand;
+import de.embl.cba.multipositionviewer.MultiPositionViewerCommand;
 import net.imagej.ImageJ;
 
 public class CommandTest
@@ -10,7 +10,7 @@ public class CommandTest
 		ij.ui().showUI();
 
 		// invoke the plugin
-		ij.command().run( PlateViewCommand.class, true );
+		ij.command().run( MultiPositionViewerCommand.class, true );
 	}
 
 }

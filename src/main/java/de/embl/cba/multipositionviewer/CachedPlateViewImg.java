@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.multipositionviewer;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -100,9 +100,9 @@ public class CachedPlateViewImg
 		}
 	}
 
-	public CachedCellImg getImg( )
+	public CachedCellImg getCachedCellImg( )
 	{
-		final PlateImgLoader loader = new PlateImgLoader( imageDimensions, bitDepth, cellFileMap, numIoThreads );
+		final MultiPositionLoader loader = new MultiPositionLoader( imageDimensions, bitDepth, cellFileMap, numIoThreads );
 
 		switch ( bitDepth )
 		{

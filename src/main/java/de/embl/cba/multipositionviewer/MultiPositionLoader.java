@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.multipositionviewer;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -7,12 +7,10 @@ import net.imglib2.cache.img.SingleCellArrayImg;
 
 import java.io.File;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class PlateImgLoader implements CellLoader
+public class MultiPositionLoader implements CellLoader
 {
 	final int[] cellDimensions;
 	final int bitDepth;
@@ -20,7 +18,7 @@ public class PlateImgLoader implements CellLoader
 	final int numIoThreads;
 	final ExecutorService executorService;
 
-	public PlateImgLoader( int[] cellDimensions, int bitDepth, Map< String, File > cellFileMap, int numIoThreads )
+	public MultiPositionLoader( int[] cellDimensions, int bitDepth, Map< String, File > cellFileMap, int numIoThreads )
 	{
 		this.cellDimensions = cellDimensions;
 		this.bitDepth = bitDepth;
@@ -29,35 +27,56 @@ public class PlateImgLoader implements CellLoader
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
+
 	@Override
 	public void load( final SingleCellArrayImg cell ) throws Exception
 	{
-		final int[] position = new int[ 2 ];
+		File file = getFile( cell );
 
-		for ( int d = 0; d < 2; ++d )
-		{
-			position[ d ] = (int) cell.min( d ) / cellDimensions[ d ];
-		}
-
-		String key = Utils.getCellString( position );
-
-		if ( cellFileMap.containsKey( key ) )
+		if ( file != null )
 		{
 			executorService.submit( new Runnable()
 			{
 				@Override
 				public void run()
 				{
-					loadImageIntoCell( cell, cellFileMap.get( key ) );
+					loadImageIntoCell( cell, file );
 				}
 			});
 		}
 
 	}
 
+	public File getFile( SingleCellArrayImg cell )
+	{
+		final int[] position = new int[ 2 ];
+
+		for ( int d = 0; d < 2; ++d )
+		{
+			position[ d ] = (int) ( cell.min( d ) / cell.dimension( d ) );
+		}
+
+		String key = Utils.getCellString( position );
+
+		File file;
+
+		if ( cellFileMap.containsKey( key ) )
+		{
+			file = cellFileMap.get( key );
+		}
+		else
+		{
+			file = null;
+		}
+		return file;
+	}
+
+
 	private void loadImageIntoCell( SingleCellArrayImg cell, File file )
 	{
 		Utils.debug( "Loading: " + file.getName() );
+
+		// TODO: check for the data type of the loaded cell (cell.getFirstElement())
 
 		final ImagePlus imp = IJ.openImage( file.getAbsolutePath() );
 

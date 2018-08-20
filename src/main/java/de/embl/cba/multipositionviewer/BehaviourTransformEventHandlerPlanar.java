@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.multipositionviewer;
 
 import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.ClickBehaviour;

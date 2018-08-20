@@ -1,15 +1,13 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.multipositionviewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import net.imglib2.RealPoint;
-import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.LongArray;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.Scale;
 import net.imglib2.type.logic.BitType;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -18,7 +16,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 import java.io.File;
 import java.util.Map;
 
-public class PlateView
+public class MultiPositionViewer
 {
 	final int[] imageDimensions;
 	int[] bdvWindowDimensions;
@@ -28,7 +26,7 @@ public class PlateView
 	final SharedQueue loadingQueue;
 	Bdv bdv;
 
-	public PlateView( CachedPlateViewImg cachedPlateViewImg, int numIoThreads )
+	public MultiPositionViewer( CachedPlateViewImg cachedPlateViewImg, int numIoThreads )
 	{
 		this.imageDimensions = cachedPlateViewImg.getImageDimensions();
 		this.cellFileMap = cachedPlateViewImg.getCellFileMap();
@@ -67,16 +65,10 @@ public class PlateView
 
 	}
 
-	public AffineTransform3D getImageZoomTransform( int[] imageCoordinates )
+	public AffineTransform3D getImageZoomTransform( int[] imageIndex )
 	{
 
-		int[] imageCenterCoordinatesInPixels = new int[ 2 ];
-
-		for( int d = 0; d < 2; ++d )
-		{
-			imageCenterCoordinatesInPixels[ d ] = imageCoordinates[ d ] * imageDimensions[ d ];
-			imageCenterCoordinatesInPixels[ d ] += imageDimensions[ d ] / 2.0;
-		}
+		int[] imageCenterCoordinatesInPixels = getImageCenterCoordinates( imageIndex );
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
@@ -101,6 +93,18 @@ public class PlateView
 		affineTransform3D.translate( shiftToBdvWindowCenter );
 
 		return affineTransform3D;
+	}
+
+	public int[] getImageCenterCoordinates( int[] imageCoordinates )
+	{
+		int[] imageCenterCoordinatesInPixels = new int[ 2 ];
+
+		for( int d = 0; d < 2; ++d )
+		{
+			imageCenterCoordinatesInPixels[ d ] = imageCoordinates[ d ] * imageDimensions[ d ];
+			imageCenterCoordinatesInPixels[ d ] += imageDimensions[ d ] / 2.0;
+		}
+		return imageCenterCoordinatesInPixels;
 	}
 
 
@@ -134,7 +138,7 @@ public class PlateView
 	public void addChannel( CachedPlateViewImg cachedPlateViewImg )
 	{
 		BdvSource bdvSource = BdvFunctions.show(
-					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getImg(), loadingQueue ),
+					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getCachedCellImg(), loadingQueue ),
 					"",
 					BdvOptions.options().addTo( bdv ) );
 

@@ -1,17 +1,15 @@
-package de.embl.cba.plateviewer;
-
-import net.imglib2.ops.parse.token.Int;
+package de.embl.cba.multipositionviewer;
 
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CellFileMapsGenerator
+public class MultiPositionImagesSource
 {
 
 	final String directoryName;
-	final String fileNameRegExp;
+
 
 	int numSites, numWells;
 	int[] siteDimensions;
@@ -19,30 +17,35 @@ public class CellFileMapsGenerator
 	int[] maxWellDimensionsInData;
 	int[] maxSiteDimensionsInData;
 
-	final ArrayList< Map< String, File > > cellFileMaps;
+	final ArrayList< Map< String, File > > fileMap;
+	final ArrayList< File > files;
+	final String fileNamePattern;
 
-	public CellFileMapsGenerator( String directoryName, String fileNameRegExp )
+	public MultiPositionImagesSource( ArrayList< File > files, String filenamePattern  )
 	{
-		this.directoryName = directoryName;
-		this.fileNameRegExp = fileNameRegExp;
-		this.cellFileMaps =  new ArrayList<>();
+		this.files = files;
+		this.fileNamePattern = filenamePattern;
+
+		this.directoryName = null;
+		this.fileMap =  new ArrayList<>();
 		this.maxWellDimensionsInData = new int[ 2 ];
 		this.maxSiteDimensionsInData = new int[ 2 ];
 		createCellFileMaps();
 	}
 
-	public ArrayList< Map< String, File > > getCellFileMaps()
+	public ArrayList< Map< String, File > > getFileMap()
 	{
-		return cellFileMaps;
+		return fileMap;
 	}
 
 	public void createCellFileMaps()
 	{
-		cellFileMaps.add( new HashMap<>() );
+		fileMap.add( new HashMap<>() );
 
-		final ArrayList< File > files = Utils.getFiles( directoryName, fileNameRegExp );
+		final ArrayList< File > files = Utils.getFileList( directoryName, fileNameRegExp );
 
 		configWells( files );
+
 		configSites( files );
 
 		for ( File file : files )
@@ -51,7 +54,7 @@ public class CellFileMapsGenerator
 
 			final String cell = Utils.getCellString( getCell( file, pattern, wellDimensions[ 0 ], siteDimensions[ 0 ] ) );
 
-			putCellToMaps( cellFileMaps, cell, file );
+			putCellToMaps( fileMap, cell, file );
 
 		}
 	}
@@ -110,7 +113,7 @@ public class CellFileMapsGenerator
 
 			if ( matcher.matches() )
 			{
-				if ( pattern.equals( Utils.PATTERN_W0001_P000 ) )
+				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 				{
 					sites.add( matcher.group( 2 ) );
 				}
@@ -143,7 +146,7 @@ public class CellFileMapsGenerator
 			{
 				wells.add( matcher.group( 1 ) );
 
-				if ( pattern.equals( Utils.PATTERN_W0001_P000  ) )
+				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 				{
 					int wellNum = Integer.parseInt( matcher.group( 1 ) );
 
@@ -196,7 +199,7 @@ public class CellFileMapsGenerator
 		String filePath = file.getAbsolutePath();
 
 		if ( Pattern.compile( Utils.PATTERN_A01 ).matcher( filePath ).matches() ) return Utils.PATTERN_A01;
-		if ( Pattern.compile( Utils.PATTERN_W0001_P000 ).matcher( filePath ).matches() ) return Utils.PATTERN_W0001_P000;
+		if ( Pattern.compile( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
 		return Utils.PATTERN_NO_MATCH;
 	}
@@ -221,7 +224,7 @@ public class CellFileMapsGenerator
 				wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
 
 			}
-			else if ( pattern.equals( Utils.PATTERN_W0001_P000 ) )
+			else if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 			{
 
 				int wellNum = Integer.parseInt( matcher.group( 1 ) );
