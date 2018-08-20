@@ -6,69 +6,100 @@ import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
 
 import java.io.File;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MultiPositionLoader implements CellLoader
 {
-	final int[] cellDimensions;
+	final ArrayList< File > files;
+	final String multipositionFilenamePattern;
+	final int[] imageDimensions;
 	final int bitDepth;
-	final Map< String, File > cellFileMap;
 	final int numIoThreads;
 	final ExecutorService executorService;
 
-	public MultiPositionLoader( int[] cellDimensions, int bitDepth, Map< String, File > cellFileMap, int numIoThreads )
+	final ArrayList< ImageFile > imageFileList;
+
+	public MultiPositionLoader( ArrayList< File > files, String multipositionFilenamePattern, int[] imageDimensions, int bitDepth, int numIoThreads )
 	{
-		this.cellDimensions = cellDimensions;
+		this.files = files;
+		this.multipositionFilenamePattern = multipositionFilenamePattern;
+		this.imageDimensions = imageDimensions;
 		this.bitDepth = bitDepth;
-		this.cellFileMap = cellFileMap;
 		this.numIoThreads = numIoThreads;
 		executorService = Executors.newFixedThreadPool( numIoThreads );
+
+		if ( multipositionFilenamePattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+		{
+			ImageFileListGeneratorALMFScreening ImageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
+			imageFileList = ImageFileListGeneratorALMFScreening.getList();
+		}
+		else
+		{
+			imageFileList = null;
+		}
+
+	}
+
+	public ImageFile getImageFile( int index )
+	{
+		return imageFileList.get( index );
 	}
 
 
 	@Override
 	public void load( final SingleCellArrayImg cell ) throws Exception
 	{
-		File file = getFile( cell );
+		ImageFile imageFile = getImageFile( cell );
 
-		if ( file != null )
+		if ( imageFile != null )
 		{
 			executorService.submit( new Runnable()
 			{
 				@Override
 				public void run()
 				{
-					loadImageIntoCell( cell, file );
+					loadImageIntoCell( cell, imageFile.file );
 				}
 			});
 		}
 
 	}
 
-	public File getFile( SingleCellArrayImg cell )
+
+	private ImageFile getImageFile( SingleCellArrayImg cell )
 	{
-		final int[] position = new int[ 2 ];
 
-		for ( int d = 0; d < 2; ++d )
+		long[] coordinates = new long[ 2 ];
+		cell.min( coordinates );
+
+		return getImageFile( coordinates );
+
+	}
+
+	public ImageFile getImageFile( long[] coordinates )
+	{
+		for ( ImageFile imageFile : imageFileList )
 		{
-			position[ d ] = (int) ( cell.min( d ) / cell.dimension( d ) );
+			boolean matches = true;
+
+			for ( int d = 0; d < 2; ++d )
+			{
+				if ( ! ( imageFile.centerCoordinates[ d ] >= coordinates[ d ] && imageFile.centerCoordinates[ d ] <= coordinates[ d ] ) )
+				{
+					matches = false;
+				}
+			}
+
+			if ( matches )
+			{
+				return imageFile;
+			}
+
 		}
 
-		String key = Utils.getCellString( position );
-
-		File file;
-
-		if ( cellFileMap.containsKey( key ) )
-		{
-			file = cellFileMap.get( key );
-		}
-		else
-		{
-			file = null;
-		}
-		return file;
+		return null;
 	}
 
 

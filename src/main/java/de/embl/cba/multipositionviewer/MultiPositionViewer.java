@@ -13,38 +13,31 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
-import java.io.File;
-import java.util.Map;
+import java.util.ArrayList;
 
 public class MultiPositionViewer
 {
-	final int[] imageDimensions;
-	int[] bdvWindowDimensions;
 
-	final Map< String, File > cellFileMap;
+	final ArrayList< MultiPositionImagesSource > multiPositionImagesSources;
 	final int numIoThreads;
 	final SharedQueue loadingQueue;
-	Bdv bdv;
 
-	public MultiPositionViewer( CachedPlateViewImg cachedPlateViewImg, int numIoThreads )
+	int[] imageDimensions;
+	int[] bdvWindowDimensions;
+
+	final Bdv bdv;
+
+	public MultiPositionViewer( MultiPositionImagesSource source, int numIoThreads )
 	{
-		this.imageDimensions = cachedPlateViewImg.getImageDimensions();
-		this.cellFileMap = cachedPlateViewImg.getCellFileMap();
+		this.multiPositionImagesSources = new ArrayList<>();
+		multiPositionImagesSources.add( source );
 		this.numIoThreads = numIoThreads;
 
 		setBdvWindowDimensions();
 
 		loadingQueue = new SharedQueue( numIoThreads );
 
-		final BdvSource tmpSource = initBdv();
-
-		addChannel( cachedPlateViewImg );
-
-		tmpSource.removeFromBdv();
-
-		final int[] imagePos = Utils.getCellPos( cellFileMap.keySet().iterator().next() );
-
-		zoomToImage( imagePos );
+		this.bdv = createBdv( source );
 
 	}
 
@@ -56,19 +49,18 @@ public class MultiPositionViewer
 	}
 
 
-	public void zoomToImage( int[] imageCoordinates )
+	public void zoomToImage( long[] imageCoordinates, int[] imageDimensions )
 	{
 
-		final AffineTransform3D affineTransform3D = getImageZoomTransform( imageCoordinates );
+		final AffineTransform3D affineTransform3D = getImageZoomTransform( imageCoordinates, imageDimensions );
 
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
 
 	}
 
-	public AffineTransform3D getImageZoomTransform( int[] imageIndex )
-	{
 
-		int[] imageCenterCoordinatesInPixels = getImageCenterCoordinates( imageIndex );
+	public AffineTransform3D getImageZoomTransform( long[] imageCenterCoordinates, int[] imageDimensions )
+	{
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
@@ -76,7 +68,7 @@ public class MultiPositionViewer
 
 		for( int d = 0; d < 2; ++d )
 		{
-			shiftToImage[ d ] = -imageCenterCoordinatesInPixels[ d ];
+			shiftToImage[ d ] = -imageCenterCoordinates[ d ];
 		}
 
 		affineTransform3D.translate( shiftToImage );
@@ -108,7 +100,7 @@ public class MultiPositionViewer
 	}
 
 
-	private BdvSource initBdv( )
+	private Bdv createBdv( MultiPositionImagesSource source )
 	{
 
 		// TODO:
@@ -116,7 +108,7 @@ public class MultiPositionViewer
 
 		final ArrayImg< BitType, LongArray > dummyImageForInitialisation = ArrayImgs.bits( new long[]{ 100, 100 } );
 
-		BdvSource bdvSource = BdvFunctions.show(
+		BdvSource bdvTmpSource = BdvFunctions.show(
 				dummyImageForInitialisation,
 				"",
 				Bdv.options()
@@ -125,24 +117,28 @@ public class MultiPositionViewer
 						.doubleBuffered( false )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 
-		bdv = bdvSource.getBdvHandle();
+		Bdv bdv = bdvTmpSource.getBdvHandle();
 
-		zoomToImage( new int[]{ 0, 0 } );
+		addSourceToBdv( source );
+
+		bdvTmpSource.removeFromBdv();
+
+		zoomToImage( source.getImageFile( 0 ).centerCoordinates, source.getImageFile( 0 ).dimensions );
 
 		setBdvBehaviors();
 
-		return bdvSource;
+		return bdv;
 
 	}
 
-	public void addChannel( CachedPlateViewImg cachedPlateViewImg )
+	public void addSourceToBdv( MultiPositionImagesSource source )
 	{
 		BdvSource bdvSource = BdvFunctions.show(
-					VolatileViews.wrapAsVolatile( cachedPlateViewImg.getCachedCellImg(), loadingQueue ),
+					VolatileViews.wrapAsVolatile( source.getCachedCellImg(), loadingQueue ),
 					"",
 					BdvOptions.options().addTo( bdv ) );
 
-		bdvSource.setDisplayRange( cachedPlateViewImg.getLutMinMax()[ 0 ], cachedPlateViewImg.getLutMinMax()[ 1 ] );
+		bdvSource.setDisplayRange( source.getLutMinMax()[ 0 ], source.getLutMinMax()[ 1 ] );
 
 	}
 
@@ -159,28 +155,28 @@ public class MultiPositionViewer
 
 	private void showImageName( )
 	{
-		final int[] cellPos = getCellPosFromMouseCoordinates();
+		final long[] coordinates = getMouseCoordinates();
 
-		final String key = Utils.getCellString( cellPos );
+		final ImageFile imageFile = multiPositionImagesSources.get( 0 ).getImageFile( coordinates );
 
-		if ( cellFileMap.containsKey( key ) )
+		if ( imageFile != null )
 		{
-			Utils.log( cellFileMap.get( key ).getName() );
+			Utils.log( imageFile.file.getName() );
 		}
 
 	}
 
-	private int[] getCellPosFromMouseCoordinates()
+	private long[] getMouseCoordinates()
 	{
 		final RealPoint position = new RealPoint( 3 );
 
 		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( position );
 
-		int[] cellPos = new int[ 2 ];
+		long[] cellPos = new long[ 2 ];
 
 		for ( int d = 0; d < 2; ++d )
 		{
-			cellPos[ d ] = (int) ( position.getDoublePosition( d ) / imageDimensions[ d ] );
+			cellPos[ d ] = (long) ( position.getDoublePosition( d ) );
 		}
 
 		return cellPos;

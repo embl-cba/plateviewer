@@ -5,51 +5,61 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CellFileMapsGenerator
+public class ImageFileListGeneratorALMFScreening
 {
 
-	final String directoryName;
-	final String fileNameRegExp;
+	final ArrayList< File > files;
 
 	int numSites, numWells;
 	int[] siteDimensions;
 	int[] wellDimensions;
 	int[] maxWellDimensionsInData;
 	int[] maxSiteDimensionsInData;
+	int[] imageDimensions;
 
-	final ArrayList< Map< String, File > > cellFileMaps;
+	final ArrayList< ImageFile > list;
 
-	public CellFileMapsGenerator( String directoryName, String fileNameRegExp )
+	final String multipositionFilenamePattern = Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
+
+	public ImageFileListGeneratorALMFScreening( ArrayList< File > files, int[] imageDimensions )
 	{
-		this.directoryName = directoryName;
-		this.fileNameRegExp = fileNameRegExp;
-		this.cellFileMaps =  new ArrayList<>();
+		this.files = files;
+		this.list = new ArrayList<>();
+		this.imageDimensions = imageDimensions;
+
 		this.maxWellDimensionsInData = new int[ 2 ];
 		this.maxSiteDimensionsInData = new int[ 2 ];
-		createCellFileMaps();
+
+		createList();
+
 	}
 
-	public ArrayList< Map< String, File > > getCellFileMaps()
+	public static String getKey( int[] cellPos )
 	{
-		return cellFileMaps;
+		return "" + cellPos[ 0] + "_" + cellPos[ 1 ];
 	}
 
-	public void createCellFileMaps()
+	public ArrayList< ImageFile > getList()
 	{
-		cellFileMaps.add( new HashMap<>() );
+		return list;
+	}
 
-		final ArrayList< File > files = Utils.getFileList( directoryName, fileNameRegExp );
+	public void createList()
+	{
 
 		configWells( files );
 		configSites( files );
 
 		for ( File file : files )
 		{
-			final String pattern = Utils.getMultiPositionFilenamePattern( file );
 
-			final String cell = Utils.getCellString( getCell( file, pattern, wellDimensions[ 0 ], siteDimensions[ 0 ] ) );
+			final ImageFile imageFile = new ImageFile();
 
-			putCellToMaps( cellFileMaps, cell, file );
+			imageFile.file = file;
+			imageFile.centerCoordinates = getCenterCoordinates( file, multipositionFilenamePattern, wellDimensions[ 0 ], siteDimensions[ 0 ] );
+			imageFile.dimensions = imageDimensions;
+
+			list.add( imageFile );
 
 		}
 	}
@@ -96,7 +106,7 @@ public class CellFileMapsGenerator
 		return wellDimensions;
 	}
 
-	public static int getNumSites( ArrayList< File > files )
+	public int getNumSites( ArrayList< File > files )
 	{
 		Set< String > sites = new HashSet<>( );
 
@@ -108,7 +118,7 @@ public class CellFileMapsGenerator
 
 			if ( matcher.matches() )
 			{
-				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+				if ( multipositionFilenamePattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 				{
 					sites.add( matcher.group( 2 ) );
 				}
@@ -126,30 +136,22 @@ public class CellFileMapsGenerator
 
 	}
 
-	public static int getNumWells( ArrayList< File > files )
+	public int getNumWells( ArrayList< File > files )
 	{
 		Set< String > wells = new HashSet<>( );
 		int maxWellNum = 0;
 
 		for ( File file : files )
 		{
-			final String pattern = Utils.getMultiPositionFilenamePattern( file );
+			final Matcher matcher = Pattern.compile( multipositionFilenamePattern ).matcher( file.getName() );
 
-			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
+			wells.add( matcher.group( 1 ) );
 
-			if ( matcher.matches() )
+			int wellNum = Integer.parseInt( matcher.group( 1 ) );
+
+			if ( wellNum > maxWellNum )
 			{
-				wells.add( matcher.group( 1 ) );
-
-				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
-				{
-					int wellNum = Integer.parseInt( matcher.group( 1 ) );
-
-					if ( wellNum > maxWellNum )
-					{
-						maxWellNum = wellNum;
-					}
-				}
+				maxWellNum = wellNum;
 			}
 		}
 
@@ -165,32 +167,8 @@ public class CellFileMapsGenerator
 
 	}
 
-	public static void putCellToMaps( ArrayList< Map< String, File > > cellFileMaps,
-									  String cell,
-									  File file )
-	{
-		boolean cellCouldBePlaceInExistingMap = false;
 
-		for( int iMap = 0; iMap < cellFileMaps.size(); ++iMap )
-		{
-			if ( !cellFileMaps.get( iMap ).containsKey( cell ) )
-			{
-				cellFileMaps.get( iMap ).put( cell, file );
-				cellCouldBePlaceInExistingMap = true;
-				break;
-			}
-		}
-
-		if ( ! cellCouldBePlaceInExistingMap )
-		{
-			// new channel
-			cellFileMaps.add( new HashMap<>() );
-			cellFileMaps.get( cellFileMaps.size() - 1 ).put( cell, file );
-		}
-	}
-
-
-	public int[] getCell( File file, String pattern, int numWellColumns, int numSiteColumns )
+	public long[] getCenterCoordinates( File file, String pattern, int numWellColumns, int numSiteColumns )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -201,34 +179,21 @@ public class CellFileMapsGenerator
 			int[] wellPosition = new int[ 2 ];
 			int[] sitePosition = new int[ 2 ];
 
-			if ( pattern.equals( Utils.PATTERN_A01 ) )
-			{
-				String well = matcher.group( 1 );
+			int wellNum = Integer.parseInt( matcher.group( 1 ) );
+			int siteNum = Integer.parseInt( matcher.group( 2 ) );
 
-				wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
-				wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
+			wellPosition[ 1 ] = wellNum / numWellColumns * numSiteColumns;
+			wellPosition[ 0 ] = wellNum % numWellColumns * numSiteColumns;
 
-			}
-			else if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
-			{
-
-				int wellNum = Integer.parseInt( matcher.group( 1 ) );
-				int siteNum = Integer.parseInt( matcher.group( 2 ) );
-
-				wellPosition[ 1 ] = wellNum / numWellColumns * numSiteColumns;
-				wellPosition[ 0 ] = wellNum % numWellColumns * numSiteColumns;
-
-				sitePosition[ 1 ] = siteNum / numSiteColumns;
-				sitePosition[ 0 ] = siteNum % numSiteColumns;
-
-			}
+			sitePosition[ 1 ] = siteNum / numSiteColumns;
+			sitePosition[ 0 ] = siteNum % numSiteColumns;
 
 			updateMaxWellDimensionInData( wellPosition );
 			updateMaxSiteDimensionInData( sitePosition );
 
-			final int[] cellPosition = computeCellPosition( wellPosition, sitePosition );
+			final long[] centerCoordinates = computeCenterCoordinates( wellPosition, sitePosition );
 
-			return cellPosition;
+			return centerCoordinates;
 
 		}
 		else
@@ -238,15 +203,17 @@ public class CellFileMapsGenerator
 
 	}
 
-	public int[] computeCellPosition( int[] wellPosition, int[] sitePosition )
+	public long[] computeCenterCoordinates( int[] wellPosition, int[] sitePosition )
 	{
-		final int[] cellPosition = new int[ 2 ];
+		final long[] center = new long[ 2 ];
 
 		for ( int d = 0; d < 2; ++d )
 		{
-			cellPosition[ d ] = wellPosition[ d ] + sitePosition[ d ];
+			center[ d ] = wellPosition[ d ] + sitePosition[ d ];
+			center[ d ] *= imageDimensions[ d ];
 		}
-		return cellPosition;
+
+		return center;
 	}
 
 	public void updateMaxWellDimensionInData( int[] wellPosition )

@@ -1,5 +1,16 @@
 package de.embl.cba.multipositionviewer;
 
+import ij.IJ;
+import ij.ImagePlus;
+import net.imglib2.cache.img.CachedCellImg;
+import net.imglib2.cache.img.CellLoader;
+import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
+import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
+
 import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -8,98 +19,155 @@ import java.util.regex.Pattern;
 public class MultiPositionImagesSource
 {
 
-	final String directoryName;
-
-
 	int numSites, numWells;
 	int[] siteDimensions;
 	int[] wellDimensions;
 	int[] maxWellDimensionsInData;
 	int[] maxSiteDimensionsInData;
 
-	final ArrayList< Map< String, File > > fileMap;
+	private long[] dimensions;
+	private int[] imageDimensions;
+	private double[] lutMinMax;
+	private int bitDepth;
+
 	final ArrayList< File > files;
 	final String fileNamePattern;
+	final MultiPositionLoader loader;
 
-	public MultiPositionImagesSource( ArrayList< File > files, String filenamePattern  )
+	public MultiPositionImagesSource( ArrayList< File > files, String multipositionFilenamePattern  )
 	{
 		this.files = files;
-		this.fileNamePattern = filenamePattern;
+		this.fileNamePattern = multipositionFilenamePattern;
 
-		this.directoryName = null;
-		this.fileMap =  new ArrayList<>();
+		setImageProperties();
+
+		this.loader = createMultiPositionLoader();
+
 		this.maxWellDimensionsInData = new int[ 2 ];
 		this.maxSiteDimensionsInData = new int[ 2 ];
-		createCellFileMaps();
+
 	}
 
-	public ArrayList< Map< String, File > > getFileMap()
+	private MultiPositionLoader createMultiPositionLoader()
 	{
-		return fileMap;
+		MultiPositionLoader loader = new MultiPositionLoader( files, multipositionFilenamePattern, imageDimensions, bitDepth, numIoThreads );
+
+		return loader;
 	}
 
-	public void createCellFileMaps()
+	public int getBitDepth()
 	{
-		fileMap.add( new HashMap<>() );
+		return bitDepth;
+	}
 
-		final ArrayList< File > files = Utils.getFileList( directoryName, fileNameRegExp );
+	public double[] getLutMinMax()
+	{
+		return lutMinMax;
+	}
 
-		configWells( files );
+	public ImageFile getImageFile( int index )
+	{
+		return loader.getImageFile( index );
+	}
 
-		configSites( files );
+	public ImageFile getImageFile( long[] coordinates )
+	{
+		return loader.getImageFile( index );
+	}
 
-		for ( File file : files )
+	public void getImageCenterCoordinates( long[] imageCoordinates, int[] imageDimensions )
+	{
+		final AffineTransform3D affineTransform3D = getImageZoomTransform( imageCoordinates, imageDimensions );
+
+		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
+	}
+
+
+
+	private void setImageProperties()
+	{
+		final ImagePlus imagePlus = getFirstImage();
+
+		setImageBitDepth( imagePlus );
+
+		setImageDimensions( imagePlus );
+
+		setImageMinMax( imagePlus );
+
+	}
+
+	private void setImageMinMax( ImagePlus imagePlus )
+	{
+		lutMinMax = new double[ 2 ];
+		lutMinMax[ 0 ] = imagePlus.getProcessor().getMin();
+		lutMinMax[ 1 ] = imagePlus.getProcessor().getMax();
+	}
+
+	private ImagePlus getFirstImage()
+	{
+		final String next = cellFileMap.keySet().iterator().next();
+		File file = cellFileMap.get( next );
+		return IJ.openImage( file.getAbsolutePath() );
+	}
+
+	private void setImageBitDepth( ImagePlus imagePlus )
+	{
+		bitDepth = imagePlus.getBitDepth();
+	}
+
+	private void setImageDimensions( ImagePlus imagePlus )
+	{
+		imageDimensions = new int[ 2 ];
+		imageDimensions[ 0 ] = imagePlus.getWidth();
+		imageDimensions[ 1 ] = imagePlus.getHeight();
+
+		dimensions = new long[ 2 ];
+
+		for ( int d = 0; d < 2; ++d )
 		{
-			final String pattern = getPattern( file );
-
-			final String cell = Utils.getCellString( getCell( file, pattern, wellDimensions[ 0 ], siteDimensions[ 0 ] ) );
-
-			putCellToMaps( fileMap, cell, file );
-
+			dimensions[ d ] = imageDimensions[ d ] * wellDimensions[ d ] * siteDimensions[ d ];
 		}
 	}
 
-	private void configWells( ArrayList< File > files )
+	public CachedCellImg getCachedCellImg( )
 	{
-		numWells = getNumWells( files );
-		wellDimensions = new int[ 2 ];
-
-		if ( numWells <= 24 )
+		switch ( bitDepth )
 		{
-			wellDimensions[ 0 ] = 6;
-			wellDimensions[ 1 ] = 4;
+			case 8:
+
+				final CachedCellImg< UnsignedByteType, ? > byteTypeImg = new ReadOnlyCachedCellImgFactory().create(
+						dimensions,
+						new UnsignedByteType(),
+						loader,
+						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				return byteTypeImg;
+
+			case 16:
+
+				final CachedCellImg< UnsignedShortType, ? > unsignedShortTypeImg = new ReadOnlyCachedCellImgFactory().create(
+						dimensions,
+						new UnsignedShortType(),
+						loader,
+						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				return unsignedShortTypeImg;
+
+			case 32:
+
+				final CachedCellImg< FloatType, ? > floatTypeImg = new ReadOnlyCachedCellImgFactory().create(
+						dimensions,
+						new UnsignedShortType(),
+						loader,
+						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				return floatTypeImg;
+
+			default:
+
+				return null;
+
 		}
-		else if ( numWells <= 96  )
-		{
-			wellDimensions[ 0 ] = 12;
-			wellDimensions[ 1 ] = 8;
-		}
 
-		Utils.log( "Distinct wells: " +  numWells );
-		Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
-		Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 	}
 
-	private void configSites( ArrayList< File > files )
-	{
-		numSites = getNumSites( files );
-		siteDimensions = new int[ 2 ];
-		siteDimensions[ 0 ] = (int) Math.ceil( Math.sqrt( numSites ) );
-		siteDimensions[ 1 ] = (int) Math.ceil( Math.sqrt( numSites ) );
-		Utils.log( "Distinct sites: " +  numSites );
-		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
-		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
-	}
-
-	public int[] getSiteDimensions()
-	{
-		return siteDimensions;
-	}
-
-	public int[] getWellDimensions()
-	{
-		return wellDimensions;
-	}
 
 	public static int getNumSites( ArrayList< File > files )
 	{

@@ -9,7 +9,6 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Screening>Plate View" )
@@ -30,6 +29,8 @@ public class MultiPositionViewerCommand implements Command
 //	@Parameter (label = "Number of IO threads" )
 	public int numIoThreads = 1;
 
+	MultiPositionViewer multiPositionViewer;
+
 	public void run()
 	{
 
@@ -41,33 +42,26 @@ public class MultiPositionViewerCommand implements Command
 		while ( channelIterator.hasNext() )
 		{
 			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelIterator.next() );
+
 			final MultiPositionImagesSource multiPositionImagesSource = new MultiPositionImagesSource( channelFiles, filenamePattern );
-			int a = 1;
-		}
 
-		final CellFileMapsGenerator cellFileMapsGenerator = new CellFileMapsGenerator( inputDirectory.getAbsolutePath(), onlyLoadFilesMatching );
-		final ArrayList< Map< String, File > > cellFileMaps = cellFileMapsGenerator.getCellFileMaps();
-		final int[] siteDimensions = cellFileMapsGenerator.getSiteDimensions();
-		final int[] wellDimensions = cellFileMapsGenerator.getWellDimensions();
+			addSourceToViewer( multiPositionImagesSource );
 
-		MultiPositionViewer multiPositionViewer = null;
-
-		for ( int sourceIndex = 0; sourceIndex < cellFileMaps.size(); ++sourceIndex )
-		{
-			final CachedPlateViewImg cachedPlateViewImg = new CachedPlateViewImg( cellFileMaps.get( sourceIndex ), wellDimensions, siteDimensions, numIoThreads );
-
-			if ( multiPositionViewer == null )
-			{
-				multiPositionViewer = new MultiPositionViewer( cachedPlateViewImg, numIoThreads );
-			}
-			else
-			{
-				multiPositionViewer.addChannel( cachedPlateViewImg );
-			}
 		}
 
 	}
 
+	public void addSourceToViewer( MultiPositionImagesSource multiPositionImagesSource )
+	{
+		if ( multiPositionViewer == null )
+		{
+			multiPositionViewer = new MultiPositionViewer( multiPositionImagesSource, numIoThreads );
+		}
+		else
+		{
+			multiPositionViewer.addSourceToBdv( multiPositionImagesSource );
+		}
+	}
 
 
 }
