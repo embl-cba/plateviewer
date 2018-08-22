@@ -19,12 +19,6 @@ import java.util.regex.Pattern;
 public class MultiPositionImagesSource
 {
 
-//	int numSites, numWells;
-//	int[] siteDimensions;
-//	int[] wellDimensions;
-//	int[] maxWellDimensionsInData;
-//	int[] maxSiteDimensionsInData;
-
 	private long[] dimensions;
 	private int[] imageDimensions;
 	private double[] lutMinMax;
@@ -32,7 +26,7 @@ public class MultiPositionImagesSource
 
 	final ArrayList< File > files;
 	final String filenamePattern;
-	final MultiPositionLoader loader;
+	MultiPositionLoader loader;
 
 	final int numIoThreads;
 
@@ -44,16 +38,13 @@ public class MultiPositionImagesSource
 
 		setImageProperties();
 
-		this.loader = createMultiPositionLoader();
+		setMultiPositionLoader();
 
-//		this.maxWellDimensionsInData = new int[ 2 ];
-//		this.maxSiteDimensionsInData = new int[ 2 ];
-
-		setMultiPositionViewDimensions();
+		setViewDimensions();
 
 	}
 
-	public void setMultiPositionViewDimensions()
+	public void setViewDimensions()
 	{
 		final ArrayList< ImageFile > imageFiles = loader.getImageFiles();
 
@@ -74,11 +65,9 @@ public class MultiPositionImagesSource
 		}
 	}
 
-	private MultiPositionLoader createMultiPositionLoader()
+	private void setMultiPositionLoader()
 	{
-		MultiPositionLoader loader = new MultiPositionLoader( files, filenamePattern, imageDimensions, bitDepth, numIoThreads );
-
-		return loader;
+		loader = new MultiPositionLoader( files, filenamePattern, imageDimensions, bitDepth, numIoThreads );
 	}
 
 	public int getBitDepth()
@@ -110,7 +99,6 @@ public class MultiPositionImagesSource
 		setImageDimensions( imagePlus );
 
 		setImageMinMax( imagePlus );
-
 	}
 
 	private void setImageMinMax( ImagePlus imagePlus )
@@ -274,7 +262,7 @@ public class MultiPositionImagesSource
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( Utils.PATTERN_A01 ).matcher( filePath ).matches() ) return Utils.PATTERN_A01;
+		if ( Pattern.compile( Utils.PATTERN_MD_A01_CHANNEL ).matcher( filePath ).matches() ) return Utils.PATTERN_MD_A01_CHANNEL;
 		if ( Pattern.compile( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
 		return Utils.PATTERN_NO_MATCH;
@@ -292,7 +280,7 @@ public class MultiPositionImagesSource
 			int[] wellPosition = new int[ 2 ];
 			int[] sitePosition = new int[ 2 ];
 
-			if ( pattern.equals( Utils.PATTERN_A01 ) )
+			if ( pattern.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
 			{
 				String well = matcher.group( 1 );
 

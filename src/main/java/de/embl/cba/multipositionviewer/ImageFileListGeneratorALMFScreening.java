@@ -36,17 +36,12 @@ public class ImageFileListGeneratorALMFScreening
 
 	}
 
-	public static String getKey( int[] cellPos )
-	{
-		return "" + cellPos[ 0] + "_" + cellPos[ 1 ];
-	}
-
-	public ArrayList< ImageFile > getList()
+	public ArrayList< ImageFile > getFileList()
 	{
 		return list;
 	}
 
-	public void createList()
+	private void createList()
 	{
 
 		configWells( files );
@@ -110,17 +105,7 @@ public class ImageFileListGeneratorALMFScreening
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
 	}
 
-	public int[] getSiteDimensions()
-	{
-		return siteDimensions;
-	}
-
-	public int[] getWellDimensions()
-	{
-		return wellDimensions;
-	}
-
-	public int getNumSites( ArrayList< File > files )
+	private int getNumSites( ArrayList< File > files )
 	{
 		Set< String > sites = new HashSet<>( );
 
@@ -150,7 +135,7 @@ public class ImageFileListGeneratorALMFScreening
 
 	}
 
-	public int getNumWells( ArrayList< File > files )
+	private int getNumWells( ArrayList< File > files )
 	{
 		Set< String > wells = new HashSet<>( );
 		int maxWellNum = 0;
@@ -184,7 +169,7 @@ public class ImageFileListGeneratorALMFScreening
 	}
 
 
-	public FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
+	private FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -224,7 +209,7 @@ public class ImageFileListGeneratorALMFScreening
 
 	}
 
-	public long[] computeMinCoordinates( int[] wellPosition, int[] sitePosition )
+	private long[] computeMinCoordinates( int[] wellPosition, int[] sitePosition )
 	{
 		final long[] min = new long[ 2 ];
 
@@ -237,7 +222,7 @@ public class ImageFileListGeneratorALMFScreening
 		return min;
 	}
 
-	public void updateMaxWellDimensionInData( int[] wellPosition )
+	private void updateMaxWellDimensionInData( int[] wellPosition )
 	{
 		for ( int d = 0; d < 2; ++d )
 		{
@@ -248,7 +233,7 @@ public class ImageFileListGeneratorALMFScreening
 		}
 	}
 
-	public void updateMaxSiteDimensionInData( int[] sitePosition )
+	private void updateMaxSiteDimensionInData( int[] sitePosition )
 	{
 		for ( int d = 0; d < 2; ++d )
 		{
@@ -259,22 +244,4 @@ public class ImageFileListGeneratorALMFScreening
 		}
 	}
 
-
-	private static long[] getDimensions( String plateType )
-	{
-		long[] dimensions = new long[ 2 ];
-
-		switch ( plateType )
-		{
-			case Utils.WELL_PLATE_96:
-				dimensions[ 0 ] = 12;
-				dimensions[ 1 ] = 8;
-				break;
-			default:
-				dimensions[ 0 ] = 12;
-				dimensions[ 1 ] = 8;
-		}
-
-		return dimensions;
-	}
 }

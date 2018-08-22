@@ -4,7 +4,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.util.Intervals;
@@ -17,7 +16,7 @@ import java.util.concurrent.Executors;
 public class MultiPositionLoader implements CellLoader
 {
 	final ArrayList< File > files;
-	final String multipositionFilenamePattern;
+	final String namingScheme;
 	final int[] imageDimensions;
 	final int bitDepth;
 	final int numIoThreads;
@@ -25,19 +24,24 @@ public class MultiPositionLoader implements CellLoader
 
 	final ArrayList< ImageFile > imageFiles;
 
-	public MultiPositionLoader( ArrayList< File > files, String multipositionFilenamePattern, int[] imageDimensions, int bitDepth, int numIoThreads )
+	public MultiPositionLoader( ArrayList< File > files, String namingScheme, int[] imageDimensions, int bitDepth, int numIoThreads )
 	{
 		this.files = files;
-		this.multipositionFilenamePattern = multipositionFilenamePattern;
+		this.namingScheme = namingScheme;
 		this.imageDimensions = imageDimensions;
 		this.bitDepth = bitDepth;
 		this.numIoThreads = numIoThreads;
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 
-		if ( multipositionFilenamePattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+		if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 		{
 			ImageFileListGeneratorALMFScreening ImageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
-			imageFiles = ImageFileListGeneratorALMFScreening.getList();
+			imageFiles = ImageFileListGeneratorALMFScreening.getFileList();
+		}
+		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
+		{
+			ImageFileListGeneratorALMFScreening ImageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
+			imageFiles = ImageFileListGeneratorALMFScreening.getFileList();
 		}
 		else
 		{

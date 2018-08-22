@@ -1,8 +1,6 @@
 package de.embl.cba.multipositionviewer;
 
 import ij.IJ;
-import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.img.array.ArrayImgs;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,7 +14,7 @@ public class Utils
 {
 
 	public static final String WELL_PLATE_96 = "96 well plate";
-	public static final String PATTERN_A01 = ".*_([A-Z]{1}[0-9]{2})_.*";
+	public static final String PATTERN_MD_A01_CHANNEL = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
 	public static final String PATTERN_ALMF_SCREENING_W0001_P000_C00 = ".*--W([0-9]{4})--P([0-9]{3}).*--C([0-9]{2}).ome.tif";
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	final static String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -79,22 +77,26 @@ public class Utils
 		}
 	}
 
-	public static Set< String > getChannelPatterns( List< File > files, String filenamePattern )
+	public static Set< String > getChannelPatterns( List< File > files, String namingScheme )
 	{
-
 		final Set< String > channelPatterns = new HashSet<>( );
 
 		for ( File file : files )
 		{
-			if ( filenamePattern.equals( PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
-			{
-				final Matcher matcher = Pattern.compile( filenamePattern ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
 
-				if ( matcher.matches() )
+			if ( matcher.matches() )
+			{
+				if ( namingScheme.equals( PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 				{
 					channelPatterns.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
 				}
+				else if ( namingScheme.equals( PATTERN_MD_A01_CHANNEL ) )
+				{
+					channelPatterns.add( ".*" + matcher.group( 2 ) + ".tif" );
+				}
 			}
+
 		}
 
 		return channelPatterns;
@@ -124,7 +126,7 @@ public class Utils
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( PATTERN_A01 ).matcher( filePath ).matches() ) return PATTERN_A01;
+		if ( Pattern.compile( PATTERN_MD_A01_CHANNEL ).matcher( filePath ).matches() ) return PATTERN_MD_A01_CHANNEL;
 		if ( Pattern.compile( PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
 		return PATTERN_NO_MATCH;
