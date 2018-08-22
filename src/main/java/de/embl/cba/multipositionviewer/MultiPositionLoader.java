@@ -108,9 +108,10 @@ public class MultiPositionLoader implements CellLoader
 
 	public ImageFile getImageFile( long[] coordinates )
 	{
+		boolean matches = false;
+
 		for ( ImageFile imageFile : imageFiles )
 		{
-			boolean matches = false;
 
 			FinalInterval interval = imageFile.getInterval();
 

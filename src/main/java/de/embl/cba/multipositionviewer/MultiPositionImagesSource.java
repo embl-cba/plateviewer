@@ -19,11 +19,11 @@ import java.util.regex.Pattern;
 public class MultiPositionImagesSource
 {
 
-	int numSites, numWells;
-	int[] siteDimensions;
-	int[] wellDimensions;
-	int[] maxWellDimensionsInData;
-	int[] maxSiteDimensionsInData;
+//	int numSites, numWells;
+//	int[] siteDimensions;
+//	int[] wellDimensions;
+//	int[] maxWellDimensionsInData;
+//	int[] maxSiteDimensionsInData;
 
 	private long[] dimensions;
 	private int[] imageDimensions;
@@ -46,11 +46,10 @@ public class MultiPositionImagesSource
 
 		this.loader = createMultiPositionLoader();
 
-		this.maxWellDimensionsInData = new int[ 2 ];
-		this.maxSiteDimensionsInData = new int[ 2 ];
+//		this.maxWellDimensionsInData = new int[ 2 ];
+//		this.maxSiteDimensionsInData = new int[ 2 ];
 
 		setMultiPositionViewDimensions();
-
 
 	}
 
@@ -315,8 +314,8 @@ public class MultiPositionImagesSource
 
 			}
 
-			updateMaxWellDimensionInData( wellPosition );
-			updateMaxSiteDimensionInData( sitePosition );
+//			updateMaxWellDimensionInData( wellPosition );
+//			updateMaxSiteDimensionInData( sitePosition );
 
 			final int[] cellPosition = computeCellPosition( wellPosition, sitePosition );
 
@@ -341,27 +340,27 @@ public class MultiPositionImagesSource
 		return cellPosition;
 	}
 
-	public void updateMaxWellDimensionInData( int[] wellPosition )
-	{
-		for ( int d = 0; d < 2; ++d )
-		{
-			if ( wellPosition[ d ] >= maxWellDimensionsInData[ d ] )
-			{
-				maxWellDimensionsInData[ d ] = wellPosition[ d ];
-			}
-		}
-	}
-
-	public void updateMaxSiteDimensionInData( int[] sitePosition )
-	{
-		for ( int d = 0; d < 2; ++d )
-		{
-			if ( sitePosition[ d ] >= maxSiteDimensionsInData[ d ] )
-			{
-				maxSiteDimensionsInData[ d ] = sitePosition[ d ];
-			}
-		}
-	}
+//	public void updateMaxWellDimensionInData( int[] wellPosition )
+//	{
+//		for ( int d = 0; d < 2; ++d )
+//		{
+//			if ( wellPosition[ d ] >= maxWellDimensionsInData[ d ] )
+//			{
+//				maxWellDimensionsInData[ d ] = wellPosition[ d ];
+//			}
+//		}
+//	}
+//
+//	public void updateMaxSiteDimensionInData( int[] sitePosition )
+//	{
+//		for ( int d = 0; d < 2; ++d )
+//		{
+//			if ( sitePosition[ d ] >= maxSiteDimensionsInData[ d ] )
+//			{
+//				maxSiteDimensionsInData[ d ] = sitePosition[ d ];
+//			}
+//		}
+//	}
 
 
 	private static long[] getDimensions( String plateType )

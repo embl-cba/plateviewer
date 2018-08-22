@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
-@Plugin(type = Command.class, menuPath = "Plugins>Screening>Plate View" )
+@Plugin(type = Command.class, menuPath = "Plugins>Screening>Multiposition Viewer" )
 public class MultiPositionViewerCommand implements Command
 {
 	@Parameter
@@ -34,16 +34,22 @@ public class MultiPositionViewerCommand implements Command
 	public void run()
 	{
 
+		Utils.log( "Fetching list of files..." );
 		final ArrayList< File > fileList = Utils.getFileList( inputDirectory, onlyLoadFilesMatching );
-		final String filenamePattern = Utils.getMultiPositionFilenamePattern( fileList.get( 0 ) );
-		final Set< String > channelPatterns = Utils.getChannelPatterns( fileList, filenamePattern );
+		Utils.log( "Number of files: " +  fileList.size() );
 
-		final Iterator< String > channelIterator = channelPatterns.iterator();
-		while ( channelIterator.hasNext() )
+		final String namingScheme = Utils.getMultiPositionNamingScheme( fileList.get( 0 ) );
+		Utils.log( "Detected naming scheme: " +  namingScheme );
+
+		final Set< String > channelPatterns = Utils.getChannelPatterns( fileList, namingScheme );
+
+		for ( String channelPattern : channelPatterns )
 		{
-			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelIterator.next() );
+			Utils.log( "Adding channel: " + channelPattern );
 
-			final MultiPositionImagesSource multiPositionImagesSource = new MultiPositionImagesSource( channelFiles, filenamePattern, numIoThreads );
+			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelPattern );
+
+			final MultiPositionImagesSource multiPositionImagesSource = new MultiPositionImagesSource( channelFiles, namingScheme, numIoThreads );
 
 			addSourceToViewer( multiPositionImagesSource );
 

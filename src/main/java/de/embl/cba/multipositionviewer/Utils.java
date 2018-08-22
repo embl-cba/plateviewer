@@ -120,7 +120,7 @@ public class Utils
 	}
 
 
-	public static String getMultiPositionFilenamePattern( File file )
+	public static String getMultiPositionNamingScheme( File file )
 	{
 		String filePath = file.getAbsolutePath();
 

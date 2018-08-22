@@ -79,6 +79,15 @@ public class ImageFileListGeneratorALMFScreening
 			wellDimensions[ 0 ] = 12;
 			wellDimensions[ 1 ] = 8;
 		}
+		else if ( numWells <= 384  )
+		{
+			wellDimensions[ 0 ] = 24;
+			wellDimensions[ 1 ] = 16;
+		}
+		else
+		{
+			Utils.log( "ERROR: Could not figure out the correct number of wells...." );
+		}
 
 		Utils.log( "Distinct wells: " +  numWells );
 		Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
@@ -89,8 +98,13 @@ public class ImageFileListGeneratorALMFScreening
 	{
 		numSites = getNumSites( files );
 		siteDimensions = new int[ 2 ];
-		siteDimensions[ 0 ] = (int) Math.ceil( Math.sqrt( numSites ) );
-		siteDimensions[ 1 ] = (int) Math.ceil( Math.sqrt( numSites ) );
+
+		for ( int d = 0; d < siteDimensions.length; ++d )
+		{
+			siteDimensions[ d ] = ( int ) Math.ceil( Math.sqrt( numSites ) );
+			siteDimensions[ d ] = Math.max( 1, siteDimensions[ d ] );
+		}
+
 		Utils.log( "Distinct sites: " +  numSites );
 		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
@@ -112,7 +126,7 @@ public class ImageFileListGeneratorALMFScreening
 
 		for ( File file : files )
 		{
-			final String pattern = Utils.getMultiPositionFilenamePattern( file );
+			final String pattern = Utils.getMultiPositionNamingScheme( file );
 
 			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
 
@@ -181,7 +195,7 @@ public class ImageFileListGeneratorALMFScreening
 			int[] wellPosition = new int[ 2 ];
 			int[] sitePosition = new int[ 2 ];
 
-			int wellNum = Integer.parseInt( matcher.group( 1 ) );
+			int wellNum = Integer.parseInt( matcher.group( 1 ) ) - 1;
 			int siteNum = Integer.parseInt( matcher.group( 2 ) );
 
 			wellPosition[ 1 ] = wellNum / numWellColumns * numSiteColumns;
