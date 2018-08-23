@@ -33,15 +33,16 @@ public class MultiPositionLoader implements CellLoader
 		this.numIoThreads = numIoThreads;
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 
+		// TODO: replace by interface and factory
 		if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 		{
-			ImageFileListGeneratorALMFScreening ImageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
-			imageFiles = ImageFileListGeneratorALMFScreening.getFileList();
+			ImageFileListGeneratorALMFScreening imageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
+			imageFiles = imageFileListGeneratorALMFScreening.getFileList();
 		}
 		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
 		{
-			ImageFileListGeneratorALMFScreening ImageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
-			imageFiles = ImageFileListGeneratorALMFScreening.getFileList();
+			ImageFileListGeneratorMDSingleSite imageFileListGeneratorMDSingleSite = new ImageFileListGeneratorMDSingleSite( files, imageDimensions );
+			imageFiles = imageFileListGeneratorMDSingleSite.getFileList();
 		}
 		else
 		{
@@ -49,6 +50,20 @@ public class MultiPositionLoader implements CellLoader
 		}
 
 	}
+
+	public ImageFile getImageFile( String imageFileName )
+	{
+		for ( ImageFile imageFile : imageFiles )
+		{
+			if ( imageFile.file.getName().equals( imageFileName ) )
+			{
+				return imageFile;
+			}
+		}
+
+		return null;
+	}
+
 
 	public ImageFile getImageFile( int index )
 	{
@@ -87,21 +102,8 @@ public class MultiPositionLoader implements CellLoader
 		for ( ImageFile imageFile : imageFiles )
 		{
 			FinalInterval imageInterval = imageFile.getInterval();
-			FinalInterval intersect = Intervals.intersect( requestedInterval, imageInterval );
 
-			int n = intersect.numDimensions();
-
-			boolean isIntersecting = true;
-
-			for ( int d = 0; d < n; ++d )
-			{
-				if ( intersect.dimension( d ) <= 0 )
-				{
-					isIntersecting = false;
-				}
-			}
-
-			if ( isIntersecting )
+			if ( Utils.isIntersecting( requestedInterval, imageInterval ) )
 			{
 				return imageFile;
 			}

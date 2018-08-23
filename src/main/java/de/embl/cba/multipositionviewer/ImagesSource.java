@@ -6,9 +6,10 @@ import net.imglib2.FinalInterval;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 
 import java.io.File;
@@ -16,7 +17,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MultiPositionImagesSource
+public class ImagesSource < T extends RealType< T > & NativeType< T > >
 {
 
 	private long[] dimensions;
@@ -26,25 +27,42 @@ public class MultiPositionImagesSource
 
 	final ArrayList< File > files;
 	final String filenamePattern;
+
+	CachedCellImg< T, ? > cachedCellImg;
+
 	MultiPositionLoader loader;
 
 	final int numIoThreads;
 
-	public MultiPositionImagesSource( ArrayList< File > files, String filenamePattern, int numIoThreads )
+	String name;
+
+	public ImagesSource( ArrayList< File > files, String filenamePattern, int numIoThreads )
 	{
 		this.files = files;
 		this.filenamePattern = filenamePattern;
 		this.numIoThreads = numIoThreads;
+		this.name = filenamePattern;
 
 		setImageProperties();
 
 		setMultiPositionLoader();
 
-		setViewDimensions();
+		setCachedCellImgDimensions();
 
+		createCachedCellImg();
 	}
 
-	public void setViewDimensions()
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName( String name )
+	{
+		this.name = name;
+	}
+
+	public void setCachedCellImgDimensions()
 	{
 		final ArrayList< ImageFile > imageFiles = loader.getImageFiles();
 
@@ -80,14 +98,9 @@ public class MultiPositionImagesSource
 		return lutMinMax;
 	}
 
-	public ImageFile getImageFile( int index )
+	public MultiPositionLoader getLoader()
 	{
-		return loader.getImageFile( index );
-	}
-
-	public ImageFile getImageFile( long[] coordinates )
-	{
-		return loader.getImageFile( coordinates );
+		return loader;
 	}
 
 	private void setImageProperties()
@@ -127,42 +140,45 @@ public class MultiPositionImagesSource
 
 	public CachedCellImg getCachedCellImg( )
 	{
+		return cachedCellImg;
+	}
+
+
+	private void createCachedCellImg()
+	{
 		switch ( bitDepth )
 		{
 			case 8:
 
-				final CachedCellImg< UnsignedByteType, ? > byteTypeImg = new ReadOnlyCachedCellImgFactory().create(
+				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 						dimensions,
 						new UnsignedByteType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
-				return byteTypeImg;
 
 			case 16:
 
-				final CachedCellImg< UnsignedShortType, ? > unsignedShortTypeImg = new ReadOnlyCachedCellImgFactory().create(
+				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 						dimensions,
 						new UnsignedShortType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
-				return unsignedShortTypeImg;
 
 			case 32:
 
-				final CachedCellImg< FloatType, ? > floatTypeImg = new ReadOnlyCachedCellImgFactory().create(
+				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 						dimensions,
 						new UnsignedShortType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
-				return floatTypeImg;
 
 			default:
 
-				return null;
+				cachedCellImg = null;
 
 		}
-
 	}
+
 
 
 	public static int getNumSites( ArrayList< File > files )

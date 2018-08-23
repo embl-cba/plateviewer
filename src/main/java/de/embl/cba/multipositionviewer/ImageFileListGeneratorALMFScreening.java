@@ -62,27 +62,8 @@ public class ImageFileListGeneratorALMFScreening
 	private void configWells( ArrayList< File > files )
 	{
 		numWells = getNumWells( files );
-		wellDimensions = new int[ 2 ];
 
-		if ( numWells <= 24 )
-		{
-			wellDimensions[ 0 ] = 6;
-			wellDimensions[ 1 ] = 4;
-		}
-		else if ( numWells <= 96  )
-		{
-			wellDimensions[ 0 ] = 12;
-			wellDimensions[ 1 ] = 8;
-		}
-		else if ( numWells <= 384  )
-		{
-			wellDimensions[ 0 ] = 24;
-			wellDimensions[ 1 ] = 16;
-		}
-		else
-		{
-			Utils.log( "ERROR: Could not figure out the correct number of wells...." );
-		}
+		wellDimensions = Utils.guessWellDimensions( numWells );
 
 		Utils.log( "Distinct wells: " +  numWells );
 		Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
@@ -189,37 +170,19 @@ public class ImageFileListGeneratorALMFScreening
 			sitePosition[ 1 ] = siteNum / numSiteColumns;
 			sitePosition[ 0 ] = siteNum % numSiteColumns;
 
+			// TODO: maybe below can be removed?
 			updateMaxWellDimensionInData( wellPosition );
 			updateMaxSiteDimensionInData( sitePosition );
 
-			final long[] min = computeMinCoordinates( wellPosition, sitePosition );
-			final long[] max = new long[ min.length ];
-			for ( int d = 0; d < min.length; ++d )
-			{
-				max[ d ] = min[ d ] + imageDimensions[ d ] - 1;
-			}
+			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, imageDimensions );
 
-			return new FinalInterval( min, max );
-
+			return interval;
 		}
 		else
 		{
 			return null;
 		}
 
-	}
-
-	private long[] computeMinCoordinates( int[] wellPosition, int[] sitePosition )
-	{
-		final long[] min = new long[ 2 ];
-
-		for ( int d = 0; d < 2; ++d )
-		{
-			min[ d ] = wellPosition[ d ] + sitePosition[ d ];
-			min[ d ] *= imageDimensions[ d ];
-		}
-
-		return min;
 	}
 
 	private void updateMaxWellDimensionInData( int[] wellPosition )

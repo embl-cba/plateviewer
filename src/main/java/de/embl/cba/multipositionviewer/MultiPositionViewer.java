@@ -19,19 +19,19 @@ import java.util.ArrayList;
 public class MultiPositionViewer
 {
 
-	final ArrayList< MultiPositionImagesSource > multiPositionImagesSources;
-	final int numIoThreads;
-	final SharedQueue loadingQueue;
+	private final ArrayList< ImagesSource > imagesSources;
+	private final int numIoThreads;
+	private final SharedQueue loadingQueue;
 
-	int[] imageDimensions;
-	int[] bdvWindowDimensions;
+	private int[] imageDimensions;
+	private int[] bdvWindowDimensions;
 
-	Bdv bdv;
+	private Bdv bdv;
 
-	public MultiPositionViewer( MultiPositionImagesSource source, int numIoThreads )
+	public MultiPositionViewer( ImagesSource source, int numIoThreads )
 	{
-		this.multiPositionImagesSources = new ArrayList<>();
-		multiPositionImagesSources.add( source );
+		this.imagesSources = new ArrayList<>();
+		imagesSources.add( source );
 		this.numIoThreads = numIoThreads;
 
 		setBdvWindowDimensions();
@@ -58,6 +58,21 @@ public class MultiPositionViewer
 
 	}
 
+	public void zoomToImage( String imageFileName )
+	{
+		// TODO: one could loop across all sources...
+		int sourceIndex = 0;
+
+		final ImageFile imageFile = imagesSources.get( sourceIndex ).getLoader().getImageFile( imageFileName );
+
+		zoomToImage( imageFile.getInterval() );
+	}
+
+
+	public ArrayList< ImagesSource > getImagesSources()
+	{
+		return imagesSources;
+	}
 
 	public AffineTransform3D getImageZoomTransform( FinalInterval interval )
 	{
@@ -100,7 +115,7 @@ public class MultiPositionViewer
 	}
 
 
-	private void setBdv( MultiPositionImagesSource source )
+	private void setBdv( ImagesSource source )
 	{
 
 		// TODO:
@@ -119,7 +134,7 @@ public class MultiPositionViewer
 
 		bdv = bdvTmpSource.getBdvHandle();
 
-		zoomToImage( source.getImageFile( 0 ).getInterval() );
+		zoomToImage( source.getLoader().getImageFile( 0 ).getInterval() );
 
 		addSourceToBdv( source );
 
@@ -129,7 +144,7 @@ public class MultiPositionViewer
 
 	}
 
-	public void addSourceToBdv( MultiPositionImagesSource source )
+	public void addSourceToBdv( ImagesSource source )
 	{
 		BdvSource bdvSource = BdvFunctions.show(
 					VolatileViews.wrapAsVolatile( source.getCachedCellImg(), loadingQueue ),
@@ -155,7 +170,7 @@ public class MultiPositionViewer
 	{
 		final long[] coordinates = getMouseCoordinates();
 
-		final ImageFile imageFile = multiPositionImagesSources.get( 0 ).getImageFile( coordinates );
+		final ImageFile imageFile = imagesSources.get( 0 ).getLoader().getImageFile( coordinates );
 
 		if ( imageFile != null )
 		{

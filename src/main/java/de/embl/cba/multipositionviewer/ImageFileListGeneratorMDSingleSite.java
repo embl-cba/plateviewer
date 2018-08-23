@@ -31,7 +31,7 @@ public class ImageFileListGeneratorMDSingleSite
 		this.maxWellDimensionsInData = new int[ 2 ];
 		this.maxSiteDimensionsInData = new int[ 2 ];
 
-		createList();
+		createImageFileList();
 
 	}
 
@@ -40,7 +40,7 @@ public class ImageFileListGeneratorMDSingleSite
 		return list;
 	}
 
-	private void createList()
+	private void createImageFileList()
 	{
 
 		configWells( files );
@@ -48,41 +48,18 @@ public class ImageFileListGeneratorMDSingleSite
 
 		for ( File file : files )
 		{
-
 			final ImageFile imageFile = new ImageFile();
-
 			imageFile.file = file;
-			imageFile.interval = getInterval( file, namingScheme, wellDimensions[ 0 ], siteDimensions[ 0 ] );
+			imageFile.interval = getInterval( file );
 			list.add( imageFile );
-
 		}
 	}
 
 	private void configWells( ArrayList< File > files )
 	{
 		int[] maximalWellPositionsInData = getMaximalWellPositionsInData( files );
-		wellDimensions = new int[ 2 ];
 
-		// TODO...
-		if ( numWells <= 24 )
-		{
-			wellDimensions[ 0 ] = 6;
-			wellDimensions[ 1 ] = 4;
-		}
-		else if ( numWells <= 96  )
-		{
-			wellDimensions[ 0 ] = 12;
-			wellDimensions[ 1 ] = 8;
-		}
-		else if ( numWells <= 384  )
-		{
-			wellDimensions[ 0 ] = 24;
-			wellDimensions[ 1 ] = 16;
-		}
-		else
-		{
-			Utils.log( "ERROR: Could not figure out the correct number of wells...." );
-		}
+		wellDimensions = Utils.guessWellDimensions( maximalWellPositionsInData );
 
 		Utils.log( "Distinct wells: " +  numWells );
 		Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
@@ -91,14 +68,9 @@ public class ImageFileListGeneratorMDSingleSite
 
 	private void configSites( ArrayList< File > files )
 	{
-		numSites = getNumSites( files );
+		numSites = 1; //getNumSites( files );
 		siteDimensions = new int[ 2 ];
-
-		for ( int d = 0; d < siteDimensions.length; ++d )
-		{
-			siteDimensions[ d ] = ( int ) Math.ceil( Math.sqrt( numSites ) );
-			siteDimensions[ d ] = Math.max( 1, siteDimensions[ d ] );
-		}
+		Arrays.fill( siteDimensions, 1 );
 
 		Utils.log( "Distinct sites: " +  numSites );
 		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
@@ -145,11 +117,7 @@ public class ImageFileListGeneratorMDSingleSite
 
 			matcher.matches();
 
-			String well = matcher.group( 1 );
-
-			int[] wellPosition = new int[ 2 ];
-			wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
-			wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
+			int[] wellPosition = getWellPositionFromA01( matcher.group( 1 ) );
 
 			for ( int d = 0; d < wellPosition.length; ++d )
 			{
@@ -165,7 +133,7 @@ public class ImageFileListGeneratorMDSingleSite
 	}
 
 
-	private FinalInterval getInterval( File file, int numWellColumns, int numSiteColumns )
+	private FinalInterval getInterval( File file )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -173,29 +141,13 @@ public class ImageFileListGeneratorMDSingleSite
 
 		if ( matcher.matches() )
 		{
-			int[] wellPosition = new int[ 2 ];
-			int[] sitePosition = new int[ 2 ];
 
-			int wellNum = Integer.parseInt( matcher.group( 1 ) ) - 1;
-			int siteNum = Integer.parseInt( matcher.group( 2 ) );
+			int[] sitePosition = new int[ ]{ 1, 1};
+			int[] wellPosition = getWellPositionFromA01( matcher.group( 1 ) );
 
-			wellPosition[ 1 ] = wellNum / numWellColumns * numSiteColumns;
-			wellPosition[ 0 ] = wellNum % numWellColumns * numSiteColumns;
+			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, imageDimensions );
 
-			sitePosition[ 1 ] = siteNum / numSiteColumns;
-			sitePosition[ 0 ] = siteNum % numSiteColumns;
-
-			updateMaxWellDimensionInData( wellPosition );
-			updateMaxSiteDimensionInData( sitePosition );
-
-			final long[] min = computeMinCoordinates( wellPosition, sitePosition );
-			final long[] max = new long[ min.length ];
-			for ( int d = 0; d < min.length; ++d )
-			{
-				max[ d ] = min[ d ] + imageDimensions[ d ] - 1;
-			}
-
-			return new FinalInterval( min, max );
+			return interval;
 
 		}
 		else
@@ -205,17 +157,12 @@ public class ImageFileListGeneratorMDSingleSite
 
 	}
 
-	private long[] computeMinCoordinates( int[] wellPosition, int[] sitePosition )
+	private int[] getWellPositionFromA01( String well )
 	{
-		final long[] min = new long[ 2 ];
-
-		for ( int d = 0; d < 2; ++d )
-		{
-			min[ d ] = wellPosition[ d ] + sitePosition[ d ];
-			min[ d ] *= imageDimensions[ d ];
-		}
-
-		return min;
+		int[] wellPosition = new int[ 2 ];
+		wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
+		wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
+		return wellPosition;
 	}
 
 	private void updateMaxWellDimensionInData( int[] wellPosition )

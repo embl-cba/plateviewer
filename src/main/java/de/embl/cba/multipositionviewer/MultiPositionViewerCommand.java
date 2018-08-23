@@ -8,8 +8,6 @@ import org.scijava.plugin.Plugin;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Screening>Multiposition Viewer" )
 public class MultiPositionViewerCommand implements Command
@@ -41,7 +39,7 @@ public class MultiPositionViewerCommand implements Command
 		final String namingScheme = Utils.getMultiPositionNamingScheme( fileList.get( 0 ) );
 		Utils.log( "Detected naming scheme: " +  namingScheme );
 
-		final Set< String > channelPatterns = Utils.getChannelPatterns( fileList, namingScheme );
+		final ArrayList< String > channelPatterns = Utils.getChannelPatterns( fileList, namingScheme );
 
 		for ( String channelPattern : channelPatterns )
 		{
@@ -49,23 +47,38 @@ public class MultiPositionViewerCommand implements Command
 
 			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelPattern );
 
-			final MultiPositionImagesSource multiPositionImagesSource = new MultiPositionImagesSource( channelFiles, namingScheme, numIoThreads );
+			final ImagesSource imagesSource = new ImagesSource( channelFiles, namingScheme, numIoThreads );
 
-			addSourceToViewer( multiPositionImagesSource );
+			addSourceToViewer( imagesSource );
 
 		}
+
+		createImageNavigatorUI( fileList, channelPatterns.get( 0 ) );
 
 	}
 
-	public void addSourceToViewer( MultiPositionImagesSource multiPositionImagesSource )
+	public void createImageNavigatorUI( ArrayList< File > fileList, String channelPattern )
+	{
+		final ArrayList< File > files = Utils.filterFiles( fileList, channelPattern );
+
+		ArrayList< String > filenames = new ArrayList<>(  );
+		for ( File file : files )
+		{
+			filenames.add( file.getName() );
+		}
+
+		final MultiPositionViewerUI multiPositionViewerUI = new MultiPositionViewerUI( filenames, multiPositionViewer );
+	}
+
+	public void addSourceToViewer( ImagesSource imagesSource )
 	{
 		if ( multiPositionViewer == null )
 		{
-			multiPositionViewer = new MultiPositionViewer( multiPositionImagesSource, numIoThreads );
+			multiPositionViewer = new MultiPositionViewer( imagesSource, numIoThreads );
 		}
 		else
 		{
-			multiPositionViewer.addSourceToBdv( multiPositionImagesSource );
+			multiPositionViewer.addSourceToBdv( imagesSource );
 		}
 	}
 

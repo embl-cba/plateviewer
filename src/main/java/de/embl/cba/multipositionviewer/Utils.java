@@ -1,6 +1,9 @@
 package de.embl.cba.multipositionviewer;
 
 import ij.IJ;
+import net.imglib2.FinalInterval;
+import net.imglib2.Interval;
+import net.imglib2.util.Intervals;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,9 +80,9 @@ public class Utils
 		}
 	}
 
-	public static Set< String > getChannelPatterns( List< File > files, String namingScheme )
+	public static ArrayList< String > getChannelPatterns( List< File > files, String namingScheme )
 	{
-		final Set< String > channelPatterns = new HashSet<>( );
+		final Set< String > channelPatternSet = new HashSet<>( );
 
 		for ( File file : files )
 		{
@@ -89,15 +92,17 @@ public class Utils
 			{
 				if ( namingScheme.equals( PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 				{
-					channelPatterns.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
+					channelPatternSet.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
 				}
 				else if ( namingScheme.equals( PATTERN_MD_A01_CHANNEL ) )
 				{
-					channelPatterns.add( ".*" + matcher.group( 2 ) + ".tif" );
+					channelPatternSet.add( ".*" + matcher.group( 2 ) + ".tif" );
 				}
 			}
 
 		}
+
+		ArrayList< String > channelPatterns = new ArrayList<>( channelPatternSet );
 
 		return channelPatterns;
 	}
@@ -130,5 +135,100 @@ public class Utils
 		if ( Pattern.compile( PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
 		return PATTERN_NO_MATCH;
+	}
+
+	public static int[] guessWellDimensions( int[] maximalPositionsInData )
+	{
+		int[] wellDimensions = new int[ 2 ];
+
+		if ( ( maximalPositionsInData[ 0 ] <= 6 ) && ( maximalPositionsInData[ 1 ] <= 4 ) )
+		{
+			wellDimensions[ 0 ] = 6;
+			wellDimensions[ 1 ] = 4;
+		}
+		else if ( ( maximalPositionsInData[ 0 ] <= 12 ) && ( maximalPositionsInData[ 1 ] <= 8 )  )
+		{
+			wellDimensions[ 0 ] = 12;
+			wellDimensions[ 1 ] = 8;
+		}
+		else if ( ( maximalPositionsInData[ 0 ] <= 24 ) && ( maximalPositionsInData[ 1 ] <= 16 )  )
+		{
+			wellDimensions[ 0 ] = 24;
+			wellDimensions[ 1 ] = 16;
+		}
+		else
+		{
+			log( "ERROR: Could not figure out the correct number of wells...." );
+		}
+
+		return wellDimensions;
+	}
+
+	public static int[] guessWellDimensions( int numWells )
+	{
+		int[] wellDimensions = new int[ 2 ];
+
+		if ( numWells <= 24 )
+		{
+			wellDimensions[ 0 ] = 6;
+			wellDimensions[ 1 ] = 4;
+		}
+		else if ( numWells <= 96  )
+		{
+			wellDimensions[ 0 ] = 12;
+			wellDimensions[ 1 ] = 8;
+		}
+		else if ( numWells <= 384  )
+		{
+			wellDimensions[ 0 ] = 24;
+			wellDimensions[ 1 ] = 16;
+		}
+		else
+		{
+			log( "ERROR: Could not figure out the correct number of wells...." );
+		}
+
+		return wellDimensions;
+	}
+
+	public static long[] computeMinCoordinates( int[] imageDimensions, int[] wellPosition, int[] sitePosition )
+	{
+		final long[] min = new long[ 2 ];
+
+		for ( int d = 0; d < 2; ++d )
+		{
+			min[ d ] = wellPosition[ d ] + sitePosition[ d ];
+			min[ d ] *= imageDimensions[ d ];
+		}
+
+		return min;
+	}
+
+	public static FinalInterval createInterval( int[] wellPosition, int[] sitePosition, int[] imageDimensions )
+	{
+		final long[] min = computeMinCoordinates( imageDimensions, wellPosition, sitePosition );
+
+		final long[] max = new long[ min.length ];
+		for ( int d = 0; d < min.length; ++d )
+		{
+			max[ d ] = min[ d ] + imageDimensions[ d ] - 1;
+		}
+
+		return new FinalInterval( min, max );
+	}
+
+	public static boolean isIntersecting( Interval requestedInterval, FinalInterval imageInterval )
+	{
+		FinalInterval intersect = Intervals.intersect( requestedInterval, imageInterval );
+
+		for ( int d = 0; d < intersect.numDimensions(); ++d )
+		{
+			if ( intersect.dimension( d ) <= 0 )
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
