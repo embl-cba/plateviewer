@@ -80,6 +80,19 @@ public class Utils
 		}
 	}
 
+	public static double[] getCenter( Interval interval )
+	{
+		int n = interval.numDimensions();
+		final double[] center = new double[ n ];
+
+		for ( int d = 0; d < n; ++d )
+		{
+			center[ d ] = interval.min( d ) + interval.dimension( d ) / 2.0;
+		}
+
+		return center;
+	}
+
 	public static ArrayList< String > getChannelPatterns( List< File > files, String namingScheme )
 	{
 		final Set< String > channelPatternSet = new HashSet<>( );

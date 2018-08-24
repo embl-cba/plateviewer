@@ -28,13 +28,13 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	final ArrayList< File > files;
 	final String filenamePattern;
 
-	CachedCellImg< T, ? > cachedCellImg;
+	private CachedCellImg< T, ? > cachedCellImg;
 
-	MultiPositionLoader loader;
+	private MultiPositionLoader loader;
 
-	final int numIoThreads;
+	private final int numIoThreads;
 
-	String name;
+	private String name;
 
 	public ImagesSource( ArrayList< File > files, String filenamePattern, int numIoThreads )
 	{

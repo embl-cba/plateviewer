@@ -1,26 +1,27 @@
 package de.embl.cba.multipositionviewer;
 
-
 import bdv.util.BdvOverlay;
 import net.imglib2.realtransform.AffineTransform2D;
 
-import java.util.List;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
-
-public class BdvPositionIndexOverlay extends BdvOverlay
+public class BdvVolatileTextOverlay extends BdvOverlay
 {
+	private final ArrayList< TextOverlay > textOverlays;
+	private final int numDimensions;
 
-	final List< ImagesSource > imagesSources;
-	final List< ImageFile > imageFiles;
-	final int numDimensions;
-
-	public BdvPositionIndexOverlay( List< ImagesSource > imagesSources )
+	public BdvVolatileTextOverlay( )
 	{
 		super();
-		this.imagesSources = imagesSources;
-		this.imageFiles = imagesSources.get( 0 ).getLoader().getImageFiles();
+		this.textOverlays = new ArrayList<>( );
 		this.numDimensions = 2;
+	}
+
+	public void addTextOverlay( String string, double[] position )
+	{
+		textOverlays.add( new TextOverlay( string, position ) );
 	}
 
 	@Override
@@ -32,19 +33,17 @@ public class BdvPositionIndexOverlay extends BdvOverlay
 
 		final double scale = t.get( 0, 0 );
 
-		int fontSize = (int) (scale * 50);
+		int fontSize = (int) (scale * 200);
 
-//		if ( fontSize < 8 ) return;
-
-		for ( final ImageFile imageFile : imageFiles )
+		for ( final TextOverlay textOverlay : textOverlays )
 		{
-			String string = imageFile.getPositionName();
+			String string = textOverlay.text;
 
 			double[] center = new double[ numDimensions ];
 
-			t.apply( Utils.getCenter( imageFile.getInterval() ), center );
+			t.apply( textOverlay.position, center );
 
-			g.setColor( Color.MAGENTA );
+			g.setColor(  Color.GREEN );
 
 			final FontMetrics fontMetrics = setFont( g, fontSize );
 
@@ -80,5 +79,15 @@ public class BdvPositionIndexOverlay extends BdvOverlay
 		return g.getFontMetrics( g.getFont() );
 	}
 
-}
+	private class TextOverlay
+	{
+		String text;
+		double[] position;
 
+		public TextOverlay( String text, double[] position )
+		{
+			this.text = text;
+			this.position = position;
+		}
+	}
+}

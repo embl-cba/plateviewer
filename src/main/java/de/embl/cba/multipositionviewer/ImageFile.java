@@ -22,19 +22,6 @@ public class ImageFile
 		return positionName;
 	}
 
-	public double[] getCenter()
-	{
-		int n = interval.numDimensions();
-		final double[] center = new double[ n ];
-
-		for ( int d = 0; d < n; ++d )
-		{
-			center[ d ] = interval.min( d ) + interval.dimension( d ) / 2.0;
-		}
-
-		return center;
-	}
-
 	public long[] getDimensions()
 	{
 		int n = interval.numDimensions();

@@ -22,11 +22,10 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	JFrame frame;
 	JComboBox imageNamesComboBox;
 	JComboBox imagesSourcesComboBox;
-	JComboBox actionComboBox;
+	JCheckBox simpleSegmentationCheckBox;
 
 	final ArrayList< String > imageNames;
 	final MultiPositionViewer multiPositionViewer;
-
 	final ArrayList< BdvSource > addedSources;
 
 	private static final String CONNECTED_COMPONENTS_ACTION = "Compute connected components";
@@ -40,30 +39,48 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 
 		addImageNamesComboBox( );
 
-		addImageSourcesComboBox( );
-
-		addActionComboBox( );
+		addSimpleSegmentationUI( );
 
 		createAndShowUI( );
 	}
 
-	private void addActionComboBox( )
+	private void addSimpleSegmentationUI( )
 	{
-		actionComboBox = new JComboBox();
-		actionComboBox.addItem( CONNECTED_COMPONENTS_ACTION );
-		actionComboBox.addActionListener( this );
-		add( actionComboBox );
+		JPanel panel = createSimpleSegmentationPanel();
+
+		addSimpleSegmentationCheckBox( panel );
+
+		addImageSourcesComboBox( panel );
+
+		add( panel );
 	}
 
-	private void addImageSourcesComboBox( )
+	private JPanel createSimpleSegmentationPanel()
+	{
+		JPanel panel = new JPanel();
+		panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
+		panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
+		panel.add( Box.createHorizontalGlue() );
+		return panel;
+	}
+
+	private void addSimpleSegmentationCheckBox( JPanel panel )
+	{
+		simpleSegmentationCheckBox = new JCheckBox( "Simple segmentation" );
+		simpleSegmentationCheckBox.setHorizontalAlignment( SwingConstants.CENTER );
+		simpleSegmentationCheckBox.addActionListener( this );
+		panel.add( simpleSegmentationCheckBox );
+	}
+
+	private void addImageSourcesComboBox( JPanel panel )
 	{
 		imagesSourcesComboBox = new JComboBox();
+
 		for( ImagesSource source : multiPositionViewer.getImagesSources() )
 		{
 			imagesSourcesComboBox.addItem( source.getName() );
 		}
-		imagesSourcesComboBox.addActionListener( this );
-		add( imagesSourcesComboBox );
+		panel.add( imagesSourcesComboBox );
 	}
 
 	public void addImageNamesComboBox( )
@@ -86,16 +103,15 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 			multiPositionViewer.zoomToImage( imageName );
 		}
 
-		if ( e.getSource() == actionComboBox )
+		if ( e.getSource() == simpleSegmentationCheckBox )
 		{
-			final int imagesSourceIndex = imagesSourcesComboBox.getSelectedIndex();
-			final ImagesSource imagesSource = multiPositionViewer.getImagesSources().get( imagesSourceIndex );
-
-			if ( actionComboBox.getSelectedItem().equals( CONNECTED_COMPONENTS_ACTION ) )
+			if ( simpleSegmentationCheckBox.isSelected() )
 			{
-				final CachedCellImg< BitType, ? > thresholdImg = createCachedThresholdImg( imagesSource );
+				final ImagesSource imagesSource = multiPositionViewer.getImagesSources().get( imagesSourcesComboBox.getSelectedIndex() );
 
-				BdvSource bdvSource = addCachedImgToBdv( thresholdImg, multiPositionViewer );
+				final CachedCellImg< BitType, ? > thresholdImg = createCachedThresholdImg( imagesSource, multiPositionViewer.getBdv() );
+
+				BdvSource bdvSource = addCachedImgToViewer( thresholdImg, multiPositionViewer );
 
 				addedSources.add( bdvSource );
 
@@ -104,7 +120,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 
 	}
 
-	public static BdvSource addCachedImgToBdv( CachedCellImg< BitType, ? > thresholdImg, MultiPositionViewer multiPositionViewer )
+	public static BdvSource addCachedImgToViewer( CachedCellImg< BitType, ? > thresholdImg, MultiPositionViewer multiPositionViewer )
 	{
 		Bdv bdv = multiPositionViewer.getBdv();
 		SharedQueue loadingQueue = multiPositionViewer.getLoadingQueue();
@@ -115,7 +131,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 				BdvOptions.options().addTo( bdv ) );
 	}
 
-	public static CachedCellImg< BitType, ? > createCachedThresholdImg( ImagesSource imagesSource )
+	public static CachedCellImg< BitType, ? > createCachedThresholdImg( ImagesSource imagesSource, Bdv bdv )
 	{
 		final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
 
@@ -129,7 +145,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		return new ReadOnlyCachedCellImgFactory().create(
 		imgDimensions,
 		new UnsignedByteType(),
-		new ThresholdLoader( cachedCellImg, realThreshold ),
+		new ThresholdLoader( imagesSource, realThreshold, bdv ),
 		ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions )
 );
 	}

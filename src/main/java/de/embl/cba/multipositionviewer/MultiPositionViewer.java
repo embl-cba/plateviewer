@@ -31,14 +31,13 @@ public class MultiPositionViewer
 	public MultiPositionViewer( ImagesSource source, int numIoThreads )
 	{
 		this.imagesSources = new ArrayList<>();
-		imagesSources.add( source );
 		this.numIoThreads = numIoThreads;
 
 		setBdvWindowDimensions();
 
 		loadingQueue = new SharedQueue( numIoThreads );
 
-		setBdv( source );
+		initBdvAndAddSource( source );
 
 	}
 
@@ -125,7 +124,7 @@ public class MultiPositionViewer
 	}
 
 
-	private void setBdv( ImagesSource source )
+	private void initBdvAndAddSource( ImagesSource source )
 	{
 
 		// TODO:
@@ -144,18 +143,22 @@ public class MultiPositionViewer
 
 		bdv = bdvTmpSource.getBdvHandle();
 
+		setBdvBehaviors();
+
 		zoomToImage( source.getLoader().getImageFile( 0 ).getInterval() );
 
-		addSourceToBdv( source );
+		addSource( source );
 
 		bdvTmpSource.removeFromBdv();
 
-		setBdvBehaviors();
+
 
 	}
 
-	public void addSourceToBdv( ImagesSource source )
+	public void addSource( ImagesSource source )
 	{
+		imagesSources.add( source );
+
 		BdvSource bdvSource = BdvFunctions.show(
 					VolatileViews.wrapAsVolatile( source.getCachedCellImg(), loadingQueue ),
 					"",

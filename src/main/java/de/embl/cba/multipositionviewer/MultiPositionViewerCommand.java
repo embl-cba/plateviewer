@@ -51,6 +51,7 @@ public class MultiPositionViewerCommand implements Command
 			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelPattern );
 
 			final ImagesSource imagesSource = new ImagesSource( channelFiles, namingScheme, numIoThreads );
+			imagesSource.setName( channelPattern );
 
 			addSourceToViewer( imagesSource );
 
@@ -89,7 +90,7 @@ public class MultiPositionViewerCommand implements Command
 		}
 		else
 		{
-			multiPositionViewer.addSourceToBdv( imagesSource );
+			multiPositionViewer.addSource( imagesSource );
 		}
 	}
 
