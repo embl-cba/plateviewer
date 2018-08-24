@@ -6,17 +6,30 @@ import java.io.File;
 
 public class ImageFile
 {
-	public File file;
-	public FinalInterval interval;
+	private final File file;
+	private final FinalInterval interval;
+	private final String positionName;
 
-	public long[] getCenter()
+	public ImageFile( File file, FinalInterval interval, String positionName )
+	{
+		this.file = file;
+		this.interval = interval;
+		this.positionName = positionName;
+	}
+
+	public String getPositionName()
+	{
+		return positionName;
+	}
+
+	public double[] getCenter()
 	{
 		int n = interval.numDimensions();
-		final long[] center = new long[ n ];
+		final double[] center = new double[ n ];
 
 		for ( int d = 0; d < n; ++d )
 		{
-			center[ d ] = interval.min( d ) + interval.dimension( d ) / 2;
+			center[ d ] = interval.min( d ) + interval.dimension( d ) / 2.0;
 		}
 
 		return center;

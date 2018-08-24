@@ -42,6 +42,16 @@ public class MultiPositionViewer
 
 	}
 
+	public Bdv getBdv()
+	{
+		return bdv;
+	}
+
+	public SharedQueue getLoadingQueue()
+	{
+		return loadingQueue;
+	}
+
 	public void setBdvWindowDimensions()
 	{
 		bdvWindowDimensions = new int[ 2 ];
@@ -174,7 +184,7 @@ public class MultiPositionViewer
 
 		if ( imageFile != null )
 		{
-			Utils.log( imageFile.file.getName() );
+			Utils.log( imageFile.getFile().getName() );
 		}
 
 	}

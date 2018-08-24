@@ -50,10 +50,11 @@ public class ImageFileListGeneratorALMFScreening
 		for ( File file : files )
 		{
 
-			final ImageFile imageFile = new ImageFile();
+			final ImageFile imageFile = new ImageFile(
+					file,
+					getInterval( file, filenamePattern, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
+					file.getName());
 
-			imageFile.file = file;
-			imageFile.interval = getInterval( file, filenamePattern, wellDimensions[ 0 ], siteDimensions[ 0 ] );
 			list.add( imageFile );
 
 		}
@@ -148,7 +149,6 @@ public class ImageFileListGeneratorALMFScreening
 		}
 
 	}
-
 
 	private FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
 	{

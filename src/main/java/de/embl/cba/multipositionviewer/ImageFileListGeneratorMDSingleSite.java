@@ -48,9 +48,12 @@ public class ImageFileListGeneratorMDSingleSite
 
 		for ( File file : files )
 		{
-			final ImageFile imageFile = new ImageFile();
-			imageFile.file = file;
-			imageFile.interval = getInterval( file );
+
+			final ImageFile imageFile = new ImageFile(
+					file,
+					getInterval( file ),
+					file.getName());
+
 			list.add( imageFile );
 		}
 	}

@@ -1,5 +1,11 @@
 package de.embl.cba.multipositionviewer;
 
+import bdv.util.Bdv;
+import bdv.util.BdvFunctions;
+import bdv.util.BdvOptions;
+import bdv.util.BdvSource;
+import bdv.util.volatiles.SharedQueue;
+import bdv.util.volatiles.VolatileViews;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
@@ -21,6 +27,8 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	final ArrayList< String > imageNames;
 	final MultiPositionViewer multiPositionViewer;
 
+	final ArrayList< BdvSource > addedSources;
+
 	private static final String CONNECTED_COMPONENTS_ACTION = "Compute connected components";
 
 
@@ -28,6 +36,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	{
 		this.imageNames = imageNames;
 		this.multiPositionViewer = multiPositionViewer;
+		this.addedSources = new ArrayList<>();
 
 		addImageNamesComboBox( );
 
@@ -84,30 +93,45 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 
 			if ( actionComboBox.getSelectedItem().equals( CONNECTED_COMPONENTS_ACTION ) )
 			{
-				final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
+				final CachedCellImg< BitType, ? > thresholdImg = createCachedThresholdImg( imagesSource );
 
-				double realThreshold = 1.0;
+				BdvSource bdvSource = addCachedImgToBdv( thresholdImg, multiPositionViewer );
 
-				final ThresholdLoader thresholdLoader = new ThresholdLoader( cachedCellImg, realThreshold );
-
-				int[] cellDimensions = new int[ cachedCellImg.getCellGrid().numDimensions() ];
-				cachedCellImg.getCellGrid().cellDimensions( cellDimensions );
-
-				final long[] imgDimensions = cachedCellImg.getCellGrid().getImgDimensions();
-
-				final CachedCellImg< BitType, ? > thresholdImg
-						= new ReadOnlyCachedCellImgFactory().create(
-						imgDimensions,
-						new UnsignedByteType(),
-						new ThresholdLoader( cachedCellImg, realThreshold ),
-						ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions )
-				);
-
-				// TODO: add thresholdImg to Bdv (or multiPositionViewer?)xuu
+				addedSources.add( bdvSource );
 
 			}
 		}
 
+	}
+
+	public static BdvSource addCachedImgToBdv( CachedCellImg< BitType, ? > thresholdImg, MultiPositionViewer multiPositionViewer )
+	{
+		Bdv bdv = multiPositionViewer.getBdv();
+		SharedQueue loadingQueue = multiPositionViewer.getLoadingQueue();
+
+		return BdvFunctions.show(
+				VolatileViews.wrapAsVolatile( thresholdImg, loadingQueue ),
+				"",
+				BdvOptions.options().addTo( bdv ) );
+	}
+
+	public static CachedCellImg< BitType, ? > createCachedThresholdImg( ImagesSource imagesSource )
+	{
+		final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
+
+		double realThreshold = 1.0;
+
+		int[] cellDimensions = new int[ cachedCellImg.getCellGrid().numDimensions() ];
+		cachedCellImg.getCellGrid().cellDimensions( cellDimensions );
+
+		final long[] imgDimensions = cachedCellImg.getCellGrid().getImgDimensions();
+
+		return new ReadOnlyCachedCellImgFactory().create(
+		imgDimensions,
+		new UnsignedByteType(),
+		new ThresholdLoader( cachedCellImg, realThreshold ),
+		ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions )
+);
 	}
 
 	/**

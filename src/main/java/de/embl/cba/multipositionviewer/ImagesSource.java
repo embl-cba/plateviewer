@@ -155,6 +155,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 						new UnsignedByteType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				break;
 
 			case 16:
 
@@ -163,6 +164,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 						new UnsignedShortType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				break;
 
 			case 32:
 
@@ -171,12 +173,14 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 						new UnsignedShortType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				break;
 
 			default:
 
 				cachedCellImg = null;
 
 		}
+
 	}
 
 

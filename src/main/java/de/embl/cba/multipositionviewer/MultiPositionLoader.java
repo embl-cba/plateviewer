@@ -15,14 +15,13 @@ import java.util.concurrent.Executors;
 
 public class MultiPositionLoader implements CellLoader
 {
-	final ArrayList< File > files;
-	final String namingScheme;
-	final int[] imageDimensions;
-	final int bitDepth;
-	final int numIoThreads;
-	final ExecutorService executorService;
-
-	final ArrayList< ImageFile > imageFiles;
+	private final ArrayList< File > files;
+	private final String namingScheme;
+	private final int[] imageDimensions;
+	private final int bitDepth;
+	private final int numIoThreads;
+	private final ExecutorService executorService;
+	private final ArrayList< ImageFile > imageFiles;
 
 	public MultiPositionLoader( ArrayList< File > files, String namingScheme, int[] imageDimensions, int bitDepth, int numIoThreads )
 	{
@@ -55,7 +54,7 @@ public class MultiPositionLoader implements CellLoader
 	{
 		for ( ImageFile imageFile : imageFiles )
 		{
-			if ( imageFile.file.getName().equals( imageFileName ) )
+			if ( imageFile.getFile().getName().equals( imageFileName ) )
 			{
 				return imageFile;
 			}
@@ -87,7 +86,7 @@ public class MultiPositionLoader implements CellLoader
 				@Override
 				public void run()
 				{
-					loadImageIntoCell( cell, imageFile.file );
+					loadImageIntoCell( cell, imageFile.getFile() );
 				}
 			});
 		}

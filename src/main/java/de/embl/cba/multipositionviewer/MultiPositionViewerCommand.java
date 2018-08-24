@@ -1,5 +1,8 @@
 package de.embl.cba.multipositionviewer;
 
+import bdv.util.BdvFunctions;
+import bdv.util.BdvOptions;
+import bdv.util.BdvOverlay;
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
@@ -53,8 +56,16 @@ public class MultiPositionViewerCommand implements Command
 
 		}
 
+		addPositionIndexOverlay();
+
 		createImageNavigatorUI( fileList, channelPatterns.get( 0 ) );
 
+	}
+
+	public void addPositionIndexOverlay()
+	{
+		BdvOverlay bdvOverlay = new BdvPositionIndexOverlay( multiPositionViewer.getImagesSources());
+		BdvFunctions.showOverlay( bdvOverlay, "overlay", BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 	}
 
 	public void createImageNavigatorUI( ArrayList< File > fileList, String channelPattern )
