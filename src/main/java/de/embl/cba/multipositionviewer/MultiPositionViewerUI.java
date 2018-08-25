@@ -1,18 +1,18 @@
 package de.embl.cba.multipositionviewer;
 
-import bdv.util.Bdv;
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
-import bdv.util.BdvSource;
+import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
+import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
+import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
-import net.imglib2.type.logic.BitType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -23,19 +23,19 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	JComboBox imageNamesComboBox;
 	JComboBox imagesSourcesComboBox;
 	JCheckBox simpleSegmentationCheckBox;
+	JTextField simpleSegmentationMinimalObjectSizeTextField;
+	JTextField simpleSegmentationThresholdTextField;
 
 	final ArrayList< String > imageNames;
 	final MultiPositionViewer multiPositionViewer;
-	final ArrayList< BdvSource > addedSources;
 
-	private static final String CONNECTED_COMPONENTS_ACTION = "Compute connected components";
+	private BdvSource bdvSimpleSegmentationSource;
 
 
 	public MultiPositionViewerUI( ArrayList< String > imageNames, MultiPositionViewer multiPositionViewer )
 	{
 		this.imageNames = imageNames;
 		this.multiPositionViewer = multiPositionViewer;
-		this.addedSources = new ArrayList<>();
 
 		addImageNamesComboBox( );
 
@@ -52,6 +52,10 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 
 		addImageSourcesComboBox( panel );
 
+		addThresholdTextField( panel );
+
+		addMinimalObjectSizeTextField( panel );
+
 		add( panel );
 	}
 
@@ -64,10 +68,27 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		return panel;
 	}
 
+	private void addMinimalObjectSizeTextField( JPanel panel )
+	{
+		panel.add( new JLabel( "Minimal size [pixels]" ) );
+		simpleSegmentationMinimalObjectSizeTextField = new JTextField( "100", 6 );
+		simpleSegmentationMinimalObjectSizeTextField.addActionListener( this );
+		panel.add( simpleSegmentationMinimalObjectSizeTextField );
+	}
+
+	private void addThresholdTextField( JPanel panel )
+	{
+		panel.add( new JLabel( "Threshold" ) );
+		simpleSegmentationThresholdTextField = new JTextField( "1.0", 5 );
+		simpleSegmentationThresholdTextField.addActionListener( this );
+//		simpleSegmentationMinimalObjectSizeTextField.setHorizontalAlignment( SwingConstants.CENTER );
+		panel.add( simpleSegmentationThresholdTextField );
+	}
+
 	private void addSimpleSegmentationCheckBox( JPanel panel )
 	{
 		simpleSegmentationCheckBox = new JCheckBox( "Simple segmentation" );
-		simpleSegmentationCheckBox.setHorizontalAlignment( SwingConstants.CENTER );
+//		simpleSegmentationCheckBox.setHorizontalAlignment( SwingConstants.CENTER );
 		simpleSegmentationCheckBox.addActionListener( this );
 		panel.add( simpleSegmentationCheckBox );
 	}
@@ -103,52 +124,62 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 			multiPositionViewer.zoomToImage( imageName );
 		}
 
+		// TODO: refresh segmentation upon object size or threshold change
+
 		if ( e.getSource() == simpleSegmentationCheckBox )
 		{
 			if ( simpleSegmentationCheckBox.isSelected() )
 			{
 				final ImagesSource imagesSource = multiPositionViewer.getImagesSources().get( imagesSourcesComboBox.getSelectedIndex() );
 
-				final CachedCellImg< BitType, ? > thresholdImg = createCachedThresholdImg( imagesSource, multiPositionViewer.getBdv() );
+				final CachedCellImg< UnsignedByteType, ? > segmentationImg = createCachedSegmentationImg( imagesSource );
 
-				BdvSource bdvSource = addCachedImgToViewer( thresholdImg, multiPositionViewer );
-
-				addedSources.add( bdvSource );
-
+				bdvSimpleSegmentationSource = addCachedSegmentationImgToViewer( segmentationImg, multiPositionViewer );
+			}
+			else
+			{
+				bdvSimpleSegmentationSource.removeFromBdv();
+				bdvSimpleSegmentationSource = null;
 			}
 		}
 
 	}
 
-	public static BdvSource addCachedImgToViewer( CachedCellImg< BitType, ? > thresholdImg, MultiPositionViewer multiPositionViewer )
+	public static BdvSource addCachedSegmentationImgToViewer( CachedCellImg< UnsignedByteType, ? > thresholdImg, MultiPositionViewer multiPositionViewer )
 	{
 		Bdv bdv = multiPositionViewer.getBdv();
 		SharedQueue loadingQueue = multiPositionViewer.getLoadingQueue();
 
-		return BdvFunctions.show(
+		final BdvStackSource< Volatile< UnsignedByteType > > source = BdvFunctions.show(
 				VolatileViews.wrapAsVolatile( thresholdImg, loadingQueue ),
 				"",
 				BdvOptions.options().addTo( bdv ) );
+
+		source.setColor( new ARGBType( ARGBType.rgba( 0, 255,0,127 )));
+
+		return source;
 	}
 
-	public static CachedCellImg< BitType, ? > createCachedThresholdImg( ImagesSource imagesSource, Bdv bdv )
+	public CachedCellImg< UnsignedByteType, ? > createCachedSegmentationImg( ImagesSource imagesSource )
 	{
 		final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
-
-		double realThreshold = 1.0;
-		long minSize = 100;
 
 		int[] cellDimensions = new int[ cachedCellImg.getCellGrid().numDimensions() ];
 		cachedCellImg.getCellGrid().cellDimensions( cellDimensions );
 
 		final long[] imgDimensions = cachedCellImg.getCellGrid().getImgDimensions();
 
+		final CellLoader< UnsignedByteType > loader = new SimpleSegmentationLoader(
+				imagesSource,
+				Double.parseDouble( simpleSegmentationThresholdTextField.getText() ),
+				Long.parseLong( simpleSegmentationMinimalObjectSizeTextField.getText() ),
+				multiPositionViewer.getBdv() );
+
 		return new ReadOnlyCachedCellImgFactory().create(
-		imgDimensions,
-		new UnsignedByteType(),
-		new SimpleSegmentationLoader( imagesSource, realThreshold, minSize, bdv ),
-		ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions )
-);
+				imgDimensions,
+				new UnsignedByteType(),
+				loader,
+				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 	}
 
 	/**
