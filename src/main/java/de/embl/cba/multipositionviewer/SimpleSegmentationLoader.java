@@ -4,16 +4,25 @@ package de.embl.cba.multipositionviewer;
 import bdv.util.*;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.labeling.ConnectedComponents;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.img.Img;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.ops.parse.token.Int;
+import net.imglib2.roi.labeling.LabelRegion;
+import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class ThresholdLoader< T extends NativeType< T > & RealType< T > > implements CellLoader< UnsignedByteType >
+public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T > > implements CellLoader< UnsignedByteType >
 {
 
 	final RandomAccessibleInterval< T > inputImage;
@@ -23,7 +32,7 @@ public class ThresholdLoader< T extends NativeType< T > & RealType< T > > implem
 	final BdvVolatileTextOverlay bdvVolatileTextOverlay;
 	final BdvOverlaySource< BdvOverlay > objectNumberOverlay;
 
-	public ThresholdLoader(
+	public SimpleSegmentationLoader(
 			ImagesSource imagesSource,
 			final double realThreshold,
 			final Bdv bdv )
@@ -45,7 +54,7 @@ public class ThresholdLoader< T extends NativeType< T > & RealType< T > > implem
 	public void load( final SingleCellArrayImg< UnsignedByteType, ? > cell ) throws Exception
 	{
 
-		inputImage.
+
 		final Cursor< T > inputImageCursor = Views.flatIterable( Views.interval( inputImage, cell ) ).cursor();
 		final Cursor< UnsignedByteType > cellCursor = Views.flatIterable( cell ).cursor();
 
@@ -60,9 +69,31 @@ public class ThresholdLoader< T extends NativeType< T > & RealType< T > > implem
 			cellCursor.next().set( inputImageCursor.next().compareTo( threshold ) > 0 ?  yes : no  );
 		}
 
+		// connected components
+		Img< IntType > connectedComponents = ArrayImgs.ints( Intervals.dimensionsAsLongArray( cell ) );
+
+		ConnectedComponents.labelAllConnectedComponents( cell, connectedComponents, ConnectedComponents.StructuringElement.FOUR_CONNECTED );
+
+		final LabelRegions< Integer > labelRegions = new LabelRegions( connectedComponents );
+
+		for ( LabelRegion labelRegion : labelRegions )
+		{
+			System.out.println( labelRegion.size() );
+		}
+
+		int numConnectedComponents = labelRegions.getExistingLabels().size();
+
+
+//		// count components = maximum
+//		int max = 0;
+//		for( IntType pixel : connectedComponents )
+//			max = Math.max( max, pixel.getInteger() );
+//		// output maximum
+//		System.out.println(max);
+//
+
 		// Paint number on image
-		int numObjects = 1;
-		bdvVolatileTextOverlay.addTextOverlay( "" + numObjects, Utils.getCenter( cell ) );
+		bdvVolatileTextOverlay.addTextOverlay( "" + numConnectedComponents, Utils.getCenter( cell ) );
 
 	}
 }

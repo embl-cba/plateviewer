@@ -145,7 +145,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		return new ReadOnlyCachedCellImgFactory().create(
 		imgDimensions,
 		new UnsignedByteType(),
-		new ThresholdLoader( imagesSource, realThreshold, bdv ),
+		new SimpleSegmentationLoader( imagesSource, realThreshold, bdv ),
 		ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions )
 );
 	}
