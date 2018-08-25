@@ -3,7 +3,18 @@ package de.embl.cba.multipositionviewer;
 import ij.IJ;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.labeling.ConnectedComponents;
+import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.roi.labeling.ImgLabeling;
+import net.imglib2.roi.labeling.LabelRegions;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
+import net.imglib2.view.Views;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -78,6 +89,44 @@ public class Utils
 				}
 			}
 		}
+	}
+
+	public static < T extends IntegerType >
+	ImgLabeling< Integer, IntType > createImgLabeling( RandomAccessibleInterval< T > rai )
+	{
+		RandomAccessibleInterval< IntType > labelImg = ArrayImgs.ints( Intervals.dimensionsAsLongArray( rai ) );
+		labelImg = Utils.getWithAdjustedOrigin( rai, labelImg );
+		ImgLabeling< Integer, IntType > imgLabeling = new ImgLabeling<>( labelImg );
+
+		final java.util.Iterator< Integer > labelCreator = new java.util.Iterator< Integer >()
+		{
+			int id = 0;
+
+			@Override
+			public boolean hasNext()
+			{
+				return true;
+			}
+
+			@Override
+			public synchronized Integer next()
+			{
+				return id++;
+			}
+		};
+
+		ConnectedComponents.labelAllConnectedComponents( Views.extendBorder( rai ), imgLabeling, labelCreator, ConnectedComponents.StructuringElement.EIGHT_CONNECTED );
+
+		return imgLabeling;
+	}
+
+	public static < S extends NumericType< S >, T extends NumericType< T > >
+	RandomAccessibleInterval< T > getWithAdjustedOrigin( RandomAccessibleInterval< S > source, RandomAccessibleInterval< T > target )
+	{
+		long[] offset = new long[ source.numDimensions() ];
+		source.min( offset );
+		target = Views.translate( target, offset );
+		return target;
 	}
 
 	public static double[] getCenter( Interval interval )
@@ -243,5 +292,20 @@ public class Utils
 		}
 
 		return true;
+	}
+
+	public static LabelRegions< Integer > createLabelRegions( SingleCellArrayImg< UnsignedByteType, ? > cell )
+	{
+		final ImgLabeling< Integer, IntType > imgLabeling = createImgLabeling( cell );
+
+//		RandomAccessibleInterval< IntType > labelImg = ArrayImgs.ints( Intervals.dimensionsAsLongArray( cell ) );
+//		Utils.getWithAdjustedOrigin( cell, labelImg );
+
+//		ConnectedComponents.labelAllConnectedComponents( cell, labelImg, ConnectedComponents.StructuringElement.FOUR_CONNECTED );
+//		labelImg = Utils.getWithAdjustedOrigin( cell, labelImg );
+
+		final LabelRegions< Integer > labelRegions = new LabelRegions( imgLabeling );
+
+		return labelRegions;
 	}
 }

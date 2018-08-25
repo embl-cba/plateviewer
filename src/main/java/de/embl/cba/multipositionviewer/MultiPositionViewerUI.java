@@ -136,6 +136,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
 
 		double realThreshold = 1.0;
+		long minSize = 100;
 
 		int[] cellDimensions = new int[ cachedCellImg.getCellGrid().numDimensions() ];
 		cachedCellImg.getCellGrid().cellDimensions( cellDimensions );
@@ -145,7 +146,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		return new ReadOnlyCachedCellImgFactory().create(
 		imgDimensions,
 		new UnsignedByteType(),
-		new SimpleSegmentationLoader( imagesSource, realThreshold, bdv ),
+		new SimpleSegmentationLoader( imagesSource, realThreshold, minSize, bdv ),
 		ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions )
 );
 	}
