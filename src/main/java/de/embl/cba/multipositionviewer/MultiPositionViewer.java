@@ -161,7 +161,7 @@ public class MultiPositionViewer
 
 		BdvSource bdvSource = BdvFunctions.show(
 					VolatileViews.wrapAsVolatile( source.getCachedCellImg(), loadingQueue ),
-					"",
+					source.getName()xzs,
 					BdvOptions.options().addTo( bdv ) );
 
 		bdvSource.setDisplayRange( source.getLutMinMax()[ 0 ], source.getLutMinMax()[ 1 ] );

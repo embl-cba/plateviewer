@@ -1,7 +1,7 @@
 import de.embl.cba.multipositionviewer.MultiPositionViewerCommand;
 import net.imagej.ImageJ;
 
-public class CommandTest
+public class MultiPositionViewerCommandTest
 {
 
 	public static void main(final String... args) throws Exception

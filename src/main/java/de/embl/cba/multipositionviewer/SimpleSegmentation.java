@@ -37,10 +37,10 @@ public class SimpleSegmentation
 
 		segmentationBdvSource = BdvFunctions.show(
 				VolatileViews.wrapAsVolatile( segmentation, multiPositionViewer.getLoadingQueue() ),
-				"",
+				"segmentation",
 				BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 
-		segmentationBdvSource.setColor( new ARGBType( ARGBType.rgba( 0, 255,0,127 )));
+		segmentationBdvSource.setColor( new ARGBType( ARGBType.rgba( 0, 255,0,255 )));
 	}
 
 	public CachedCellImg< UnsignedByteType, ? > createCachedSegmentationImg( )
