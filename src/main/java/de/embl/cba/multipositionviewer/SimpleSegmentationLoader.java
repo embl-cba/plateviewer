@@ -11,10 +11,10 @@ import net.imglib2.roi.labeling.LabelRegion;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.Views;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T > > implements CellLoader< UnsignedByteType >
@@ -24,8 +24,8 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 	final ArrayList< ImageFile > imageFiles;
 	final double realThreshold;
 	final Bdv bdv;
-	final BdvVolatileTextOverlay bdvVolatileTextOverlay;
-	final BdvOverlaySource< BdvOverlay > objectNumberOverlay;
+	final BdvVolatileTextOverlay volatileTextBdvOverlay;
+	final BdvOverlaySource< BdvOverlay > objectNumberBdvOverlay;
 	private final long minSize;
 	public static final UnsignedByteType ONE = new UnsignedByteType( 255 );
 	public static final UnsignedByteType ZERO = new UnsignedByteType( 0 );
@@ -41,14 +41,14 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 		this.realThreshold = realThreshold;
 		this.bdv = bdv;
 		this.minSize = minSize;
-		this.bdvVolatileTextOverlay = new BdvVolatileTextOverlay();
-		this.objectNumberOverlay = BdvFunctions.showOverlay( bdvVolatileTextOverlay, "overlay", BdvOptions.options().addTo( bdv ) );
+		this.volatileTextBdvOverlay = new BdvVolatileTextOverlay();
+		this.objectNumberBdvOverlay = BdvFunctions.showOverlay( volatileTextBdvOverlay, "overlay", BdvOptions.options().addTo( bdv ) );
 
 	}
 
-	public void removeObjectNumberOverlay()
+	public void dispose()
 	{
-		objectNumberOverlay.removeFromBdv();
+		objectNumberBdvOverlay.removeFromBdv();
 	}
 
 	@Override
@@ -65,7 +65,13 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 
 		int numValidObjects = paintValidObjectsIntoCell( cell, labelRegions, minSize );
 
-		bdvVolatileTextOverlay.addTextOverlay( "" + numValidObjects + "/" + totalNumObjects, Utils.getCenter( cell ) );
+		volatileTextBdvOverlay.addTextOverlay(
+				new TextOverlay(
+						"" + numValidObjects,
+						Utils.getCenter( cell ),
+						50,
+						Color.GREEN )
+		);
 
 	}
 

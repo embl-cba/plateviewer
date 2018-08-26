@@ -5,7 +5,6 @@ import net.imglib2.realtransform.AffineTransform2D;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 
 public class BdvVolatileTextOverlay extends BdvOverlay
 {
@@ -19,9 +18,9 @@ public class BdvVolatileTextOverlay extends BdvOverlay
 		this.numDimensions = 2;
 	}
 
-	public void addTextOverlay( String string, double[] position )
+	public void addTextOverlay( TextOverlay textOverlay )
 	{
-		textOverlays.add( new TextOverlay( string, position ) );
+		textOverlays.add( textOverlay );
 	}
 
 	@Override
@@ -33,9 +32,11 @@ public class BdvVolatileTextOverlay extends BdvOverlay
 
 		final double scale = t.get( 0, 0 );
 
-		int fontSize = (int) (scale * 200);
+		/* get a copy of the textOverlays field to avoid concurrent modification exception
+		that can be caused by the addTextOverlay( ) method.*/
+		final ArrayList< TextOverlay > currentTextOverlays = new ArrayList<>( textOverlays );
 
-		for ( final TextOverlay textOverlay : textOverlays )
+		for ( final TextOverlay textOverlay : currentTextOverlays )
 		{
 			String string = textOverlay.text;
 
@@ -43,9 +44,9 @@ public class BdvVolatileTextOverlay extends BdvOverlay
 
 			t.apply( textOverlay.position, center );
 
-			g.setColor(  Color.GREEN );
+			g.setColor( textOverlay.color );
 
-			final FontMetrics fontMetrics = setFont( g, fontSize );
+			final FontMetrics fontMetrics = setFont( g, ( int ) ( scale * textOverlay.size ) );
 
 			int[] stringPosition = getStringPosition( string, center, fontMetrics );
 
@@ -79,15 +80,4 @@ public class BdvVolatileTextOverlay extends BdvOverlay
 		return g.getFontMetrics( g.getFont() );
 	}
 
-	private class TextOverlay
-	{
-		String text;
-		double[] position;
-
-		public TextOverlay( String text, double[] position )
-		{
-			this.text = text;
-			this.position = position;
-		}
-	}
 }

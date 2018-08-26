@@ -46,7 +46,7 @@ public class BehaviourTransformEventHandlerPlanar implements BehaviourTransformE
 	}
 
 	/**
-	 * Current source to screen transform.
+	 * Current imagesSource to screen transform.
 	 */
 	private final AffineTransform3D affine = new AffineTransform3D();
 

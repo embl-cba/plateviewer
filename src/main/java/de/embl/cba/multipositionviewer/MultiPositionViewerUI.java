@@ -1,18 +1,6 @@
 package de.embl.cba.multipositionviewer;
 
-import bdv.util.*;
-import bdv.util.volatiles.SharedQueue;
-import bdv.util.volatiles.VolatileViews;
-import net.imglib2.Volatile;
-import net.imglib2.cache.img.CachedCellImg;
-import net.imglib2.cache.img.CellLoader;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
-
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -29,7 +17,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	final ArrayList< String > imageNames;
 	final MultiPositionViewer multiPositionViewer;
 
-	private BdvSource bdvSimpleSegmentationSource;
+	private SimpleSegmentation simpleSegmentation;
 
 
 	public MultiPositionViewerUI( ArrayList< String > imageNames, MultiPositionViewer multiPositionViewer )
@@ -124,63 +112,32 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 			multiPositionViewer.zoomToImage( imageName );
 		}
 
-		// TODO: refresh segmentation upon object size or threshold change
-
-		if ( e.getSource() == simpleSegmentationCheckBox )
+		if ( e.getSource() == simpleSegmentationCheckBox
+				|| e.getSource() == simpleSegmentationThresholdTextField
+				|| e.getSource() == simpleSegmentationMinimalObjectSizeTextField )
 		{
+
+			if ( simpleSegmentation != null )
+			{
+				simpleSegmentation.dispose();
+				simpleSegmentation = null;
+			}
+
 			if ( simpleSegmentationCheckBox.isSelected() )
 			{
-				final ImagesSource imagesSource = multiPositionViewer.getImagesSources().get( imagesSourcesComboBox.getSelectedIndex() );
+				simpleSegmentation = new SimpleSegmentation(
+						multiPositionViewer.getImagesSources().get( imagesSourcesComboBox.getSelectedIndex() ),
+						Double.parseDouble( simpleSegmentationThresholdTextField.getText() ),
+						Long.parseLong( simpleSegmentationMinimalObjectSizeTextField.getText() ),
+						multiPositionViewer );
 
-				final CachedCellImg< UnsignedByteType, ? > segmentationImg = createCachedSegmentationImg( imagesSource );
 
-				bdvSimpleSegmentationSource = addCachedSegmentationImgToViewer( segmentationImg, multiPositionViewer );
 			}
-			else
-			{
-				bdvSimpleSegmentationSource.removeFromBdv();
-				bdvSimpleSegmentationSource = null;
-			}
+
 		}
 
 	}
 
-	public static BdvSource addCachedSegmentationImgToViewer( CachedCellImg< UnsignedByteType, ? > thresholdImg, MultiPositionViewer multiPositionViewer )
-	{
-		Bdv bdv = multiPositionViewer.getBdv();
-		SharedQueue loadingQueue = multiPositionViewer.getLoadingQueue();
-
-		final BdvStackSource< Volatile< UnsignedByteType > > source = BdvFunctions.show(
-				VolatileViews.wrapAsVolatile( thresholdImg, loadingQueue ),
-				"",
-				BdvOptions.options().addTo( bdv ) );
-
-		source.setColor( new ARGBType( ARGBType.rgba( 0, 255,0,127 )));
-
-		return source;
-	}
-
-	public CachedCellImg< UnsignedByteType, ? > createCachedSegmentationImg( ImagesSource imagesSource )
-	{
-		final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
-
-		int[] cellDimensions = new int[ cachedCellImg.getCellGrid().numDimensions() ];
-		cachedCellImg.getCellGrid().cellDimensions( cellDimensions );
-
-		final long[] imgDimensions = cachedCellImg.getCellGrid().getImgDimensions();
-
-		final CellLoader< UnsignedByteType > loader = new SimpleSegmentationLoader(
-				imagesSource,
-				Double.parseDouble( simpleSegmentationThresholdTextField.getText() ),
-				Long.parseLong( simpleSegmentationMinimalObjectSizeTextField.getText() ),
-				multiPositionViewer.getBdv() );
-
-		return new ReadOnlyCachedCellImgFactory().create(
-				imgDimensions,
-				new UnsignedByteType(),
-				loader,
-				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
-	}
 
 	/**
 	 * Create the GUI and show it.  For thread safety,
