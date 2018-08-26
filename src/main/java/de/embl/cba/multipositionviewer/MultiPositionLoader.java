@@ -21,7 +21,7 @@ public class MultiPositionLoader implements CellLoader
 	private final int bitDepth;
 	private final int numIoThreads;
 	private final ExecutorService executorService;
-	private final ArrayList< ImageFile > imageFiles;
+	private final ArrayList< ImageSource > imageSources;
 
 	public MultiPositionLoader( ArrayList< File > files, String namingScheme, int[] imageDimensions, int bitDepth, int numIoThreads )
 	{
@@ -36,27 +36,27 @@ public class MultiPositionLoader implements CellLoader
 		if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 		{
 			ImageFileListGeneratorALMFScreening imageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
-			imageFiles = imageFileListGeneratorALMFScreening.getFileList();
+			imageSources = imageFileListGeneratorALMFScreening.getFileList();
 		}
 		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
 		{
 			ImageFileListGeneratorMDSingleSite imageFileListGeneratorMDSingleSite = new ImageFileListGeneratorMDSingleSite( files, imageDimensions );
-			imageFiles = imageFileListGeneratorMDSingleSite.getFileList();
+			imageSources = imageFileListGeneratorMDSingleSite.getFileList();
 		}
 		else
 		{
-			imageFiles = null;
+			imageSources = null;
 		}
 
 	}
 
-	public ImageFile getImageFile( String imageFileName )
+	public ImageSource getImageFile( String imageFileName )
 	{
-		for ( ImageFile imageFile : imageFiles )
+		for ( ImageSource imageSource : imageSources )
 		{
-			if ( imageFile.getFile().getName().equals( imageFileName ) )
+			if ( imageSource.getFile().getName().equals( imageFileName ) )
 			{
-				return imageFile;
+				return imageSource;
 			}
 		}
 
@@ -64,29 +64,29 @@ public class MultiPositionLoader implements CellLoader
 	}
 
 
-	public ImageFile getImageFile( int index )
+	public ImageSource getImageFile( int index )
 	{
-		return imageFiles.get( index );
+		return imageSources.get( index );
 	}
 
-	public ArrayList< ImageFile > getImageFiles()
+	public ArrayList< ImageSource > getImageSources()
 	{
-		return imageFiles;
+		return imageSources;
 	}
 
 	@Override
 	public void load( final SingleCellArrayImg cell ) throws Exception
 	{
-		ImageFile imageFile = getImageFile( cell );
+		ImageSource imageSource = getImageFile( cell );
 
-		if ( imageFile != null )
+		if ( imageSource != null )
 		{
 			executorService.submit( new Runnable()
 			{
 				@Override
 				public void run()
 				{
-					loadImageIntoCell( cell, imageFile.getFile() );
+					loadImageIntoCell( cell, imageSource.getFile() );
 				}
 			});
 		}
@@ -94,31 +94,31 @@ public class MultiPositionLoader implements CellLoader
 	}
 
 
-	private ImageFile getImageFile( SingleCellArrayImg cell )
+	public ImageSource getImageFile( SingleCellArrayImg cell )
 	{
 		Interval requestedInterval = Intervals.largestContainedInterval( cell );
 
-		for ( ImageFile imageFile : imageFiles )
+		for ( ImageSource imageSource : imageSources )
 		{
-			FinalInterval imageInterval = imageFile.getInterval();
+			FinalInterval imageInterval = imageSource.getInterval();
 
 			if ( Utils.isIntersecting( requestedInterval, imageInterval ) )
 			{
-				return imageFile;
+				return imageSource;
 			}
 		}
 
 		return null;
 	}
 
-	public ImageFile getImageFile( long[] coordinates )
+	public ImageSource getImageFile( long[] coordinates )
 	{
 		boolean matches = false;
 
-		for ( ImageFile imageFile : imageFiles )
+		for ( ImageSource imageSource : imageSources )
 		{
 
-			FinalInterval interval = imageFile.getInterval();
+			FinalInterval interval = imageSource.getInterval();
 
 			for ( int d = 0; d < interval.numDimensions(); ++d )
 			{
@@ -135,7 +135,7 @@ public class MultiPositionLoader implements CellLoader
 
 			if ( matches )
 			{
-				return imageFile;
+				return imageSource;
 			}
 
 		}

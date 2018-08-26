@@ -19,7 +19,7 @@ public class ImageFileListGeneratorALMFScreening
 	int[] maxSiteDimensionsInData;
 	int[] imageDimensions;
 
-	final ArrayList< ImageFile > list;
+	final ArrayList< ImageSource > list;
 
 	final String filenamePattern = Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
@@ -36,7 +36,7 @@ public class ImageFileListGeneratorALMFScreening
 
 	}
 
-	public ArrayList< ImageFile > getFileList()
+	public ArrayList< ImageSource > getFileList()
 	{
 		return list;
 	}
@@ -50,12 +50,12 @@ public class ImageFileListGeneratorALMFScreening
 		for ( File file : files )
 		{
 
-			final ImageFile imageFile = new ImageFile(
+			final ImageSource imageSource = new ImageSource(
 					file,
 					getInterval( file, filenamePattern, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
 					file.getName());
 
-			list.add( imageFile );
+			list.add( imageSource );
 
 		}
 	}

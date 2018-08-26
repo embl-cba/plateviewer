@@ -72,9 +72,9 @@ public class MultiPositionViewer
 		// TODO: one could loop across all sources...
 		int sourceIndex = 0;
 
-		final ImageFile imageFile = imagesSources.get( sourceIndex ).getLoader().getImageFile( imageFileName );
+		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageFile( imageFileName );
 
-		zoomToImage( imageFile.getInterval() );
+		zoomToImage( imageSource.getInterval() );
 	}
 
 
@@ -183,11 +183,11 @@ public class MultiPositionViewer
 	{
 		final long[] coordinates = getMouseCoordinates();
 
-		final ImageFile imageFile = imagesSources.get( 0 ).getLoader().getImageFile( coordinates );
+		final ImageSource imageSource = imagesSources.get( 0 ).getLoader().getImageFile( coordinates );
 
-		if ( imageFile != null )
+		if ( imageSource != null )
 		{
-			Utils.log( imageFile.getFile().getName() );
+			Utils.log( imageSource.getFile().getName() );
 		}
 
 	}

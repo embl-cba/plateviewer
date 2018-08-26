@@ -4,13 +4,13 @@ import net.imglib2.FinalInterval;
 
 import java.io.File;
 
-public class ImageFile
+public class ImageSource
 {
 	private final File file;
 	private final FinalInterval interval;
 	private final String positionName;
 
-	public ImageFile( File file, FinalInterval interval, String positionName )
+	public ImageSource( File file, FinalInterval interval, String positionName )
 	{
 		this.file = file;
 		this.interval = interval;

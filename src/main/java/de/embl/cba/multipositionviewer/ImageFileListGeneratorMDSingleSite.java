@@ -18,7 +18,7 @@ public class ImageFileListGeneratorMDSingleSite
 	int[] maxSiteDimensionsInData;
 	int[] imageDimensions;
 
-	final ArrayList< ImageFile > list;
+	final ArrayList< ImageSource > list;
 
 	final static String namingScheme = Utils.PATTERN_MD_A01_CHANNEL;
 
@@ -35,7 +35,7 @@ public class ImageFileListGeneratorMDSingleSite
 
 	}
 
-	public ArrayList< ImageFile > getFileList()
+	public ArrayList< ImageSource > getFileList()
 	{
 		return list;
 	}
@@ -49,12 +49,12 @@ public class ImageFileListGeneratorMDSingleSite
 		for ( File file : files )
 		{
 
-			final ImageFile imageFile = new ImageFile(
+			final ImageSource imageSource = new ImageSource(
 					file,
 					getInterval( file ),
 					file.getName());
 
-			list.add( imageFile );
+			list.add( imageSource );
 		}
 	}
 

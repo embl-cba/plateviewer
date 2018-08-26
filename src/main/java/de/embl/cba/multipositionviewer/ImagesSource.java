@@ -64,13 +64,13 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	public void setCachedCellImgDimensions()
 	{
-		final ArrayList< ImageFile > imageFiles = loader.getImageFiles();
+		final ArrayList< ImageSource > imageSources = loader.getImageSources();
 
-		FinalInterval union = new FinalInterval( imageFiles.get( 0 ).getInterval() );
+		FinalInterval union = new FinalInterval( imageSources.get( 0 ).getInterval() );
 
-		for ( ImageFile imageFile : imageFiles )
+		for ( ImageSource imageSource : imageSources )
 		{
-			union = Intervals.union( imageFile.getInterval(), union );
+			union = Intervals.union( imageSource.getInterval(), union );
 		}
 
 		// TODO: better making this smaller and with an offset...

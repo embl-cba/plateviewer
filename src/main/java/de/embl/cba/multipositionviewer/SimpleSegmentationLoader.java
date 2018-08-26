@@ -4,7 +4,6 @@ package de.embl.cba.multipositionviewer;
 import bdv.util.*;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.roi.labeling.LabelRegion;
@@ -15,13 +14,10 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.Views;
 
 import java.awt.*;
-import java.util.ArrayList;
 
 public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T > > implements CellLoader< UnsignedByteType >
 {
-
-	final RandomAccessibleInterval< T > inputImage;
-	final ArrayList< ImageFile > imageFiles;
+	final ImagesSource imagesSource;
 	final double realThreshold;
 	final Bdv bdv;
 	final BdvVolatileTextOverlay volatileTextBdvOverlay;
@@ -36,8 +32,7 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 			long minSize,
 			final Bdv bdv )
 	{
-		this.inputImage = imagesSource.getCachedCellImg();
-		this.imageFiles = imagesSource.getLoader().getImageFiles();
+		this.imagesSource = imagesSource;
 		this.realThreshold = realThreshold;
 		this.bdv = bdv;
 		this.minSize = minSize;
@@ -54,12 +49,11 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 	@Override
 	public void load( final SingleCellArrayImg< UnsignedByteType, ? > cell ) throws Exception
 	{
+		if ( imagesSource.getLoader().getImageFile( cell ) == null ) return;
 
-		thresholdInputImageAndPutResultIntoCell( cell );
+		thresholdImageSourceAndPutResultIntoCell( cell );
 
 		final LabelRegions< Integer > labelRegions = Utils.createLabelRegions( cell );
-
-		int totalNumObjects = labelRegions.getExistingLabels().size();
 
 		clearCell( cell );
 
@@ -69,19 +63,19 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 				new TextOverlay(
 						"" + numValidObjects,
 						Utils.getCenter( cell ),
-						50,
+						200,
 						Color.GREEN )
 		);
 
 	}
 
-	public void thresholdInputImageAndPutResultIntoCell( SingleCellArrayImg< UnsignedByteType, ? > cell )
+	public void thresholdImageSourceAndPutResultIntoCell( SingleCellArrayImg< UnsignedByteType, ? > cell )
 	{
-		final Cursor< T > inputImageCursor = Views.flatIterable( Views.interval( inputImage, cell ) ).cursor();
+		final Cursor< T > inputImageCursor = Views.flatIterable( Views.interval( imagesSource.getCachedCellImg(), cell ) ).cursor();
 
 		final Cursor< UnsignedByteType > cellCursor = Views.flatIterable( cell ).cursor();
 
-		T threshold = inputImage.randomAccess().get().copy();
+		T threshold = ( T ) imagesSource.getCachedCellImg().randomAccess().get().copy();
 		threshold.setReal( realThreshold );
 
 		while ( cellCursor.hasNext() )

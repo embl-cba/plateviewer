@@ -12,14 +12,14 @@ public class BdvPositionIndexOverlay extends BdvOverlay
 {
 
 	final List< ImagesSource > imagesSources;
-	final List< ImageFile > imageFiles;
+	final List< ImageSource > imageSources;
 	final int numDimensions;
 
 	public BdvPositionIndexOverlay( List< ImagesSource > imagesSources )
 	{
 		super();
 		this.imagesSources = imagesSources;
-		this.imageFiles = imagesSources.get( 0 ).getLoader().getImageFiles();
+		this.imageSources = imagesSources.get( 0 ).getLoader().getImageSources();
 		this.numDimensions = 2;
 	}
 
@@ -36,13 +36,13 @@ public class BdvPositionIndexOverlay extends BdvOverlay
 
 //		if ( fontSize < 8 ) return;
 
-		for ( final ImageFile imageFile : imageFiles )
+		for ( final ImageSource imageSource : imageSources )
 		{
-			String string = imageFile.getPositionName();
+			String string = imageSource.getPositionName();
 
 			double[] center = new double[ numDimensions ];
 
-			t.apply( Utils.getCenter( imageFile.getInterval() ), center );
+			t.apply( Utils.getCenter( imageSource.getInterval() ), center );
 
 			g.setColor( Color.MAGENTA );
 
