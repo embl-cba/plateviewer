@@ -28,6 +28,7 @@ public class Utils
 {
 
 	public static final String WELL_PLATE_96 = "96 well plate";
+	public static final String PATTERN_MD_A01_S1_CHANNEL = ".*_([A-Z]{1}[0-9]{2})_s(.*)_(.*).tif";
 	public static final String PATTERN_MD_A01_CHANNEL = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
 	public static final String PATTERN_ALMF_SCREENING_W0001_P000_C00 = ".*--W([0-9]{4})--P([0-9]{3}).*--C([0-9]{2}).ome.tif";
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
@@ -156,6 +157,10 @@ public class Utils
 				{
 					channelPatternSet.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
 				}
+				else if ( namingScheme.equals( PATTERN_MD_A01_S1_CHANNEL ) )
+				{
+					channelPatternSet.add( ".*" + matcher.group( 3 ) + ".tif" );
+				}
 				else if ( namingScheme.equals( PATTERN_MD_A01_CHANNEL ) )
 				{
 					channelPatternSet.add( ".*" + matcher.group( 2 ) + ".tif" );
@@ -189,10 +194,11 @@ public class Utils
 	}
 
 
-	public static String getMultiPositionNamingScheme( File file )
+	public static String getNamingScheme( File file )
 	{
 		String filePath = file.getAbsolutePath();
 
+		if ( Pattern.compile( PATTERN_MD_A01_S1_CHANNEL ).matcher( filePath ).matches() ) return PATTERN_MD_A01_S1_CHANNEL;
 		if ( Pattern.compile( PATTERN_MD_A01_CHANNEL ).matcher( filePath ).matches() ) return PATTERN_MD_A01_CHANNEL;
 		if ( Pattern.compile( PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
@@ -253,24 +259,24 @@ public class Utils
 		return wellDimensions;
 	}
 
-	public static long[] computeMinCoordinates( int[] imageDimensions, int[] wellPosition, int[] sitePosition )
+	public static long[] computeMinCoordinates( int[] imageDimensions, int[] wellPosition, int[] sitePosition, int[] siteDimensions )
 	{
 		final long[] min = new long[ 2 ];
 
 		for ( int d = 0; d < 2; ++d )
 		{
-			min[ d ] = wellPosition[ d ] + sitePosition[ d ];
+			min[ d ] = ( wellPosition[ d ] * siteDimensions[ d ] ) + sitePosition[ d ];
 			min[ d ] *= imageDimensions[ d ];
 		}
 
 		return min;
 	}
 
-	public static FinalInterval createInterval( int[] wellPosition, int[] sitePosition, int[] imageDimensions )
+	public static FinalInterval createInterval( int[] wellPosition, int[] sitePosition, int[] siteDimensions, int[] imageDimensions )
 	{
-		final long[] min = computeMinCoordinates( imageDimensions, wellPosition, sitePosition );
-
+		final long[] min = computeMinCoordinates( imageDimensions, wellPosition, sitePosition, siteDimensions );
 		final long[] max = new long[ min.length ];
+
 		for ( int d = 0; d < min.length; ++d )
 		{
 			max[ d ] = min[ d ] + imageDimensions[ d ] - 1;

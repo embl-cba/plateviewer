@@ -25,31 +25,53 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private double[] lutMinMax;
 	private int bitDepth;
 
-	final ArrayList< File > files;
-	final String filenamePattern;
-
+	private ArrayList< ImageSource > imageSources;
 	private CachedCellImg< T, ? > cachedCellImg;
-
 	private MultiPositionLoader loader;
 
 	private final int numIoThreads;
 
 	private String name;
 
-	public ImagesSource( ArrayList< File > files, String filenamePattern, int numIoThreads )
+	public ImagesSource( ArrayList< File > files, String namingScheme, int numIoThreads )
 	{
-		this.files = files;
-		this.filenamePattern = filenamePattern;
 		this.numIoThreads = numIoThreads;
-		this.name = filenamePattern;
+		this.name = namingScheme;
 
-		setImageProperties();
+		setImageProperties( files.get( 0 ) );
+
+		setImagesSource( files, namingScheme );
 
 		setMultiPositionLoader();
 
 		setCachedCellImgDimensions();
 
 		createCachedCellImg();
+	}
+
+
+	public void setImagesSource( ArrayList< File > files, String namingScheme )
+	{
+
+		if ( namingScheme.equals( Utils.PATTERN_MD_A01_S1_CHANNEL ) )
+		{
+			ImageSourcesGeneratorMDMultiSite imageSourcesGeneratorMDMultiSite = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions );
+			imageSources = imageSourcesGeneratorMDMultiSite.getFileList();
+		}
+		else if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+		{
+			ImageSourcesGeneratorALMFScreening imageSourcesGeneratorALMFScreening = new ImageSourcesGeneratorALMFScreening( files, imageDimensions );
+			imageSources = imageSourcesGeneratorALMFScreening.getFileList();
+		}
+		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
+		{
+			ImageSourcesGeneratorMDSingleSite imageSourcesGeneratorMDSingleSite = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
+			imageSources = imageSourcesGeneratorMDSingleSite.getFileList();
+		}
+		else
+		{
+			imageSources = null;
+		}
 	}
 
 	public String getName()
@@ -79,18 +101,15 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 		for ( int d = 0; d < 2; ++d )
 		{
-			dimensions[ d ] = union.max( d );
+			dimensions[ d ] = union.max( d ) + 1;
 		}
+
+		int a = 1;
 	}
 
 	private void setMultiPositionLoader()
 	{
-		loader = new MultiPositionLoader( files, filenamePattern, imageDimensions, bitDepth, numIoThreads );
-	}
-
-	public int getBitDepth()
-	{
-		return bitDepth;
+		loader = new MultiPositionLoader( imageSources, numIoThreads );
 	}
 
 	public double[] getLutMinMax()
@@ -103,9 +122,9 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		return loader;
 	}
 
-	private void setImageProperties()
+	private void setImageProperties( File file )
 	{
-		final ImagePlus imagePlus = getFirstImage();
+		final ImagePlus imagePlus = IJ.openImage( file.getAbsolutePath() );
 
 		setImageBitDepth( imagePlus );
 
@@ -119,11 +138,6 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		lutMinMax = new double[ 2 ];
 		lutMinMax[ 0 ] = imagePlus.getProcessor().getMin();
 		lutMinMax[ 1 ] = imagePlus.getProcessor().getMax();
-	}
-
-	private ImagePlus getFirstImage()
-	{
-		return IJ.openImage( files.get( 0 ).getAbsolutePath() );
 	}
 
 	private void setImageBitDepth( ImagePlus imagePlus )
@@ -142,7 +156,6 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		return cachedCellImg;
 	}
-
 
 	private void createCachedCellImg()
 	{

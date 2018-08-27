@@ -35,11 +35,11 @@ public class MultiPositionViewerCommand implements Command
 	public void run()
 	{
 
-		Utils.log( "Fetching list of files..." );
+		Utils.log( "Fetching files..." );
 		final ArrayList< File > fileList = Utils.getFileList( inputDirectory, onlyLoadFilesMatching );
 		Utils.log( "Number of files: " +  fileList.size() );
 
-		final String namingScheme = Utils.getMultiPositionNamingScheme( fileList.get( 0 ) );
+		final String namingScheme = Utils.getNamingScheme( fileList.get( 0 ) );
 		Utils.log( "Detected naming scheme: " +  namingScheme );
 
 		final ArrayList< String > channelPatterns = Utils.getChannelPatterns( fileList, namingScheme );
@@ -57,13 +57,13 @@ public class MultiPositionViewerCommand implements Command
 
 		}
 
-		addPositionIndexOverlay();
+		addPositionNameOverlay();
 
 		createImageNavigatorUI( fileList, channelPatterns.get( 0 ) );
 
 	}
 
-	public void addPositionIndexOverlay()
+	public void addPositionNameOverlay()
 	{
 		BdvOverlay bdvOverlay = new BdvPositionIndexOverlay( multiPositionViewer.getImagesSources());
 		BdvFunctions.showOverlay( bdvOverlay, "overlay", BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );

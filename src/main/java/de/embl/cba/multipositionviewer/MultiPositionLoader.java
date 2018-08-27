@@ -15,39 +15,13 @@ import java.util.concurrent.Executors;
 
 public class MultiPositionLoader implements CellLoader
 {
-	private final ArrayList< File > files;
-	private final String namingScheme;
-	private final int[] imageDimensions;
-	private final int bitDepth;
-	private final int numIoThreads;
 	private final ExecutorService executorService;
 	private final ArrayList< ImageSource > imageSources;
 
-	public MultiPositionLoader( ArrayList< File > files, String namingScheme, int[] imageDimensions, int bitDepth, int numIoThreads )
+	public MultiPositionLoader( ArrayList< ImageSource > imageSources, int numIoThreads )
 	{
-		this.files = files;
-		this.namingScheme = namingScheme;
-		this.imageDimensions = imageDimensions;
-		this.bitDepth = bitDepth;
-		this.numIoThreads = numIoThreads;
+		this.imageSources = imageSources;
 		executorService = Executors.newFixedThreadPool( numIoThreads );
-
-		// TODO: replace by interface and factory
-		if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
-		{
-			ImageFileListGeneratorALMFScreening imageFileListGeneratorALMFScreening = new ImageFileListGeneratorALMFScreening( files, imageDimensions );
-			imageSources = imageFileListGeneratorALMFScreening.getFileList();
-		}
-		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
-		{
-			ImageFileListGeneratorMDSingleSite imageFileListGeneratorMDSingleSite = new ImageFileListGeneratorMDSingleSite( files, imageDimensions );
-			imageSources = imageFileListGeneratorMDSingleSite.getFileList();
-		}
-		else
-		{
-			imageSources = null;
-		}
-
 	}
 
 	public ImageSource getImageFile( String imageFileName )
@@ -75,7 +49,7 @@ public class MultiPositionLoader implements CellLoader
 	}
 
 	@Override
-	public void load( final SingleCellArrayImg cell ) throws Exception
+	public synchronized void load( final SingleCellArrayImg cell ) throws Exception
 	{
 		ImageSource imageSource = getImageFile( cell );
 
@@ -152,19 +126,19 @@ public class MultiPositionLoader implements CellLoader
 
 		final ImagePlus imp = IJ.openImage( file.getAbsolutePath() );
 
-		if ( bitDepth == 8 )
+		if ( imp.getBitDepth() == 8 )
 		{
 			final byte[] impdata = ( byte[] ) imp.getProcessor().getPixels();
 			final byte[] celldata = ( byte[] ) cell.getStorageArray();
 			System.arraycopy( impdata, 0, celldata, 0, celldata.length );
 		}
-		else if ( bitDepth == 16 )
+		else if ( imp.getBitDepth() == 16 )
 		{
 			final short[] impdata = ( short[] ) imp.getProcessor().getPixels();
 			final short[] celldata = ( short[] ) cell.getStorageArray();
 			System.arraycopy( impdata, 0, celldata, 0, celldata.length );
 		}
-		else if ( bitDepth == 32 )
+		else if ( imp.getBitDepth() == 32 )
 		{
 			final float[] impdata = ( float[] ) imp.getProcessor().getPixels();
 			final float[] celldata = ( float[] ) cell.getStorageArray();
