@@ -66,7 +66,7 @@ public class BehaviourTransformEventHandlerPlanar implements BehaviourTransformE
 	private double oX, oY;
 
 	/**
-	 * The screen size of the canvas (the component displaying the image and
+	 * The screen radius of the canvas (the component displaying the image and
 	 * generating mouse events).
 	 */
 	private int canvasW = 1, canvasH = 1;

@@ -1,48 +1,49 @@
 package de.embl.cba.multipositionviewer;
 
-import bdv.util.*;
+import bdv.util.BdvFunctions;
+import bdv.util.BdvOptions;
+import bdv.util.BdvSource;
 import bdv.util.volatiles.VolatileViews;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.integer.ShortType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
-public class SimpleSegmentation
+public class BackgroundRemoval
 {
 	final ImagesSource imagesSource;
-	final double threshold;
-	final long minObjectSize;
+	final int radius;
 	final MultiPositionViewer multiPositionViewer;
 
-	private BdvSource segmentationBdvSource;
-	private SimpleSegmentationLoader< UnsignedByteType > loader;
+	private BdvSource removedBackgroundBdvSource;
+	private BackgroundRemovalLoader< ShortType > loader;
 
-	public SimpleSegmentation( ImagesSource imagesSource, double threshold, long minObjectSize, MultiPositionViewer multiPositionViewer )
+	public BackgroundRemoval( ImagesSource imagesSource, int radius, MultiPositionViewer multiPositionViewer )
 	{
 		this.imagesSource = imagesSource;
-		this.threshold = threshold;
-		this.minObjectSize = minObjectSize;
+		this.radius = radius;
 		this.multiPositionViewer = multiPositionViewer;
 
-		final CachedCellImg< UnsignedByteType, ? > cachedCellImg = createCachedCellImg();
+		final CachedCellImg< ShortType, ? > removedBackground = createCachedCellImg();
 
-		addCachedCellImgToViewer( cachedCellImg );
+		addCachedCellImgToViewer( removedBackground );
 
 	}
 
-	public void addCachedCellImgToViewer( CachedCellImg< UnsignedByteType, ? > cachedCellImg )
+	public void addCachedCellImgToViewer( CachedCellImg< ShortType, ? > cachedCellImg )
 	{
 
-		segmentationBdvSource = BdvFunctions.show(
+		removedBackgroundBdvSource = BdvFunctions.show(
 				VolatileViews.wrapAsVolatile( cachedCellImg, multiPositionViewer.getLoadingQueue() ),
-				"segmentation",
+				"background removed",
 				BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 
-		segmentationBdvSource.setColor( new ARGBType( ARGBType.rgba( 0, 255,0,255 )));
+		removedBackgroundBdvSource.setColor( new ARGBType( ARGBType.rgba( 0, 255,0,255 )));
 	}
 
-	public CachedCellImg< UnsignedByteType, ? > createCachedCellImg( )
+	public CachedCellImg< ShortType, ? > createCachedCellImg( )
 	{
 		final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
 
@@ -51,15 +52,14 @@ public class SimpleSegmentation
 
 		final long[] imgDimensions = cachedCellImg.getCellGrid().getImgDimensions();
 
-		loader = new SimpleSegmentationLoader(
+		loader = new BackgroundRemovalLoader<>(
 				imagesSource,
-				threshold,
-				minObjectSize,
+				radius,
 				multiPositionViewer.getBdv() );
 
 		return new ReadOnlyCachedCellImgFactory().create(
 				imgDimensions,
-				new UnsignedByteType(),
+				new ShortType(),
 				loader,
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 	}
@@ -67,8 +67,8 @@ public class SimpleSegmentation
 
 	public void dispose()
 	{
-		segmentationBdvSource.removeFromBdv();
-		segmentationBdvSource = null;
+		removedBackgroundBdvSource.removeFromBdv();
+		removedBackgroundBdvSource = null;
 		loader.dispose();
 		loader = null;
 	}

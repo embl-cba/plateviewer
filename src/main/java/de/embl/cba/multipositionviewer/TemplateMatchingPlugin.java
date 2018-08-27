@@ -207,7 +207,7 @@ public class TemplateMatchingPlugin implements PlugIn {
 		gd.addCheckbox("Show correlation map image?", showR);
 		gd.addCheckbox("Multiple match?", multiM);
 		gd.addNumericField("tolerence for Multi match ", mmt, 2);   //as in imageJ built-in find maxima
-		gd.addNumericField("threshold for Multi match ", mmth, 2);   //minimum value for a maxima
+		gd.addNumericField("radius for Multi match ", mmth, 2);   //minimum value for a maxima
 		gd.showDialog();
 		if (gd.wasCanceled()) {
 			return false;
@@ -422,7 +422,7 @@ public class TemplateMatchingPlugin implements PlugIn {
 				+ "correspond to the best match.\n"
 				+ "By checking the multimatch option, not only the best match will\n"
 				+ "be shown, but also all the similar pattern above the defined\n"
-				+ "threshold will be shown (Find maximum function on the correlation map)\n"
+				+ "radius will be shown (Find maximum function on the correlation map)\n"
 				+ "More details on \nhttps://sites.google.com/site/qingzongtseng/template-matching-ij-plugin");
 	}
 }

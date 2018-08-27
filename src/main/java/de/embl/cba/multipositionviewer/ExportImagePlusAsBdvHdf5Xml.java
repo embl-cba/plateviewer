@@ -62,7 +62,7 @@ public class ExportImagePlusAsBdvHdf5Xml
 			return;
 		}
 
-		// get calibration and image size
+		// get calibration and image radius
 		final double pw = calibration[ 0 ];
 		final double ph = calibration[ 1 ];
 		final double pd = calibration[ 2 ];
@@ -113,7 +113,7 @@ public class ExportImagePlusAsBdvHdf5Xml
 		// LoopBackHeuristic:
 		// - If saving more than 8x on pixel reads use the loopback image over
 		//   original image
-		// - For virtual stacks also consider the cache size that would be
+		// - For virtual stacks also consider the cache radius that would be
 		//   required for all original planes contributing to a "plane of
 		//   blocks" at the current level. If this is more than 1/4 of
 		//   available memory, use the loopback image.
