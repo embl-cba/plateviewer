@@ -8,31 +8,32 @@ import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.integer.ShortType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 
 public class BackgroundRemoval
 {
 	final ImagesSource imagesSource;
 	final int radius;
+	final double offset;
 	final MultiPositionViewer multiPositionViewer;
 
 	private BdvSource removedBackgroundBdvSource;
-	private BackgroundRemovalLoader< ShortType > loader;
+	private BackgroundRemovalLoader< UnsignedShortType > loader;
 
-	public BackgroundRemoval( ImagesSource imagesSource, int radius, MultiPositionViewer multiPositionViewer )
+	public BackgroundRemoval( ImagesSource imagesSource, int radius, double offset, MultiPositionViewer multiPositionViewer )
 	{
 		this.imagesSource = imagesSource;
 		this.radius = radius;
+		this.offset = offset;
 		this.multiPositionViewer = multiPositionViewer;
 
-		final CachedCellImg< ShortType, ? > removedBackground = createCachedCellImg();
+		final CachedCellImg< UnsignedShortType, ? > removedBackground = createCachedCellImg();
 
 		addCachedCellImgToViewer( removedBackground );
 
 	}
 
-	public void addCachedCellImgToViewer( CachedCellImg< ShortType, ? > cachedCellImg )
+	public void addCachedCellImgToViewer( CachedCellImg< UnsignedShortType, ? > cachedCellImg )
 	{
 
 		removedBackgroundBdvSource = BdvFunctions.show(
@@ -40,10 +41,10 @@ public class BackgroundRemoval
 				"background removed",
 				BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 
-		removedBackgroundBdvSource.setColor( new ARGBType( ARGBType.rgba( 0, 255,0,255 )));
+		removedBackgroundBdvSource.setColor( new ARGBType( ARGBType.rgba( 255, 255,255,255 )));
 	}
 
-	public CachedCellImg< ShortType, ? > createCachedCellImg( )
+	public CachedCellImg< UnsignedShortType, ? > createCachedCellImg( )
 	{
 		final CachedCellImg cachedCellImg = imagesSource.getCachedCellImg();
 
@@ -55,11 +56,11 @@ public class BackgroundRemoval
 		loader = new BackgroundRemovalLoader<>(
 				imagesSource,
 				radius,
-				multiPositionViewer.getBdv() );
+				offset, multiPositionViewer.getBdv() );
 
 		return new ReadOnlyCachedCellImgFactory().create(
 				imgDimensions,
-				new ShortType(),
+				new UnsignedShortType(),
 				loader,
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 	}

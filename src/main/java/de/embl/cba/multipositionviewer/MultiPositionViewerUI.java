@@ -16,6 +16,8 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	JTextField simpleSegmentationMinimalObjectSizeTextField;
 	JTextField simpleSegmentationThresholdTextField;
 	JTextField backgroundRemovalSizeTextField;
+	JTextField backgroundRemovalOffsetTextField;
+
 
 
 	final ArrayList< String > imageNames;
@@ -48,6 +50,8 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		addBackgroundRemovalImagesSourceComboBox( panel );
 
 		addBackgroundRemovalSizeTextField( panel );
+
+		addBackgroundRemovalOffsetTextField( panel );
 
 		add( panel );
 	}
@@ -108,6 +112,14 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		backgroundRemovalSizeTextField = new JTextField( "5", 5 );
 		backgroundRemovalSizeTextField.addActionListener( this );
 		panel.add( backgroundRemovalSizeTextField );
+	}
+
+	private void addBackgroundRemovalOffsetTextField( JPanel panel )
+	{
+		panel.add( new JLabel( "Offset" ) );
+		backgroundRemovalOffsetTextField = new JTextField( "0", 5 );
+		backgroundRemovalOffsetTextField.addActionListener( this );
+		panel.add( backgroundRemovalOffsetTextField );
 	}
 
 	private void addBackgroundRemovalImagesSourceComboBox( JPanel panel )
@@ -187,6 +199,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 				backgroundRemoval = new BackgroundRemoval(
 						multiPositionViewer.getImagesSources().get( backgroundRemovalImagesSourceComboBox.getSelectedIndex() ),
 						Integer.parseInt( backgroundRemovalSizeTextField.getText() ),
+						Double.parseDouble( backgroundRemovalOffsetTextField.getText() ),
 						multiPositionViewer );
 			}
 		}

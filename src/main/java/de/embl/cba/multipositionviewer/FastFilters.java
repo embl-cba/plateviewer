@@ -146,6 +146,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	private int pass;                           // Current pass
 	// Multithreading-related
 	private int maxThreads = Runtime.getRuntime().availableProcessors();  // number of threads for filtering
+	private FloatProcessor ipResult;
 
 	public FastFilters()
 	{
@@ -235,11 +236,13 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 
 	}
 
+
+
 	// Process a FloatProcessor (with the CONVERT_TO_FLOAT flag,ImageJ does the conversion).
 	// Called by ImageJ for each stack slice (when processing a full stack); for RGB image also called once for each color.
-	public void run( ImageProcessor ipInput ) {
-		final TypeConverter typeConverter = new TypeConverter( ipInput, false );
-		final ImageProcessor ip = typeConverter.convertToFloat( null );
+	public void run( ImageProcessor ipInput )
+	{
+		FloatProcessor ip = ipInput.toFloat( 0, null );
 		int width = ip.getWidth();
 		int height = ip.getHeight();
 		Rectangle roiRect = ip.getRoi();
@@ -268,7 +271,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		}
 		if (subtract) {
 			float[] pixels = (float[])ip.getPixels();
-			float[] snapPixels = (float[])ip.getSnapshotPixels();
+			float[] snapPixels = (float[])ipInput.toFloat( 0, null ).getPixels();
 			float fOffset = (float)offset[impType];
 			for (int y=roiRect.y; y<roiRect.y+roiRect.height; y++)
 				for (int x=roiRect.x, p=x+y*width; x<roiRect.x+roiRect.width; x++,p++)
@@ -278,7 +281,15 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		if (roiRect.height!=height || roiRect.width!=width)
 			resetOutOfRoi(ip, extraX, extraY); // reset out-of-Rectangle pixels above and below roi
 		showProgress(1.0);
+
+		ipResult = ip;
+
 		return;
+	}
+
+	public FloatProcessor getResult()
+	{
+		return ipResult;
 	}
 
 	/** In a zone of width 'extraX' (in x direction) and 'extraY' in y direction around the roi rectangle,
@@ -404,13 +415,6 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		long lastTime = System.currentTimeMillis();
 		for (int line=startLine; line<lineTo; line+=lineStep) {
 			int pixel0 = line*lineInc + writeFrom*pointInc; //the first pixel to write in a line
-			long time = System.currentTimeMillis();
-			if (time - lastTime >110) {
-				if (isMainThread)
-					showProgress((double)(line-startLine)/(lineTo-startLine));
-				if (Thread.currentThread().isInterrupted()) return; // interruption for new parameters during preview?
-				lastTime = time;
-			}
 			int p = line*lineInc + readFrom*pointInc;
 			for (int i=readFrom; i<readTo; i++ ,p+=pointInc)
 				cache[i] = pixels[p]*sign;
