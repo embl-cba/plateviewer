@@ -1,5 +1,7 @@
 package de.embl.cba.multipositionviewer;
 
+import ij.IJ;
+
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -172,19 +174,36 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		add( wellNamesComboBox );
 	}
 
+	public void updateBdv( long msecs )
+	{
+		(new Thread(new Runnable(){
+			public void run(){
+				try
+				{
+					Thread.sleep( msecs );
+				} catch ( InterruptedException e )
+				{
+					e.printStackTrace();
+				}
+				multiPositionViewer.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
+			}
+		})).start();
+	}
+
 	@Override
 	public void actionPerformed( ActionEvent e )
 	{
 		if ( e.getSource() == imageNamesComboBox )
 		{
 			multiPositionViewer.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
+			updateBdv( 1000 );
 		}
 
 		if ( e.getSource() == wellNamesComboBox )
 		{
 			multiPositionViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
+			updateBdv( 2000 );
 		}
-
 
 		if ( e.getSource() == simpleSegmentationCheckBox
 				|| e.getSource() == simpleSegmentationThresholdTextField

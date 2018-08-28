@@ -8,14 +8,14 @@ import java.util.List;
 import java.awt.*;
 
 
-public class BdvPositionIndexOverlay extends BdvOverlay
+public class BdvImageNamesOverlay extends BdvOverlay
 {
 
 	final List< ImagesSource > imagesSources;
 	final List< ImageSource > imageSources;
 	final int numDimensions;
 
-	public BdvPositionIndexOverlay( List< ImagesSource > imagesSources )
+	public BdvImageNamesOverlay( List< ImagesSource > imagesSources )
 	{
 		super();
 		this.imagesSources = imagesSources;

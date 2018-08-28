@@ -164,8 +164,6 @@ public class MultiPositionViewer
 
 		bdvTmpSource.removeFromBdv();
 
-
-
 	}
 
 	public void addSource( ImagesSource source )

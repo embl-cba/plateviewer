@@ -46,7 +46,9 @@ public class MultiPositionViewerCommand implements Command
 
 		addChannelsToViewer( fileList, namingScheme, channelPatterns );
 
-		addPositionNameOverlay();
+		addImageNamesOverlay();
+
+		// TODO: wellNames Overlay
 
 		new MultiPositionViewerUI( multiPositionViewer );
 
@@ -69,9 +71,9 @@ public class MultiPositionViewerCommand implements Command
 		}
 	}
 
-	public void addPositionNameOverlay()
+	public void addImageNamesOverlay()
 	{
-		BdvOverlay bdvOverlay = new BdvPositionIndexOverlay( multiPositionViewer.getImagesSources());
+		BdvOverlay bdvOverlay = new BdvImageNamesOverlay( multiPositionViewer.getImagesSources());
 		BdvFunctions.showOverlay( bdvOverlay, "overlay", BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 	}
 
