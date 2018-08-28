@@ -44,6 +44,17 @@ public class MultiPositionViewerCommand implements Command
 
 		final ArrayList< String > channelPatterns = Utils.getChannelPatterns( fileList, namingScheme );
 
+		addChannelsToViewer( fileList, namingScheme, channelPatterns );
+
+		addPositionNameOverlay();
+
+		new MultiPositionViewerUI( multiPositionViewer );
+
+
+	}
+
+	public void addChannelsToViewer( ArrayList< File > fileList, String namingScheme, ArrayList< String > channelPatterns )
+	{
 		for ( String channelPattern : channelPatterns )
 		{
 			Utils.log( "Adding channel: " + channelPattern );
@@ -56,30 +67,12 @@ public class MultiPositionViewerCommand implements Command
 			addSourceToViewer( imagesSource );
 
 		}
-
-		addPositionNameOverlay();
-
-		createImageNavigatorUI( fileList, channelPatterns.get( 0 ) );
-
 	}
 
 	public void addPositionNameOverlay()
 	{
 		BdvOverlay bdvOverlay = new BdvPositionIndexOverlay( multiPositionViewer.getImagesSources());
 		BdvFunctions.showOverlay( bdvOverlay, "overlay", BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
-	}
-
-	public void createImageNavigatorUI( ArrayList< File > fileList, String channelPattern )
-	{
-		final ArrayList< File > files = Utils.filterFiles( fileList, channelPattern );
-
-		ArrayList< String > filenames = new ArrayList<>(  );
-		for ( File file : files )
-		{
-			filenames.add( file.getName() );
-		}
-
-		final MultiPositionViewerUI multiPositionViewerUI = new MultiPositionViewerUI( filenames, multiPositionViewer );
 	}
 
 	public void addSourceToViewer( ImagesSource imagesSource )

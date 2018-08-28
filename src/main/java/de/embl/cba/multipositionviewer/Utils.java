@@ -314,4 +314,23 @@ public class Utils
 
 		return labelRegions;
 	}
+
+	public static ArrayList< String > getWellNames( ArrayList< File > files, String namingScheme, int wellGroup )
+	{
+		Set< String > wellNameSet = new HashSet<>(  );
+
+		for ( File file : files )
+		{
+			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
+
+			matcher.matches();
+
+			wellNameSet.add(  matcher.group( wellGroup ) );
+		}
+
+		final ArrayList< String > wellNames = new ArrayList<>( wellNameSet );
+
+		return wellNames;
+
+	}
 }

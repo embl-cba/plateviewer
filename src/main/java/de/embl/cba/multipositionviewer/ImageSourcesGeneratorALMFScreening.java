@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorALMFScreening
+public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 {
 
 	final ArrayList< File > files;
@@ -15,35 +15,44 @@ public class ImageSourcesGeneratorALMFScreening
 	int numSites, numWells;
 	int[] siteDimensions;
 	int[] wellDimensions;
-	int[] maxWellDimensionsInData;
-	int[] maxSiteDimensionsInData;
 	int[] imageDimensions;
 
-	final ArrayList< ImageSource > list;
+	final ArrayList< ImageSource > imageSources;
 
-	final String filenamePattern = Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
+	final ArrayList< String > wellNames;
+
+
+	final String NAMING_SCHEME = Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
+	public static final int NAMING_SCHEME_WELL_GROUP = 1;
+	public static final int NAMING_SCHEME_SITE_GROUP = 2;
+
 
 	public ImageSourcesGeneratorALMFScreening( ArrayList< File > files, int[] imageDimensions )
 	{
 		this.files = files;
-		this.list = new ArrayList<>();
+		this.imageSources = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
-		this.maxWellDimensionsInData = new int[ 2 ];
-		this.maxSiteDimensionsInData = new int[ 2 ];
+		createImageSources();
 
-		createList();
+		wellNames = Utils.getWellNames( files, NAMING_SCHEME, NAMING_SCHEME_WELL_GROUP );
+
 
 	}
-
-	public ArrayList< ImageSource > getFileList()
+	@Override
+	public ArrayList< ImageSource > getImageSources()
 	{
-		return list;
+		return imageSources;
 	}
 
-	private void createList()
+	@Override
+	public ArrayList< String > getWellNames()
 	{
+		return wellNames;
+	}
 
+	private void createImageSources()
+	{
 		configWells( files );
 		configSites( files );
 
@@ -52,10 +61,10 @@ public class ImageSourcesGeneratorALMFScreening
 
 			final ImageSource imageSource = new ImageSource(
 					file,
-					getInterval( file, filenamePattern, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
+					getInterval( file, NAMING_SCHEME, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
 					file.getName());
 
-			list.add( imageSource );
+			imageSources.add( imageSource );
 
 		}
 	}
@@ -99,9 +108,9 @@ public class ImageSourcesGeneratorALMFScreening
 
 			if ( matcher.matches() )
 			{
-				if ( filenamePattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+				if ( NAMING_SCHEME.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 				{
-					sites.add( matcher.group( 2 ) );
+					sites.add( matcher.group( NAMING_SCHEME_SITE_GROUP ) );
 				}
 			}
 		}
@@ -124,13 +133,13 @@ public class ImageSourcesGeneratorALMFScreening
 
 		for ( File file : files )
 		{
-			final Matcher matcher = Pattern.compile( filenamePattern ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( file.getName() );
 
 			matcher.matches();
 
-			wells.add( matcher.group( 1 ) );
+			wells.add( matcher.group( NAMING_SCHEME_WELL_GROUP ) );
 
-			int wellNum = Integer.parseInt( matcher.group( 1 ) );
+			int wellNum = Integer.parseInt( matcher.group( NAMING_SCHEME_WELL_GROUP ) );
 
 			if ( wellNum > maxWellNum )
 			{
@@ -161,18 +170,14 @@ public class ImageSourcesGeneratorALMFScreening
 			int[] wellPosition = new int[ 2 ];
 			int[] sitePosition = new int[ 2 ];
 
-			int wellNum = Integer.parseInt( matcher.group( 1 ) ) - 1;
-			int siteNum = Integer.parseInt( matcher.group( 2 ) );
+			int wellNum = Integer.parseInt( matcher.group( NAMING_SCHEME_WELL_GROUP ) ) - 1;
+			int siteNum = Integer.parseInt( matcher.group( NAMING_SCHEME_SITE_GROUP ) );
 
 			wellPosition[ 1 ] = wellNum / numWellColumns;
 			wellPosition[ 0 ] = wellNum % numWellColumns;
 
 			sitePosition[ 1 ] = siteNum / numSiteColumns;
 			sitePosition[ 0 ] = siteNum % numSiteColumns;
-
-			// TODO: maybe below can be removed?
-			updateMaxWellDimensionInData( wellPosition );
-			updateMaxSiteDimensionInData( sitePosition );
 
 			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 
@@ -185,26 +190,5 @@ public class ImageSourcesGeneratorALMFScreening
 
 	}
 
-	private void updateMaxWellDimensionInData( int[] wellPosition )
-	{
-		for ( int d = 0; d < 2; ++d )
-		{
-			if ( wellPosition[ d ] >= maxWellDimensionsInData[ d ] )
-			{
-				maxWellDimensionsInData[ d ] = wellPosition[ d ];
-			}
-		}
-	}
-
-	private void updateMaxSiteDimensionInData( int[] sitePosition )
-	{
-		for ( int d = 0; d < 2; ++d )
-		{
-			if ( sitePosition[ d ] >= maxSiteDimensionsInData[ d ] )
-			{
-				maxSiteDimensionsInData[ d ] = sitePosition[ d ];
-			}
-		}
-	}
 
 }

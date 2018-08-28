@@ -10,6 +10,7 @@ import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.LongArray;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.logic.BitType;
+import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -59,7 +60,7 @@ public class MultiPositionViewer
 	}
 
 
-	public void zoomToImage( FinalInterval interval )
+	public void zoomToInterval( FinalInterval interval )
 	{
 		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
 
@@ -67,14 +68,39 @@ public class MultiPositionViewer
 
 	}
 
+	public void zoomToWell( String wellName )
+	{
+		int sourceIndex = 0;
+
+		final ArrayList< ImageSource > imageSources = imagesSources.get( sourceIndex ).getLoader().getImageSources();
+
+		FinalInterval union = null;
+
+		for ( ImageSource imageSource : imageSources )
+		{
+			if ( imageSource.getFile().getName().contains( wellName ) )
+			{
+				if ( union == null )
+				{
+					union = new FinalInterval( imageSource.getInterval() );
+				}
+				else
+				{
+					union = Intervals.union( imageSource.getInterval(), union );
+				}
+			}
+		}
+
+		zoomToInterval( union );
+	}
+
 	public void zoomToImage( String imageFileName )
 	{
-		// TODO: one could loop across all sources...
 		int sourceIndex = 0;
 
 		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageFile( imageFileName );
 
-		zoomToImage( imageSource.getInterval() );
+		zoomToInterval( imageSource.getInterval() );
 	}
 
 
@@ -111,19 +137,6 @@ public class MultiPositionViewer
 		return affineTransform3D;
 	}
 
-	public int[] getImageCenterCoordinates( int[] imageCoordinates )
-	{
-		int[] imageCenterCoordinatesInPixels = new int[ 2 ];
-
-		for( int d = 0; d < 2; ++d )
-		{
-			imageCenterCoordinatesInPixels[ d ] = imageCoordinates[ d ] * imageDimensions[ d ];
-			imageCenterCoordinatesInPixels[ d ] += imageDimensions[ d ] / 2.0;
-		}
-		return imageCenterCoordinatesInPixels;
-	}
-
-
 	private void initBdvAndAddSource( ImagesSource source )
 	{
 
@@ -145,7 +158,7 @@ public class MultiPositionViewer
 
 		setBdvBehaviors();
 
-		zoomToImage( source.getLoader().getImageFile( 0 ).getInterval() );
+		zoomToInterval( source.getLoader().getImageFile( 0 ).getInterval() );
 
 		addSource( source );
 
@@ -166,6 +179,7 @@ public class MultiPositionViewer
 
 		bdvSource.setDisplayRange( source.getLutMinMax()[ 0 ], source.getLutMinMax()[ 1 ] );
 
+		source.setBdvSource( bdvSource );
 	}
 
 

@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorMDMultiSite
+public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 {
 	final ArrayList< File > files;
 
@@ -18,9 +18,15 @@ public class ImageSourcesGeneratorMDMultiSite
 	int[] wellDimensions;
 	int[] imageDimensions;
 
-	final ArrayList< ImageSource > imageSources;
+	final private ArrayList< ImageSource > imageSources;
 
-	final static String namingScheme = Utils.PATTERN_MD_A01_S1_CHANNEL;
+	final private ArrayList< String > wellNames;
+
+	final static String NAMING_SCHEME = Utils.PATTERN_MD_A01_S1_CHANNEL;
+	public static final int NAMING_SCHEME_WELL_GROUP = 1;
+	public static final int NAMING_SCHEME_SITE_GROUP = 2;
+
+
 
 	public ImageSourcesGeneratorMDMultiSite( ArrayList< File > files, int[] imageDimensions )
 	{
@@ -28,11 +34,13 @@ public class ImageSourcesGeneratorMDMultiSite
 		this.imageDimensions = imageDimensions;
 
 		this.imageSources = new ArrayList<>();
+
 		setImageSources();
 
+		wellNames = Utils.getWellNames( files, NAMING_SCHEME, NAMING_SCHEME_WELL_GROUP );
 	}
 
-	public ArrayList< ImageSource > getFileList()
+	public ArrayList< ImageSource > getImageSources()
 	{
 		return imageSources;
 	}
@@ -63,6 +71,12 @@ public class ImageSourcesGeneratorMDMultiSite
 		Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 	}
 
+	public ArrayList< String > getWellNames()
+	{
+		return wellNames;
+	}
+
+
 	private void configSites( ArrayList< File > files )
 	{
 		numSites = getNumSites( files );
@@ -86,7 +100,7 @@ public class ImageSourcesGeneratorMDMultiSite
 
 			if ( matcher.matches() )
 			{
-				sites.add( matcher.group( 2 ) );
+				sites.add( matcher.group( NAMING_SCHEME_SITE_GROUP ) );
 			}
 		}
 
@@ -101,17 +115,18 @@ public class ImageSourcesGeneratorMDMultiSite
 
 	}
 
+
 	private int[] getMaximalWellPositionsInData( ArrayList< File > files )
 	{
 		int[] maximalWellPosition = new int[ 2 ];
 
 		for ( File file : files )
 		{
-			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( file.getName() );
 
 			matcher.matches();
 
-			int[] wellPosition = getWellPositionFromA01( matcher.group( 1 ) );
+			int[] wellPosition = getWellPositionFromA01( matcher.group( NAMING_SCHEME_WELL_GROUP ) );
 
 			for ( int d = 0; d < wellPosition.length; ++d )
 			{
@@ -131,12 +146,12 @@ public class ImageSourcesGeneratorMDMultiSite
 	{
 		String filePath = file.getAbsolutePath();
 
-		final Matcher matcher = Pattern.compile( namingScheme ).matcher( filePath );
+		final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( filePath );
 
 		if ( matcher.matches() )
 		{
-			int[] wellPosition = getWellPositionFromA01( matcher.group( 1 ) );
-			int[] sitePosition = getSitePositionFromSiteIndex( matcher.group( 2 ) );
+			int[] wellPosition = getWellPositionFromA01( matcher.group( NAMING_SCHEME_WELL_GROUP ) );
+			int[] sitePosition = getSitePositionFromSiteIndex( matcher.group( NAMING_SCHEME_SITE_GROUP ) );
 
 			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 

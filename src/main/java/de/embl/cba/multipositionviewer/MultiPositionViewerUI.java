@@ -9,6 +9,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 {
 	JFrame frame;
 	JComboBox imageNamesComboBox;
+	JComboBox wellNamesComboBox;
 	JComboBox imagesSourceSimpleSegmentationComboBox;
 	JComboBox backgroundRemovalImagesSourceComboBox;
 	JCheckBox simpleSegmentationCheckBox;
@@ -18,21 +19,20 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	JTextField backgroundRemovalSizeTextField;
 	JTextField backgroundRemovalOffsetTextField;
 
-
-
-	final ArrayList< String > imageNames;
 	final MultiPositionViewer multiPositionViewer;
 
 	private SimpleSegmentation simpleSegmentation;
 	private BackgroundRemoval backgroundRemoval;
 
 
-	public MultiPositionViewerUI( ArrayList< String > imageNames, MultiPositionViewer multiPositionViewer )
+	public MultiPositionViewerUI( MultiPositionViewer multiPositionViewer )
 	{
-		this.imageNames = imageNames;
+
 		this.multiPositionViewer = multiPositionViewer;
 
-		addImageNamesComboBox( );
+		addImageNavigationComboBox( );
+
+		addWellNavigationComboBox(  );
 
 		addSimpleSegmentationUI( );
 
@@ -144,15 +144,32 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	}
 
 
-	public void addImageNamesComboBox( )
+	public void addImageNavigationComboBox( )
 	{
 		imageNamesComboBox = new JComboBox();
-		for ( String imageName : imageNames )
+
+		final ArrayList< ImageSource > imageSources = multiPositionViewer.getImagesSources().get( 0 ).getLoader().getImageSources();
+		for ( ImageSource imageSource : imageSources )
 		{
-			imageNamesComboBox.addItem( imageName );
+			imageNamesComboBox.addItem( imageSource.getFile().getName() );
 		}
+
 		imageNamesComboBox.addActionListener( this );
 		add( imageNamesComboBox );
+	}
+
+	public void addWellNavigationComboBox( )
+	{
+		wellNamesComboBox = new JComboBox();
+
+		final ArrayList< String > wellNames = multiPositionViewer.getImagesSources().get( 0 ).getWellNames();
+		for ( String wellName : wellNames )
+		{
+			wellNamesComboBox.addItem( wellName );
+		}
+
+		wellNamesComboBox.addActionListener( this );
+		add( wellNamesComboBox );
 	}
 
 	@Override
@@ -160,9 +177,14 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	{
 		if ( e.getSource() == imageNamesComboBox )
 		{
-			final String imageName = ( String ) imageNamesComboBox.getSelectedItem();
-			multiPositionViewer.zoomToImage( imageName );
+			multiPositionViewer.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
 		}
+
+		if ( e.getSource() == wellNamesComboBox )
+		{
+			multiPositionViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
+		}
+
 
 		if ( e.getSource() == simpleSegmentationCheckBox
 				|| e.getSource() == simpleSegmentationThresholdTextField
@@ -184,9 +206,9 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 			}
 		}
 
-
 		if ( e.getSource() == backgroundRemovalCheckBox
-				|| e.getSource() == backgroundRemovalSizeTextField )
+				|| e.getSource() == backgroundRemovalSizeTextField
+				|| e.getSource() == backgroundRemovalOffsetTextField )
 		{
 			if ( backgroundRemoval != null )
 			{

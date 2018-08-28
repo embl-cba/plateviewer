@@ -31,6 +31,8 @@ public class BackgroundRemoval
 
 		addCachedCellImgToViewer( removedBackground );
 
+		imagesSource.getBdvSource().setActive( false );
+
 	}
 
 	public void addCachedCellImgToViewer( CachedCellImg< UnsignedShortType, ? > cachedCellImg )
@@ -41,7 +43,11 @@ public class BackgroundRemoval
 				"background removed",
 				BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 
-		removedBackgroundBdvSource.setColor( new ARGBType( ARGBType.rgba( 255, 255,255,255 )));
+		removedBackgroundBdvSource.setColor( imagesSource.getArgbType() );
+
+		final double[] lutMinMax = imagesSource.getLutMinMax();
+		removedBackgroundBdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
+
 	}
 
 	public CachedCellImg< UnsignedShortType, ? > createCachedCellImg( )

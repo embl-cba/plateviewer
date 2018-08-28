@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorMDSingleSite
+public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 {
 	final ArrayList< File > files;
 
@@ -18,14 +18,18 @@ public class ImageSourcesGeneratorMDSingleSite
 	int[] maxSiteDimensionsInData;
 	int[] imageDimensions;
 
-	final ArrayList< ImageSource > list;
+	final ArrayList< ImageSource > imageSources;
 
-	final static String namingScheme = Utils.PATTERN_MD_A01_CHANNEL;
+	final static String NAMING_SCHEME = Utils.PATTERN_MD_A01_CHANNEL;
+	public static final int NAMING_SCHEME_WELL_GROUP = 1;
+
+	final ArrayList< String > wellNames;
+
 
 	public ImageSourcesGeneratorMDSingleSite( ArrayList< File > files, int[] imageDimensions )
 	{
 		this.files = files;
-		this.list = new ArrayList<>();
+		this.imageSources = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
 		this.maxWellDimensionsInData = new int[ 2 ];
@@ -33,12 +37,19 @@ public class ImageSourcesGeneratorMDSingleSite
 
 		createImageFileList();
 
+		wellNames = Utils.getWellNames( files, NAMING_SCHEME, NAMING_SCHEME_WELL_GROUP );
 	}
 
-	public ArrayList< ImageSource > getFileList()
+	public ArrayList< ImageSource > getImageSources()
 	{
-		return list;
+		return imageSources;
 	}
+
+	public ArrayList< String > getWellNames()
+	{
+		return wellNames;
+	}
+
 
 	private void createImageFileList()
 	{
@@ -54,7 +65,7 @@ public class ImageSourcesGeneratorMDSingleSite
 					getInterval( file ),
 					file.getName());
 
-			list.add( imageSource );
+			imageSources.add( imageSource );
 		}
 	}
 
@@ -86,7 +97,7 @@ public class ImageSourcesGeneratorMDSingleSite
 
 		for ( File file : files )
 		{
-			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( file.getName() );
 
 			matcher.matches();
 
@@ -110,7 +121,7 @@ public class ImageSourcesGeneratorMDSingleSite
 	{
 		String filePath = file.getAbsolutePath();
 
-		final Matcher matcher = Pattern.compile( namingScheme ).matcher( filePath );
+		final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( filePath );
 
 		if ( matcher.matches() )
 		{

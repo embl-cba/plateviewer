@@ -1,5 +1,6 @@
 package de.embl.cba.multipositionviewer;
 
+import bdv.util.BdvSource;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.FinalInterval;
@@ -7,6 +8,7 @@ import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
@@ -24,14 +26,19 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private int[] imageDimensions;
 	private double[] lutMinMax;
 	private int bitDepth;
+	private ARGBType argbType; // color
 
 	private ArrayList< ImageSource > imageSources;
+
+	private ArrayList< String > wellNames;
 	private CachedCellImg< T, ? > cachedCellImg;
 	private MultiPositionLoader loader;
 
 	private final int numIoThreads;
 
 	private String name;
+
+	private BdvSource bdvSource;
 
 	public ImagesSource( ArrayList< File > files, String namingScheme, int numIoThreads )
 	{
@@ -40,7 +47,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 		setImageProperties( files.get( 0 ) );
 
-		setImagesSource( files, namingScheme );
+		setImagesSourceAndWellNames( files, namingScheme );
 
 		setMultiPositionLoader();
 
@@ -50,28 +57,47 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	}
 
 
-	public void setImagesSource( ArrayList< File > files, String namingScheme )
+	public void setImagesSourceAndWellNames( ArrayList< File > files, String namingScheme )
 	{
+		ImageSourcesGenerator imageSourcesGenerator = null;
 
 		if ( namingScheme.equals( Utils.PATTERN_MD_A01_S1_CHANNEL ) )
 		{
-			ImageSourcesGeneratorMDMultiSite imageSourcesGeneratorMDMultiSite = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions );
-			imageSources = imageSourcesGeneratorMDMultiSite.getFileList();
+			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 		{
-			ImageSourcesGeneratorALMFScreening imageSourcesGeneratorALMFScreening = new ImageSourcesGeneratorALMFScreening( files, imageDimensions );
-			imageSources = imageSourcesGeneratorALMFScreening.getFileList();
+			imageSourcesGenerator = new ImageSourcesGeneratorALMFScreening( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
 		{
-			ImageSourcesGeneratorMDSingleSite imageSourcesGeneratorMDSingleSite = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
-			imageSources = imageSourcesGeneratorMDSingleSite.getFileList();
+			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
 		}
-		else
-		{
-			imageSources = null;
-		}
+
+		imageSources = imageSourcesGenerator.getImageSources();
+		wellNames = imageSourcesGenerator.getWellNames();
+
+	}
+
+	public ArrayList< String > getWellNames()
+	{
+		return wellNames;
+	}
+
+
+	public ARGBType getArgbType()
+	{
+		return argbType;
+	}
+
+	public BdvSource getBdvSource()
+	{
+		return bdvSource;
+	}
+
+	public void setBdvSource( BdvSource bdvSource )
+	{
+		this.bdvSource = bdvSource;
 	}
 
 	public String getName()
@@ -125,6 +151,9 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private void setImageProperties( File file )
 	{
 		final ImagePlus imagePlus = IJ.openImage( file.getAbsolutePath() );
+
+		// TODO: get this from somewhere?
+		argbType = new ARGBType( ARGBType.rgba( 255, 255,255,255 ));
 
 		setImageBitDepth( imagePlus );
 

@@ -26,6 +26,7 @@ public class BackgroundRemovalLoader< T extends NativeType< T > & RealType< T > 
 	final double offset;
 	final Bdv bdv;
 
+
 	public BackgroundRemovalLoader(
 			final ImagesSource imagesSource,
 			final int radius,
@@ -71,6 +72,7 @@ public class BackgroundRemovalLoader< T extends NativeType< T > & RealType< T > 
 			final ShortProcessor shortProcessor = result.convertToShortProcessor();
 			final short[] resultData = (short[]) shortProcessor.getPixels();
 			System.arraycopy( resultData, 0, cellData, 0, cellData.length );
+
 		}
 		else
 		{
