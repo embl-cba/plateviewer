@@ -1,4 +1,4 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
 
 import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
@@ -57,7 +57,7 @@ import java.util.*;
  *   Preprocessing helps to eliminate outliers for the "minimum", "maximum" and related filters.
  *
  * "Subtract Filtered" does not output the result of the filter operation above, but rather the
- *   original (input) image minus the result of the filter operation, plus an offset.
+ *   original (inputCachedCellImg) image minus the result of the filter operation, plus an offset.
  *   With "mean" filters, "Subtract Filtered" results in a high-pass filter; with "median" it
  *   highlights outliers. With the "minimum" and "maximum" filters, "Subtract Filtered" is a
  *   kind of edge detection, and with the other filters it provides various types of background
@@ -181,7 +181,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		gd.addCheckbox("Subtract Filtered", subtract);
 		gd.addNumericField("Offset (subtract only)", offset[impType], digits);
 		gd.addPreviewCheckbox(pfr);             // passing pfr makes the filter ready for preview
-		gd.addDialogListener(this);             // the DialogItemChanged method will be called on user input
+		gd.addDialogListener(this);             // the DialogItemChanged method will be called on user inputCachedCellImg
 		gd.showDialog();                        // display the dialog; preview runs in the background now
 		if (gd.wasCanceled()) return DONE;
 		IJ.register(this.getClass());           // protect static class variables (filter parameters) from garbage collection
@@ -202,7 +202,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		return flags;
 	}
 
-	// Called after modifications to the dialog. Returns true if valid input.
+	// Called after modifications to the dialog. Returns true if valid inputCachedCellImg.
 	public boolean dialogItemChanged(GenericDialog gd, AWTEvent e) {
 		Vector numFields = gd.getNumericFields();
 		TextField xNumField = (TextField)numFields.get(0);
@@ -409,7 +409,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	/* Filter the lines for one thread in one direction */
 	private void filterLines(float[] pixels, int type, float sign, int radius, int startLine, int lineTo, int lineStep,
 							 int length, int readFrom, int readTo, int writeFrom, int writeTo, int pointInc, int lineInc, boolean isMainThread) {
-		float[] cache = new float[length];    //input for filter, hopefully in CPU cache
+		float[] cache = new float[length];    //inputCachedCellImg for filter, hopefully in CPU cache
 		float[] vHi = (type == MEDIAN) ? new float[(2*xRadius+1)*(2*yRadius+1)] : null; //needed for median
 		float[] vLo = (type == MEDIAN) ? new float[(2*xRadius+1)*(2*yRadius+1)] : null; //needed for median
 		long lastTime = System.currentTimeMillis();
@@ -438,7 +438,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	// When trying to access out-of-border pixels it replaces them with the nearest border pixel.
 	// (this is the usual behavior of ImageJ filters)
 	// radius: Kernel width is 2*radius+1
-	// cache: Holds input data for one line, i.e., for one image row or column
+	// cache: Holds inputCachedCellImg data for one line, i.e., for one image row or column
 	// pixels: Image data are written to this point
 	// writeFrom: Index of first point of the line that should be written.
 	// writeTo: Last point + 1 of the line that should be written. Data will be read from 'cache'
@@ -560,7 +560,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		}
 	}
 
-	// Algorithm for finding maxima within a range of the input array 'cache':
+	// Algorithm for finding maxima within a range of the inputCachedCellImg array 'cache':
 	// - When going to the next pixel, if the new pixel is > than the old maximum take it.
 	// - Get the maximum over the full range only if the pixel that is not in the range any more ('out')
 	//   could be the one that has caused the current value of the maximum.

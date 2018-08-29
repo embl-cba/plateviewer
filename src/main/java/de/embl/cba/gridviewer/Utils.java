@@ -1,4 +1,4 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
 
 import ij.IJ;
 import net.imglib2.FinalInterval;

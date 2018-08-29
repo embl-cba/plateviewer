@@ -1,4 +1,4 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
 
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -7,7 +7,7 @@ import net.imglib2.type.numeric.RealType;
 public class ImageFilterSettings < T extends NativeType< T > & RealType< T > >
 {
 	public ImagesSource imagesSource;
-	public CachedCellImg< T, ? > input;
+	public CachedCellImg< T, ? > inputCachedCellImg;
 	public String inputName;
 	public String filterType;
 	public int radius;

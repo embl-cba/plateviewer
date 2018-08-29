@@ -1,4 +1,4 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
 
 import bdv.ij.util.PluginHelper;
 import bdv.ij.util.ProgressWriterIJ;

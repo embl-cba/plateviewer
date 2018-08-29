@@ -1,4 +1,4 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
 
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;

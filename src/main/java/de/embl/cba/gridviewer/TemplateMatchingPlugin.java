@@ -1,4 +1,4 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
 
 import ij.*;
 import ij.process.*;
@@ -67,7 +67,7 @@ public class TemplateMatchingPlugin implements PlugIn {
 		}
 
 		/*
-		 ** show Dialog and get user input parameters
+		 ** show Dialog and get user inputCachedCellImg parameters
 		 */
 
 

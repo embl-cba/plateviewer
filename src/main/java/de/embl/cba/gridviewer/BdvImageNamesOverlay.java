@@ -1,26 +1,26 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
+
 
 import bdv.util.BdvOverlay;
 import net.imglib2.realtransform.AffineTransform2D;
 
+import java.util.List;
 import java.awt.*;
-import java.util.ArrayList;
 
-public class BdvVolatileTextOverlay extends BdvOverlay
+
+public class BdvImageNamesOverlay extends BdvOverlay
 {
-	private final ArrayList< TextOverlay > textOverlays;
-	private final int numDimensions;
 
-	public BdvVolatileTextOverlay( )
+	final List< ImagesSource > imagesSources;
+	final List< ImageSource > imageSources;
+	final int numDimensions;
+
+	public BdvImageNamesOverlay( List< ImagesSource > imagesSources )
 	{
 		super();
-		this.textOverlays = new ArrayList<>( );
+		this.imagesSources = imagesSources;
+		this.imageSources = imagesSources.get( 0 ).getLoader().getImageSources();
 		this.numDimensions = 2;
-	}
-
-	public void addTextOverlay( TextOverlay textOverlay )
-	{
-		textOverlays.add( textOverlay );
 	}
 
 	@Override
@@ -32,21 +32,21 @@ public class BdvVolatileTextOverlay extends BdvOverlay
 
 		final double scale = t.get( 0, 0 );
 
-		/* get a copy of the textOverlays field to avoid concurrent modification exception
-		that can be caused by the addTextOverlay( ) method.*/
-		final ArrayList< TextOverlay > currentTextOverlays = new ArrayList<>( textOverlays );
+		int fontSize = (int) (scale * 50);
 
-		for ( final TextOverlay textOverlay : currentTextOverlays )
+//		if ( fontSize < 8 ) return;
+
+		for ( final ImageSource imageSource : imageSources )
 		{
-			String string = textOverlay.text;
+			String string = imageSource.getPositionName();
 
 			double[] center = new double[ numDimensions ];
 
-			t.apply( textOverlay.position, center );
+			t.apply( Utils.getCenter( imageSource.getInterval() ), center );
 
-			g.setColor( textOverlay.color );
+			g.setColor( Color.MAGENTA );
 
-			final FontMetrics fontMetrics = setFont( g, ( int ) ( scale * textOverlay.size ) );
+			final FontMetrics fontMetrics = setFont( g, fontSize );
 
 			int[] stringPosition = getStringPosition( string, center, fontMetrics );
 
@@ -81,3 +81,4 @@ public class BdvVolatileTextOverlay extends BdvOverlay
 	}
 
 }
+

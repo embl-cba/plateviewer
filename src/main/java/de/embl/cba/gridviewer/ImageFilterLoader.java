@@ -1,7 +1,6 @@
-package de.embl.cba.multipositionviewer;
+package de.embl.cba.gridviewer;
 
 
-import bdv.util.*;
 import ij.ImagePlus;
 import ij.process.FloatProcessor;
 import ij.process.ShortProcessor;
@@ -10,7 +9,6 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
-import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -22,47 +20,34 @@ import java.util.Arrays;
 
 public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > implements CellLoader< T >
 {
-	final ImagesSource imagesSource;
-	final RandomAccessibleInterval< T > input;
-	final String filterType;
-	final int radius;
-	final double offset;
-	final Bdv bdv;
 
-	public ImageFilterLoader(
-			final ImagesSource imagesSource,
-			CachedCellImg< T, ? > input, String filterType, final int radius,
-			double offset,
-			final Bdv bdv )
-	{
-		this.imagesSource = imagesSource;
-		this.input = input;
-		this.filterType = filterType;
-		this.radius = radius;
-		this.offset = offset;
-		this.bdv = bdv;
-	}
+	private final ImageFilterSettings settings;
 
-	public void dispose()
+	public ImageFilterLoader( ImageFilterSettings settings )
 	{
+		this.settings = settings;
 	}
 
 	@Override
 	public void load( final SingleCellArrayImg< T, ? > cell ) throws Exception
 	{
-		if ( imagesSource.getLoader().getImageFile( cell ) == null ) return;
+		if ( settings.imagesSource.getLoader().getImageFile( cell ) == null ) return;
 
-		applyFilterAndPutIntoCell( cell );
+		applyFilterToSourceAndPutResultIntoCell( cell );
 	}
 
-	public void applyFilterAndPutIntoCell( SingleCellArrayImg< T, ? > cell )
+	public void applyFilterToSourceAndPutResultIntoCell( SingleCellArrayImg< T, ? > cell )
 	{
 
-		if ( filterType.equals( ImageFilter.SUBTRACT_MEDIAN ) )
+		if ( settings.filterType.equals( ImageFilter.SUBTRACT_MEDIAN ) )
 		{
-			subtractMedian(  Views.interval( input, cell ), cell );
+			subtractMedian(  Views.interval( settings.inputCachedCellImg, cell ), cell );
 		}
-		else if ( filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
+		else if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+		{
+			
+		}
+		else if ( settings.filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
 		{
 			// TODO
 		}
