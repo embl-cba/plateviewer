@@ -4,6 +4,7 @@ package de.embl.cba.multipositionviewer;
 import bdv.util.*;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.roi.labeling.LabelRegion;
@@ -18,6 +19,7 @@ import java.awt.*;
 public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T > > implements CellLoader< UnsignedByteType >
 {
 	final ImagesSource imagesSource;
+	final RandomAccessibleInterval< T > input;
 	final double realThreshold;
 	final Bdv bdv;
 	final BdvVolatileTextOverlay volatileTextBdvOverlay;
@@ -28,11 +30,13 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 
 	public SimpleSegmentationLoader(
 			ImagesSource imagesSource,
+			RandomAccessibleInterval< T > input,
 			final double realThreshold,
 			long minSize,
 			final Bdv bdv )
 	{
 		this.imagesSource = imagesSource;
+		this.input = input;
 		this.realThreshold = realThreshold;
 		this.bdv = bdv;
 		this.minSize = minSize;
@@ -71,11 +75,12 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 
 	public void thresholdImageSourceAndPutResultIntoCell( SingleCellArrayImg< UnsignedByteType, ? > cell )
 	{
-		final Cursor< T > inputImageCursor = Views.flatIterable( Views.interval( imagesSource.getCachedCellImg(), cell ) ).cursor();
+		final Cursor< T > inputImageCursor = Views.flatIterable( Views.interval( input, cell ) ).cursor();
 
 		final Cursor< UnsignedByteType > cellCursor = Views.flatIterable( cell ).cursor();
 
-		T threshold = ( T ) imagesSource.getCachedCellImg().randomAccess().get().copy();
+		T threshold = ( T ) input.randomAccess().get().copy();
+
 		threshold.setReal( realThreshold );
 
 		while ( cellCursor.hasNext() )

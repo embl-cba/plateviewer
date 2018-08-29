@@ -103,7 +103,6 @@ public class MultiPositionViewer
 		zoomToInterval( imageSource.getInterval() );
 	}
 
-
 	public ArrayList< ImagesSource > getImagesSources()
 	{
 		return imagesSources;

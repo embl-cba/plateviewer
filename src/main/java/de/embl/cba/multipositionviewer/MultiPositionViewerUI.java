@@ -1,6 +1,6 @@
 package de.embl.cba.multipositionviewer;
 
-import ij.IJ;
+import net.imglib2.cache.img.CachedCellImg;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -12,19 +12,22 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	JFrame frame;
 	JComboBox imageNamesComboBox;
 	JComboBox wellNamesComboBox;
-	JComboBox imagesSourceSimpleSegmentationComboBox;
-	JComboBox backgroundRemovalImagesSourceComboBox;
+	JComboBox imagesSourcesComboBox;
+	JComboBox applyFilterImagesSourceComboBox;
+	JComboBox applyFilterTypeComboBox;
+
 	JCheckBox simpleSegmentationCheckBox;
-	JCheckBox backgroundRemovalCheckBox;
+	JCheckBox applyFilterCheckBox;
 	JTextField simpleSegmentationMinimalObjectSizeTextField;
 	JTextField simpleSegmentationThresholdTextField;
-	JTextField backgroundRemovalSizeTextField;
-	JTextField backgroundRemovalOffsetTextField;
+	JTextField applyFilterSizeTextField;
+	JTextField applyFilterOffsetTextField;
 
 	final MultiPositionViewer multiPositionViewer;
 
 	private SimpleSegmentation simpleSegmentation;
-	private BackgroundRemoval backgroundRemoval;
+	private ImageFilter imageFilter;
+	private ArrayList< String > derivedImagesSources;
 
 
 	public MultiPositionViewerUI( MultiPositionViewer multiPositionViewer )
@@ -32,37 +35,41 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 
 		this.multiPositionViewer = multiPositionViewer;
 
+		this.derivedImagesSources = new ArrayList<>( );
+
 		addImageNavigationComboBox( );
 
 		addWellNavigationComboBox(  );
 
-		addSimpleSegmentationUI( );
+		addApplyFilterUI( );
 
-		addBackgroundRemovalUI( );
+		addSimpleSegmentationUI( );
 
 		createAndShowUI( );
 	}
 
-	private void addBackgroundRemovalUI( )
+	private void addApplyFilterUI( )
 	{
 		JPanel panel = createHorizontalLayoutPanel();
 
-		addBackgroundRemovalCheckBox( panel );
+		addApplyFilterCheckBox( panel );
 
-		addBackgroundRemovalImagesSourceComboBox( panel );
+		addApplyFilterTypeComboBox( panel );
 
-		addBackgroundRemovalSizeTextField( panel );
+		addImagesSourceComboBox( panel );
 
-		addBackgroundRemovalOffsetTextField( panel );
+		addApplyFilterSizeTextField( panel );
+
+		addApplyFilterOffsetTextField( panel );
 
 		add( panel );
 	}
 
-	private void addBackgroundRemovalCheckBox( JPanel panel )
+	private void addApplyFilterCheckBox( JPanel panel )
 	{
-		backgroundRemovalCheckBox = new JCheckBox( "Background subtraction" );
-		backgroundRemovalCheckBox.addActionListener( this );
-		panel.add( backgroundRemovalCheckBox );
+		applyFilterCheckBox = new JCheckBox( "Background subtraction" );
+		applyFilterCheckBox.addActionListener( this );
+		panel.add( applyFilterCheckBox );
 	}
 
 	private void addSimpleSegmentationUI( )
@@ -73,7 +80,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 		simpleSegmentationCheckBox.addActionListener( this );
 		panel.add( simpleSegmentationCheckBox );
 
-		addImagesSourceSimpleSegmentationComboBox( panel );
+		addImagesSourceComboBox( panel );
 
 		addThresholdTextField( panel );
 
@@ -108,41 +115,57 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	}
 
 
-	private void addBackgroundRemovalSizeTextField( JPanel panel )
+	private void addApplyFilterSizeTextField( JPanel panel )
 	{
 		panel.add( new JLabel( "Radius [pixels]" ) );
-		backgroundRemovalSizeTextField = new JTextField( "5", 5 );
-		backgroundRemovalSizeTextField.addActionListener( this );
-		panel.add( backgroundRemovalSizeTextField );
+		applyFilterSizeTextField = new JTextField( "5", 5 );
+		applyFilterSizeTextField.addActionListener( this );
+		panel.add( applyFilterSizeTextField );
 	}
 
-	private void addBackgroundRemovalOffsetTextField( JPanel panel )
+	private void addApplyFilterOffsetTextField( JPanel panel )
 	{
 		panel.add( new JLabel( "Offset" ) );
-		backgroundRemovalOffsetTextField = new JTextField( "0", 5 );
-		backgroundRemovalOffsetTextField.addActionListener( this );
-		panel.add( backgroundRemovalOffsetTextField );
+		applyFilterOffsetTextField = new JTextField( "0", 5 );
+		applyFilterOffsetTextField.addActionListener( this );
+		panel.add( applyFilterOffsetTextField );
 	}
 
-	private void addBackgroundRemovalImagesSourceComboBox( JPanel panel )
+	private void addApplyFilterTypeComboBox( JPanel panel )
 	{
-		backgroundRemovalImagesSourceComboBox = new JComboBox();
-		for( ImagesSource source : multiPositionViewer.getImagesSources() )
+		applyFilterTypeComboBox = new JComboBox();
+		for( String filterType : ImageFilter.getFilterTypes() )
 		{
-			backgroundRemovalImagesSourceComboBox.addItem( source.getName() );
+			applyFilterTypeComboBox.addItem( filterType );
 		}
-		panel.add( backgroundRemovalImagesSourceComboBox );
+		panel.add( applyFilterTypeComboBox );
 	}
 
 
-	private void addImagesSourceSimpleSegmentationComboBox( JPanel panel )
+	private void addImagesSourceComboBox( JPanel panel )
 	{
-		imagesSourceSimpleSegmentationComboBox = new JComboBox();
+		imagesSourcesComboBox = new JComboBox();
+
+		updateImagesSourcesComboBoxItems();
+
+		panel.add( imagesSourcesComboBox );
+	}
+
+	private void updateImagesSourcesComboBoxItems()
+	{
+		imagesSourcesComboBox.removeAllItems();
+
 		for( ImagesSource source : multiPositionViewer.getImagesSources() )
 		{
-			imagesSourceSimpleSegmentationComboBox.addItem( source.getName() );
+			imagesSourcesComboBox.addItem( source.getName() );
 		}
-		panel.add( imagesSourceSimpleSegmentationComboBox );
+
+		for( String source : derivedImagesSources )
+		{
+			imagesSourcesComboBox.addItem( source );
+		}
+
+		imagesSourcesComboBox.updateUI();
 	}
 
 
@@ -205,6 +228,13 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 			updateBdv( 2000 );
 		}
 
+		final ImagesSource referenceImagesSource = multiPositionViewer.getImagesSources().get( 0 );
+
+		final String selectedSourceName = ( String ) imagesSourcesComboBox.getSelectedItem();
+
+		final CachedCellImg cachedCellImg = referenceImagesSource.getCachedCellImg();
+
+
 		if ( e.getSource() == simpleSegmentationCheckBox
 				|| e.getSource() == simpleSegmentationThresholdTextField
 				|| e.getSource() == simpleSegmentationMinimalObjectSizeTextField )
@@ -218,32 +248,44 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 			if ( simpleSegmentationCheckBox.isSelected() )
 			{
 				simpleSegmentation = new SimpleSegmentation(
-						multiPositionViewer.getImagesSources().get( imagesSourceSimpleSegmentationComboBox.getSelectedIndex() ),
+						referenceImagesSource,
+						cachedCellImg,
+						selectedSourceName,
 						Double.parseDouble( simpleSegmentationThresholdTextField.getText() ),
 						Long.parseLong( simpleSegmentationMinimalObjectSizeTextField.getText() ),
-						multiPositionViewer );
+						multiPositionViewer);
+
+				derivedImagesSources.add( simpleSegmentation.getOutputName() );
 			}
 		}
 
-		if ( e.getSource() == backgroundRemovalCheckBox
-				|| e.getSource() == backgroundRemovalSizeTextField
-				|| e.getSource() == backgroundRemovalOffsetTextField )
+		if ( e.getSource() == applyFilterCheckBox
+				|| e.getSource() == applyFilterTypeComboBox
+				|| e.getSource() == applyFilterSizeTextField
+				|| e.getSource() == applyFilterOffsetTextField )
 		{
-			if ( backgroundRemoval != null )
+			if ( imageFilter != null )
 			{
-				backgroundRemoval.dispose();
-				backgroundRemoval = null;
+				imageFilter.dispose();
+				imageFilter = null;
 			}
 
-			if ( backgroundRemovalCheckBox.isSelected() )
+			if ( applyFilterCheckBox.isSelected() )
 			{
-				backgroundRemoval = new BackgroundRemoval(
-						multiPositionViewer.getImagesSources().get( backgroundRemovalImagesSourceComboBox.getSelectedIndex() ),
-						Integer.parseInt( backgroundRemovalSizeTextField.getText() ),
-						Double.parseDouble( backgroundRemovalOffsetTextField.getText() ),
+				imageFilter = new ImageFilter(
+						referenceImagesSource,
+						cachedCellImg,
+						selectedSourceName,
+						(String) applyFilterTypeComboBox.getSelectedItem(),
+						Integer.parseInt( applyFilterSizeTextField.getText() ),
+						Double.parseDouble( applyFilterOffsetTextField.getText() ),
 						multiPositionViewer );
+
+				derivedImagesSources.add( imageFilter.getOutputName() );
 			}
 		}
+
+		updateImagesSourcesComboBoxItems();
 	}
 
 
