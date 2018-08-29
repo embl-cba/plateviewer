@@ -5,6 +5,8 @@ import bdv.util.BdvOptions;
 import bdv.util.BdvSource;
 import bdv.util.volatiles.VolatileViews;
 import net.imglib2.cache.img.CachedCellImg;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 
 import javax.swing.*;
@@ -12,7 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class MultiPositionViewerUI extends JPanel implements ActionListener
+public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener
 {
 	JFrame frame;
 	JComboBox imageNamesComboBox;
@@ -24,7 +26,8 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	final MultiPositionViewer multiPositionViewer;
 
 	private ImageFilter imageFilter;
-	private ArrayList< String > derivedImagesSources;
+
+	private ArrayList< ImagesSource< T > > imagesSources;
 
 
 	public MultiPositionViewerUI( MultiPositionViewer multiPositionViewer )
@@ -32,15 +35,27 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 
 		this.multiPositionViewer = multiPositionViewer;
 
-		this.derivedImagesSources = new ArrayList<>( );
+		setImagesSources( );
 
-		addImageNavigationComboBox( );
+		addSiteNavigationComboBox( );
 
 		addWellNavigationComboBox(  );
 
 		addImageFilterPanel();
 
 		createAndShowUI( );
+	}
+
+	public void setImagesSources( )
+	{
+		this.imagesSources = new ArrayList<>(  );
+
+		final ArrayList< ImagesSource > imagesSources = multiPositionViewer.getImagesSources();
+
+		for( ImagesSource imagesSource : imagesSources )
+		{
+			this.imagesSources.add( imagesSource );
+		}
 	}
 
 	private void addImageFilterPanel()
@@ -87,31 +102,27 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	{
 		imagesSourcesComboBox.removeAllItems();
 
-		for( ImagesSource source : multiPositionViewer.getImagesSources() )
+		for( ImagesSource source : imagesSources )
 		{
 			imagesSourcesComboBox.addItem( source.getName() );
-		}
-
-		for( String source : derivedImagesSources )
-		{
-			imagesSourcesComboBox.addItem( source );
 		}
 
 		imagesSourcesComboBox.updateUI();
 	}
 
 
-	public void addImageNavigationComboBox( )
+	public void addSiteNavigationComboBox( )
 	{
-		imageNamesComboBox = new JComboBox();
+		imageNamesComboBox = new JComboBox( );
 
-		final ArrayList< ImageSource > imageSources = multiPositionViewer.getImagesSources().get( 0 ).getLoader().getImageSources();
-		for ( ImageSource imageSource : imageSources )
+		final ArrayList< String > siteNames = multiPositionViewer.getSiteNames();
+
+		for ( String siteName : siteNames )
 		{
-			imageNamesComboBox.addItem( imageSource.getFile().getName() );
+			imageNamesComboBox.addItem( siteName );
 		}
-
 		imageNamesComboBox.addActionListener( this );
+
 		add( imageNamesComboBox );
 	}
 
@@ -119,7 +130,7 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 	{
 		wellNamesComboBox = new JComboBox();
 
-		final ArrayList< String > wellNames = multiPositionViewer.getImagesSources().get( 0 ).getWellNames();
+		final ArrayList< String > wellNames = multiPositionViewer.getWellNames();
 		for ( String wellName : wellNames )
 		{
 			wellNamesComboBox.addItem( wellName );
@@ -160,40 +171,55 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 			updateBdv( 2000 );
 		}
 
-		final ImagesSource referenceImagesSource = multiPositionViewer.getImagesSources().get( 0 );
-
-		final String selectedSourceName = ( String ) imagesSourcesComboBox.getSelectedItem();
-
-		final CachedCellImg cachedCellImg = referenceImagesSource.getCachedCellImg();
-
 
 		if ( e.getSource() == imageFiltersComboBox )
 		{
+
+			final ImagesSource inputSource = imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
+
 			ImageFilterSettings settings = new ImageFilterSettings();
 			settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
-			settings.imagesSource = multiPositionViewer.getImagesSources().get( 0 );
-			settings.inputCachedCellImg = null;
+			settings.inputCachedCellImg = inputSource.getCachedCellImg();
+			settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
+			settings.multiPositionViewer = multiPositionViewer;
 
 			final ImageFilter imageFilter = new ImageFilter( settings );
+			final String name = imageFilter.getCachedFilterImgName();
 
-			// Remove source from bdv if it exists already (by name)
+			removeSourceOfSameNameIfExistsAlready( name );
 
+			final CachedCellImg img = imageFilter.createCachedFilterImg();
 
-			// Get cached cell img
-			final CachedCellImg cachedFilterImg = imageFilter.getCachedFilterImg();
-			final String cachedFilterImgName = imageFilter.getCachedFilterImgName();
+			final BdvSource bdvSource = addToViewer( img, name );
 
-			// Add cached img to viewer
-			addToViewer( cachedFilterImg, cachedFilterImgName );
+			setLut( bdvSource, inputSource, settings.filterType );
 
-			// Hide the source image if appropriate
-			settings.imagesSource.getBdvSource().setActive( false );
+			if ( ! settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+			{
+				inputSource.getBdvSource().setActive( false );
+			}
 
-			//
-			derivedImagesSources.add( cachedFilterImgName );
+			imagesSources.add( new ImagesSource( img, name, bdvSource ) );
+
+			updateImagesSourcesComboBoxItems();
 		}
 
-		updateImagesSourcesComboBoxItems();
+
+	}
+
+	public void removeSourceOfSameNameIfExistsAlready( String cachedFilterImgName )
+	{
+		for ( ImagesSource source : imagesSources )
+		{
+			if ( source.getName().equals( cachedFilterImgName ) )
+			{
+				source.dispose();
+				imagesSources.remove( source );
+				source = null;
+				System.gc();
+				break;
+			}
+		}
 	}
 
 
@@ -206,24 +232,24 @@ public class MultiPositionViewerUI extends JPanel implements ActionListener
 				BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 
 		// TODO: set color
-//		bdvSource.setColor( settings.imagesSource.getArgbType() );
+//		bdvSource.setColor( settings.baseImagesSource.getArgbType() );
 
 		// TODO: set lut
-//		setLut();
+
 
 		return bdvSource;
 
 	}
 
-	public static void setLut( BdvSource bdvSource, ImageFilterSettings settings )
+	public static void setLut( BdvSource bdvSource, ImagesSource imagesSource, String filterType )
 	{
-		final double[] lutMinMax = settings.imagesSource.getLutMinMax();
+		final double[] lutMinMax = imagesSource.getLutMinMax();
 
-		if ( settings.filterType.equals( ImageFilter.SUBTRACT_MEDIAN ) )
+		if ( filterType.equals( ImageFilter.SUBTRACT_MEDIAN ) )
 		{
 			bdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
 		}
-		else if ( settings.filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
+		else if ( filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
 		{
 			bdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
 		}

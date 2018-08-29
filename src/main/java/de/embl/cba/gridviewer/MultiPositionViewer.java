@@ -5,11 +5,14 @@ import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import net.imglib2.FinalInterval;
 import net.imglib2.RealPoint;
+import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.LongArray;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -17,7 +20,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.util.ArrayList;
 
-public class MultiPositionViewer
+public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 {
 
 	private final ArrayList< ImagesSource > imagesSources;
@@ -68,6 +71,25 @@ public class MultiPositionViewer
 
 	}
 
+	public ArrayList< String > getSiteNames()
+	{
+		final ArrayList< ImageSource > imageSources = imagesSources.get( 0 ).getLoader().getImageSources();
+
+		final ArrayList< String > imageNames = new ArrayList<>(  );
+
+		for ( ImageSource imageSource : imageSources )
+		{
+			imageNames.add( imageSource.getFile().getName() );
+		}
+
+		return imageNames;
+	}
+
+	public ArrayList< String > getWellNames()
+	{
+		return imagesSources.get( 0 ).getWellNames();
+	}
+
 	public void zoomToWell( String wellName )
 	{
 		int sourceIndex = 0;
@@ -101,6 +123,14 @@ public class MultiPositionViewer
 		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageFile( imageFileName );
 
 		zoomToInterval( imageSource.getInterval() );
+	}
+
+	public boolean isImageExisting( final SingleCellArrayImg< T, ? > cell )
+	{
+		final ImageSource imageFile = imagesSources.get( 0 ).getLoader().getImageFile( cell );
+
+		if ( imageFile != null ) return true;
+		else return false;
 	}
 
 	public ArrayList< ImagesSource > getImagesSources()

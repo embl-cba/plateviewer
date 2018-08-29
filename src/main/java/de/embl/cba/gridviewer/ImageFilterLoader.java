@@ -31,9 +31,10 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 	@Override
 	public void load( final SingleCellArrayImg< T, ? > cell ) throws Exception
 	{
-		if ( settings.imagesSource.getLoader().getImageFile( cell ) == null ) return;
-
-		applyFilterToSourceAndPutResultIntoCell( cell );
+		if ( settings.multiPositionViewer.isImageExisting( cell ) )
+		{
+			applyFilterToSourceAndPutResultIntoCell( cell );
+		}
 	}
 
 	public void applyFilterToSourceAndPutResultIntoCell( SingleCellArrayImg< T, ? > cell )
@@ -45,7 +46,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 		}
 		else if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
-			
+
 		}
 		else if ( settings.filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
 		{
@@ -76,7 +77,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 		// the issue is that the FastFilters work with float arrays, but the cellData is
 		// a short array.
 		final FastFilters fastFilters = new FastFilters();
-		fastFilters.configureMedianSubtraction( radius, offset, inputImp.getType() );
+		fastFilters.configureMedianSubtraction( settings.radius, settings.offset, inputImp.getType() );
 		fastFilters.run( inputImp.getProcessor() );
 		final FloatProcessor result = fastFilters.getResult();
 		final ShortProcessor shortProcessor = result.convertToShortProcessor();
@@ -87,7 +88,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 	public void applyMedianSubtractionUsingImgLib2( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
 	{
 		final RandomAccess< T > inputRandomAccess = input.randomAccess();
-		final RectangleShape shape = new RectangleShape( radius, false );
+		final RectangleShape shape = new RectangleShape( settings.radius, false );
 		final RectangleShape.NeighborhoodsAccessible< T > nra = shape.neighborhoodsRandomAccessible( Views.extendBorder( input ) );
 		final RandomAccess< Neighborhood< T > > inputNRA = nra.randomAccess( input );
 

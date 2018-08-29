@@ -33,27 +33,37 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private ArrayList< String > wellNames;
 	private CachedCellImg< T, ? > cachedCellImg;
 	private MultiPositionLoader loader;
-
-	private final int numIoThreads;
-
 	private String name;
 
 	private BdvSource bdvSource;
 
 	public ImagesSource( ArrayList< File > files, String namingScheme, int numIoThreads )
 	{
-		this.numIoThreads = numIoThreads;
 		this.name = namingScheme;
 
 		setImageProperties( files.get( 0 ) );
 
 		setImagesSourceAndWellNames( files, namingScheme );
 
-		setMultiPositionLoader();
+		setMultiPositionLoader( numIoThreads );
 
 		setCachedCellImgDimensions();
 
 		createCachedCellImg();
+	}
+
+	public ImagesSource( CachedCellImg< T , ? > cachedCellImg, String name, BdvSource bdvSource )
+	{
+		this.cachedCellImg = cachedCellImg;
+		this.name = name;
+		this.bdvSource = bdvSource;
+	}
+
+
+	public void dispose()
+	{
+		bdvSource.removeFromBdv();
+		cachedCellImg = null;
 	}
 
 
@@ -79,7 +89,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	}
 
-	public ArrayList< String > getWellNames()
+ 	public ArrayList< String > getWellNames()
 	{
 		return wellNames;
 	}
@@ -133,7 +143,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		int a = 1;
 	}
 
-	private void setMultiPositionLoader()
+	private void setMultiPositionLoader( int numIoThreads )
 	{
 		loader = new MultiPositionLoader( imageSources, numIoThreads );
 	}

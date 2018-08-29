@@ -1,9 +1,6 @@
 package de.embl.cba.gridviewer;
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
 import bdv.util.BdvSource;
-import bdv.util.volatiles.VolatileViews;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
@@ -27,20 +24,11 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 	private BdvSource bdvSource;
 	private ImageFilterLoader< UnsignedShortType > loader;
 
-	private final CachedCellImg< UnsignedShortType, ? > cachedFilterImg;
-
 	public ImageFilter( ImageFilterSettings settings )
 	{
 		this.settings = addSettingsViaUI( settings );
 
-		this.cachedFilterImg = createCachedFilterImg();
-
 		this.cachedFilterImgName = settings.inputName + " - " + settings.filterType;
-	}
-
-	public CachedCellImg< UnsignedShortType, ? > getCachedFilterImg()
-	{
-		return cachedFilterImg;
 	}
 
 	public String getCachedFilterImgName()
@@ -54,13 +42,12 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 		filterTypes.add( SUBTRACT_MEDIAN );
 		filterTypes.add( MAX_MINUS_MIN );
 		return filterTypes;
-
 	}
 
 
 	public CachedCellImg< UnsignedShortType, ? > createCachedFilterImg( )
 	{
-		final CachedCellImg cachedCellImg = settings.imagesSource.getCachedCellImg();
+		final CachedCellImg cachedCellImg = settings.inputCachedCellImg;
 
 		int[] cellDimensions = new int[ cachedCellImg.getCellGrid().numDimensions() ];
 		cachedCellImg.getCellGrid().cellDimensions( cellDimensions );
@@ -76,12 +63,4 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 	}
 
-
-	public void dispose()
-	{
-		bdvSource.removeFromBdv();
-		bdvSource = null;
-		loader.dispose();
-		loader = null;
-	}
 }
