@@ -1,13 +1,11 @@
 package de.embl.cba.gridviewer;
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
-import bdv.util.BdvSource;
+import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -22,12 +20,14 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 	JComboBox imagesSourcesComboBox;
 	JComboBox imageFiltersComboBox;
+	JButton imageFiltersButton;
 
 	final MultiPositionViewer multiPositionViewer;
 
 	private ImageFilter imageFilter;
 
 	private ArrayList< ImagesSource< T > > imagesSources;
+	private ImageFilterSettings previousImageFilterSettings;
 
 
 	public MultiPositionViewerUI( MultiPositionViewer multiPositionViewer )
@@ -62,9 +62,13 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	{
 		JPanel panel = horizontalLayoutPanel();
 
+		addImageFiltersButton( panel );
+
 		addImageFiltersComboBox( panel );
 
 		addImagesSourceComboBox( panel );
+
+		add( panel );
 	}
 
 
@@ -77,6 +81,14 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		return panel;
 	}
 
+	private void addImageFiltersButton( JPanel panel )
+	{
+		imageFiltersButton = new JButton();
+		imageFiltersButton.setText( "Perform action" );
+		imageFiltersButton.addActionListener( this );
+		panel.add( imageFiltersButton );
+	}
+
 	private void addImageFiltersComboBox( JPanel panel )
 	{
 		imageFiltersComboBox = new JComboBox();
@@ -85,6 +97,8 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		{
 			imageFiltersComboBox.addItem( filter );
 		}
+
+		imageFiltersComboBox.addActionListener( this );
 
 		panel.add( imageFiltersComboBox );
 	}
@@ -172,12 +186,12 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		}
 
 
-		if ( e.getSource() == imageFiltersComboBox )
+		if ( e.getSource() == imageFiltersButton )
 		{
 
 			final ImagesSource inputSource = imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
 
-			ImageFilterSettings settings = new ImageFilterSettings();
+			ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
 			settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
 			settings.inputCachedCellImg = inputSource.getCachedCellImg();
 			settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
@@ -186,7 +200,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 			final ImageFilter imageFilter = new ImageFilter( settings );
 			final String name = imageFilter.getCachedFilterImgName();
 
-			removeSourceOfSameNameIfExistsAlready( name );
+			removeFilterSourceIfExistsAlready( name );
 
 			final CachedCellImg img = imageFilter.createCachedFilterImg();
 
@@ -199,15 +213,31 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 				inputSource.getBdvSource().setActive( false );
 			}
 
-			imagesSources.add( new ImagesSource( img, name, bdvSource ) );
+			BdvOverlaySource bdvOverlaySource = addToViewer( settings, imageFilter.getBdvOverlay(), name );
+
+			imagesSources.add( new ImagesSource( img, name, bdvSource, bdvOverlaySource ) );
 
 			updateImagesSourcesComboBoxItems();
+
+			previousImageFilterSettings = new ImageFilterSettings( settings );
 		}
 
 
 	}
 
-	public void removeSourceOfSameNameIfExistsAlready( String cachedFilterImgName )
+	public BdvOverlaySource addToViewer( ImageFilterSettings settings, BdvOverlay bdvOverlay, String name )
+	{
+		BdvOverlaySource bdvOverlaySource = null;
+
+		if ( bdvOverlay != null )
+		{
+			bdvOverlaySource = BdvFunctions.showOverlay( bdvOverlay,  name +" - overlay", BdvOptions.options().addTo( settings.multiPositionViewer.getBdv() ) );
+		}
+
+		return bdvOverlaySource;
+	}
+
+	public void removeFilterSourceIfExistsAlready( String cachedFilterImgName )
 	{
 		for ( ImagesSource source : imagesSources )
 		{
@@ -223,7 +253,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	}
 
 
-	private BdvSource addToViewer( CachedCellImg< UnsignedShortType, ? > cachedCellImg, String cachedFilterImgName )
+	private BdvSource addToViewer( CachedCellImg< UnsignedByteType, ? > cachedCellImg, String cachedFilterImgName )
 	{
 
 		BdvSource bdvSource = BdvFunctions.show(

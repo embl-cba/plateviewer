@@ -1,5 +1,6 @@
 package de.embl.cba.gridviewer;
 
+import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
 import ij.IJ;
 import ij.ImagePlus;
@@ -11,7 +12,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
 
 import java.io.File;
@@ -36,6 +37,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private String name;
 
 	private BdvSource bdvSource;
+	private BdvOverlaySource bdvOverlaySource;
 
 	public ImagesSource( ArrayList< File > files, String namingScheme, int numIoThreads )
 	{
@@ -52,17 +54,19 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		createCachedCellImg();
 	}
 
-	public ImagesSource( CachedCellImg< T , ? > cachedCellImg, String name, BdvSource bdvSource )
+	public ImagesSource( CachedCellImg< T , ? > cachedCellImg, String name, BdvSource bdvSource, BdvOverlaySource bdvOverlaySource )
 	{
 		this.cachedCellImg = cachedCellImg;
 		this.name = name;
 		this.bdvSource = bdvSource;
+		this.bdvOverlaySource = bdvOverlaySource;
 	}
 
 
 	public void dispose()
 	{
-		bdvSource.removeFromBdv();
+		if( bdvSource != null ) bdvSource.removeFromBdv();
+		if ( bdvOverlaySource != null ) bdvOverlaySource.removeFromBdv();
 		cachedCellImg = null;
 	}
 
@@ -213,7 +217,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 						dimensions,
-						new UnsignedShortType(),
+						new UnsignedByteType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
 				break;
@@ -222,7 +226,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 						dimensions,
-						new UnsignedShortType(),
+						new UnsignedByteType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
 				break;

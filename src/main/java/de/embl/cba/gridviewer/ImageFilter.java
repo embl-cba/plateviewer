@@ -1,12 +1,13 @@
 package de.embl.cba.gridviewer;
 
+import bdv.util.BdvOverlay;
 import bdv.util.BdvSource;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 import java.util.ArrayList;
 
@@ -22,14 +23,32 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 	private final ImageFilterSettings settings;
 	private final String cachedFilterImgName;
 	private BdvSource bdvSource;
-	private ImageFilterLoader< UnsignedShortType > loader;
+	private BdvOverlay bdvOverlay;
+	private ImageFilterLoader< T > loader;
+	private T type;
 
 	public ImageFilter( ImageFilterSettings settings )
 	{
 		this.settings = addSettingsViaUI( settings );
 
 		this.cachedFilterImgName = settings.inputName + " - " + settings.filterType;
+
+		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+		{
+			type = ( T ) new UnsignedByteType( );
+		}
+		else
+		{
+			type = ( T ) settings.inputCachedCellImg.firstElement();
+		}
+
 	}
+
+	public BdvOverlay getBdvOverlay()
+	{
+		return bdvOverlay;
+	}
+
 
 	public String getCachedFilterImgName()
 	{
@@ -41,11 +60,12 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 		ArrayList< String > filterTypes = new ArrayList<>(  );
 		filterTypes.add( SUBTRACT_MEDIAN );
 		filterTypes.add( MAX_MINUS_MIN );
+		filterTypes.add( SIMPLE_SEGMENTATION );
 		return filterTypes;
 	}
 
 
-	public CachedCellImg< UnsignedShortType, ? > createCachedFilterImg( )
+	public CachedCellImg< T, ? > createCachedFilterImg( )
 	{
 		final CachedCellImg cachedCellImg = settings.inputCachedCellImg;
 
@@ -56,11 +76,18 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 
 		loader = new ImageFilterLoader( settings );
 
-		return new ReadOnlyCachedCellImgFactory().create(
+		final CachedCellImg< T, ? > cachedFilterImg = new ReadOnlyCachedCellImgFactory().create(
 				imgDimensions,
-				new UnsignedShortType(),
+				type,
 				loader,
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
+
+		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+		{
+			bdvOverlay = loader.getBdvOverlay();
+		}
+
+		return cachedFilterImg;
 	}
 
 }

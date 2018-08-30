@@ -23,7 +23,7 @@ import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 
 import java.io.File;
@@ -134,9 +134,9 @@ public class CachedPlateViewImg
 
 			case 16:
 
-				final CachedCellImg< UnsignedShortType, ? > unsignedShortTypeImg = new ReadOnlyCachedCellImgFactory().create(
+				final CachedCellImg< UnsignedByteType, ? > unsignedShortTypeImg = new ReadOnlyCachedCellImgFactory().create(
 						dimensions,
-						new UnsignedShortType(),
+						new UnsignedByteType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
 				return unsignedShortTypeImg;
@@ -145,7 +145,7 @@ public class CachedPlateViewImg
 
 				final CachedCellImg< FloatType, ? > floatTypeImg = new ReadOnlyCachedCellImgFactory().create(
 						dimensions,
-						new UnsignedShortType(),
+						new UnsignedByteType(),
 						loader,
 						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
 				return floatTypeImg;
