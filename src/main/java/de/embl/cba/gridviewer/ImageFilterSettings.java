@@ -9,10 +9,10 @@ public class ImageFilterSettings < T extends NativeType< T > & RealType< T > >
 	public CachedCellImg< T, ? > inputCachedCellImg;
 	public String inputName;
 	public String filterType;
-	public int radius;
-	public double offset;
-	public double threshold;
-	public long minObjectSize;
+	public int radius = 7;
+	public double offset = 0;
+	public double threshold = 1;
+	public long minObjectSize = 100;
 	public MultiPositionViewer multiPositionViewer;
 
 	public ImageFilterSettings( )

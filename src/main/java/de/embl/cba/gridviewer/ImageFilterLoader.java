@@ -35,6 +35,12 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 	public ImageFilterLoader( ImageFilterSettings settings )
 	{
 		this.settings = settings;
+
+		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+		{
+			bdvOverlay = new BdvVolatileTextOverlay();
+		}
+
 	}
 
 	@Override
@@ -78,10 +84,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 
 		int numValidObjects = paintValidObjectsIntoCell( cell, labelRegions, settings.minObjectSize );
 
-
-		final BdvVolatileTextOverlay overlay = new BdvVolatileTextOverlay();
-
-		overlay.addTextOverlay(
+		((BdvVolatileTextOverlay)bdvOverlay).addTextOverlay(
 				new TextOverlay(
 						"" + numValidObjects,
 						Utils.getCenter( cell ),
@@ -89,7 +92,6 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 						Color.GREEN )
 		);
 
-		bdvOverlay = overlay;
 	}
 
 	public void thresholdImageSourceAndPutResultIntoCell( RandomAccessibleInterval< T > input, SingleCellArrayImg< UnsignedByteType, ? > cell )

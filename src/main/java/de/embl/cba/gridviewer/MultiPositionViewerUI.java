@@ -23,9 +23,6 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	JButton imageFiltersButton;
 
 	final MultiPositionViewer multiPositionViewer;
-
-	private ImageFilter imageFilter;
-
 	private ArrayList< ImagesSource< T > > imagesSources;
 	private ImageFilterSettings previousImageFilterSettings;
 
@@ -44,6 +41,8 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		addImageFilterPanel();
 
 		createAndShowUI( );
+
+		previousImageFilterSettings = new ImageFilterSettings( );
 	}
 
 	public void setImagesSources( )
@@ -293,7 +292,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	private void createAndShowUI( )
 	{
 		//Create and set up the window.
-		frame = new JFrame( "Image Navigator" );
+		frame = new JFrame( "Multiposition viewer" );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
 		//Create and set up the content pane.

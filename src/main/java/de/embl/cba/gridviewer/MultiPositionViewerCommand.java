@@ -74,7 +74,7 @@ public class MultiPositionViewerCommand implements Command
 	public void addImageNamesOverlay()
 	{
 		BdvOverlay bdvOverlay = new BdvImageNamesOverlay( multiPositionViewer.getImagesSources());
-		BdvFunctions.showOverlay( bdvOverlay, "overlay", BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
+		BdvFunctions.showOverlay( bdvOverlay, "names overlay", BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
 	}
 
 	public void addSourceToViewer( ImagesSource imagesSource )
