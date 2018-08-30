@@ -16,7 +16,7 @@ public class ImageFilterUI
 		{
 			settings = simpleSegmentationUI( settings );
 		}
-		else if ( settings.filterType.equals( ImageFilter.SUBTRACT_MEDIAN ) )
+		else if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
 		{
 			settings = medianSubtractionUI( settings );
 		}

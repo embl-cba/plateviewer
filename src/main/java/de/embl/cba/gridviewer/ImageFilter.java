@@ -17,12 +17,11 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 {
 
 	public static String SIMPLE_SEGMENTATION = "simple segmentation";
-	public static String SUBTRACT_MEDIAN = "subtract median";
-	public static String MAX_MINUS_MIN = "max minus min";
+	public static String MEDIAN_DEVIATION = "median deviation";
+	public static String MEDIAN_ABSOLUTE_DEVIATION = "median absolute deviation";
 
 	private final ImageFilterSettings settings;
 	private final String cachedFilterImgName;
-	private BdvSource bdvSource;
 	private BdvOverlay bdvOverlay;
 	private ImageFilterLoader< T > loader;
 	private T type;
@@ -58,8 +57,8 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 	public static ArrayList< String > getFilters()
 	{
 		ArrayList< String > filterTypes = new ArrayList<>(  );
-		filterTypes.add( SUBTRACT_MEDIAN );
-		filterTypes.add( MAX_MINUS_MIN );
+		filterTypes.add( MEDIAN_DEVIATION );
+		filterTypes.add( MEDIAN_ABSOLUTE_DEVIATION );
 		filterTypes.add( SIMPLE_SEGMENTATION );
 		return filterTypes;
 	}

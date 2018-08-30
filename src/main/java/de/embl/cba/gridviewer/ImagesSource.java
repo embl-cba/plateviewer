@@ -9,10 +9,13 @@ import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.Type;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 
 import java.io.File;
@@ -202,41 +205,28 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private void createCachedCellImg()
 	{
+		Type type = null;
+
 		switch ( bitDepth )
 		{
 			case 8:
-
-				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
-						dimensions,
-						new UnsignedByteType(),
-						loader,
-						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				type = new UnsignedByteType();
 				break;
-
 			case 16:
-
-				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
-						dimensions,
-						new UnsignedByteType(),
-						loader,
-						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				type = new UnsignedShortType();
 				break;
-
 			case 32:
-
-				cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
-						dimensions,
-						new UnsignedByteType(),
-						loader,
-						ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
+				type = new FloatType();
 				break;
-
 			default:
-
-				cachedCellImg = null;
-
+				type = null;
 		}
 
+		cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
+				dimensions,
+				type,
+				loader,
+				ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
 	}
 
 

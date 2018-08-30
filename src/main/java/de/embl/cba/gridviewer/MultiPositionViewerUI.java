@@ -274,7 +274,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	{
 		final double[] lutMinMax = imagesSource.getLutMinMax();
 
-		if ( filterType.equals( ImageFilter.SUBTRACT_MEDIAN ) )
+		if ( filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
 		{
 			bdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
 		}

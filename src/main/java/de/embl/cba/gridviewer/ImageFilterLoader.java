@@ -1,10 +1,7 @@
 package de.embl.cba.gridviewer;
 
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
-import bdv.util.BdvOverlaySource;
 import ij.ImagePlus;
 import ij.process.FloatProcessor;
 import ij.process.ShortProcessor;
@@ -55,19 +52,17 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 	public void applyFilterToSourceAndPutResultIntoCell( SingleCellArrayImg< T, ? > cell )
 	{
 
-		if ( settings.filterType.equals( ImageFilter.SUBTRACT_MEDIAN ) )
+		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION )
+				|| settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
 		{
-			subtractMedian(  Views.interval( settings.inputCachedCellImg, cell ), cell );
+			applyFastFiler(  Views.interval( settings.inputCachedCellImg, cell ), cell );
 		}
 		else if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
 			simpleSegmentation( Views.interval( settings.inputCachedCellImg, cell ), ( SingleCellArrayImg) cell );
 		}
-		else if ( settings.filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
-		{
-			// TODO
-		}
 	}
+
 
 	public BdvOverlay getBdvOverlay()
 	{
@@ -141,19 +136,19 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 		}
 	}
 
-	public void subtractMedian( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
+	public void applyFastFiler( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
 	{
 		if ( input.numDimensions() == 2 )
 		{
-			applyMedianSubtractionUsingFastFilters( input, cell );
+			applyFastFilter( input, cell );
 		}
 		else
 		{
-			applyMedianSubtractionUsingImgLib2( input, cell );
+			// TODO
 		}
 	}
 
-	public void applyMedianSubtractionUsingFastFilters( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
+	public void applyFastFilter( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
 	{
 		final short[] cellData = ( short[] ) cell.getStorageArray();
 		final ImagePlus inputImp = ImageJFunctions.wrap( input, "" );
@@ -164,7 +159,16 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 		// the issue is that the FastFilters work with float arrays, but the cellData is
 		// a short array.
 		final FastFilters fastFilters = new FastFilters();
-		fastFilters.configureMedianSubtraction( settings.radius, settings.offset, inputImp.getType() );
+
+		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
+		{
+			fastFilters.configureMedianDeviation( settings.radius, settings.offset, inputImp.getType() );
+		}
+		else if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
+		{
+			fastFilters.configureMedianAbsoluteDeviation( settings.radius, settings.offset, inputImp.getType() );
+		}
+
 		fastFilters.run( inputImp.getProcessor() );
 		final FloatProcessor result = fastFilters.getResult();
 		final ShortProcessor shortProcessor = result.convertToShortProcessor();

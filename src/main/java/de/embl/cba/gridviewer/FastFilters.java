@@ -147,12 +147,14 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	// Multithreading-related
 	private int maxThreads = Runtime.getRuntime().availableProcessors();  // number of threads for filtering
 	private FloatProcessor ipResult;
+	private boolean doAbsoluteSubtraction;
 
 	public FastFilters()
 	{
 	}
 
 	/**
+	 *
 	 * This method is called by ImageJ for initialization.
 	 * @param arg Unused here. For plugins in a .jar file this argument string can
 	 *            be specified in the plugins.config file of the .jar archive.
@@ -224,7 +226,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		return (!gd.invalidNumber() && xRadius>=0 && yRadius>=0 && xRadius<1000000 && yRadius<1000000);
 	}
 
-	public void configureMedianSubtraction( int radius, double offsetValue, int impType )
+	public void configureMedianDeviation( int radius, double offsetValue, int impType )
 	{
 		type = MEDIAN;
 		xRadius = radius;
@@ -233,9 +235,13 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		subtract = true;
 		offset[ impType ] = offsetValue;
 		this.impType = impType;
-
 	}
 
+
+	public void doAbsoluteSubtraction( boolean doAbsoluteSubtraction )
+	{
+		this.doAbsoluteSubtraction = doAbsoluteSubtraction;
+	}
 
 
 	// Process a FloatProcessor (with the CONVERT_TO_FLOAT flag,ImageJ does the conversion).
@@ -273,9 +279,19 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 			float[] pixels = (float[])ip.getPixels();
 			float[] snapPixels = (float[])ipInput.toFloat( 0, null ).getPixels();
 			float fOffset = (float)offset[impType];
-			for (int y=roiRect.y; y<roiRect.y+roiRect.height; y++)
-				for (int x=roiRect.x, p=x+y*width; x<roiRect.x+roiRect.width; x++,p++)
-					pixels[p] = snapPixels[p] - pixels[p] + fOffset;
+
+			if( doAbsoluteSubtraction )
+			{
+				for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
+					for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
+						pixels[ p ] = Math.abs( snapPixels[ p ] - pixels[ p ] + fOffset );
+			}
+			else
+			{
+				for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
+					for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
+						pixels[ p ] = snapPixels[ p ] - pixels[ p ] + fOffset;
+			}
 			if (Thread.currentThread().isInterrupted()) return;
 		}
 		if (roiRect.height!=height || roiRect.width!=width)
@@ -656,5 +672,6 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		if (anyGood) pixels[p] = max*sign;
 		return anyNaN ? Float.NaN : max;
 	}
+
 
 }
