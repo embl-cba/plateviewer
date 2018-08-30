@@ -263,9 +263,6 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		// TODO: set color
 //		bdvSource.setColor( settings.baseImagesSource.getArgbType() );
 
-		// TODO: set lut
-
-
 		return bdvSource;
 
 	}
@@ -274,13 +271,14 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	{
 		final double[] lutMinMax = imagesSource.getLutMinMax();
 
-		if ( filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
+		if ( filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION )
+				|| filterType.equals( ImageFilter.MEDIAN_DEVIATION ))
 		{
 			bdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
 		}
-		else if ( filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
+		else if ( filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
-			bdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
+			bdvSource.setDisplayRange( 0, 255 );
 		}
 	}
 

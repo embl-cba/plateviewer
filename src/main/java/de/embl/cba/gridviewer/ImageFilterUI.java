@@ -16,13 +16,10 @@ public class ImageFilterUI
 		{
 			settings = simpleSegmentationUI( settings );
 		}
-		else if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
+		else if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION )
+				|| settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ))
 		{
 			settings = medianSubtractionUI( settings );
-		}
-		else if ( settings.filterType.equals( ImageFilter.MAX_MINUS_MIN ) )
-		{
-			settings = maxMinusMinUI( settings );
 		}
 
 		return settings;

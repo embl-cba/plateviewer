@@ -139,6 +139,8 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	private static double[] offset = new double[] {  // When subtracting, this will be added to the result.
 			128, 32768, 0, 128, 128                 // Array for image types GRAY8, GRAY16, GRAY32, COLOR_256, COLOR_RGB
 	};
+	private boolean doAbsoluteSubtraction = false;
+
 	// F u r t h e r   c l a s s   v a r i a b l e s
 	private int flags = DOES_ALL|CONVERT_TO_FLOAT|SNAPSHOT|SUPPORTS_MASKING|KEEP_PREVIEW;
 	private int impType;                        // type of ImagePlus (GRAY_8, etc...)
@@ -147,7 +149,6 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	// Multithreading-related
 	private int maxThreads = Runtime.getRuntime().availableProcessors();  // number of threads for filtering
 	private FloatProcessor ipResult;
-	private boolean doAbsoluteSubtraction;
 
 	public FastFilters()
 	{

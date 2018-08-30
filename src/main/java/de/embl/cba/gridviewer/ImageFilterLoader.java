@@ -160,13 +160,14 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 		// a short array.
 		final FastFilters fastFilters = new FastFilters();
 
-		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
+		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) ||  settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
 		{
 			fastFilters.configureMedianDeviation( settings.radius, settings.offset, inputImp.getType() );
 		}
-		else if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
+
+		if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
 		{
-			fastFilters.configureMedianAbsoluteDeviation( settings.radius, settings.offset, inputImp.getType() );
+			fastFilters.doAbsoluteSubtraction( true );
 		}
 
 		fastFilters.run( inputImp.getProcessor() );

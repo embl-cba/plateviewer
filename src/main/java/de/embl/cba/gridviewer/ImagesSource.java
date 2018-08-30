@@ -205,7 +205,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private void createCachedCellImg()
 	{
-		Type type = null;
+		NativeType type = null;
 
 		switch ( bitDepth )
 		{
