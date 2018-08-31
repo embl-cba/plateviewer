@@ -9,23 +9,25 @@ public class ImageFilterUI
 	{
 	}
 
-	public static ImageFilterSettings addSettingsViaUI( ImageFilterSettings settings  )
+	public static ImageFilterSettings addSettingsUI( ImageFilterSettings settings  )
 	{
-
 		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
 			settings = simpleSegmentationUI( settings );
 		}
-		else if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION )
-				|| settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ))
+		else if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{
-			settings = medianSubtractionUI( settings );
+			settings = medianDeviationUI( settings );
+		}
+		else if ( settings.filterType.equals( ImageFilter.INFORMATION ) )
+		{
+			settings = radiusUI( settings );
 		}
 
 		return settings;
 	}
 
-	private static ImageFilterSettings maxMinusMinUI( ImageFilterSettings settings )
+	private static ImageFilterSettings radiusUI( ImageFilterSettings settings )
 	{
 		final GenericDialog gd = new GenericDialog( settings.filterType );
 		gd.addNumericField("Radius", settings.radius, 0, 5, "pixels" );
@@ -35,15 +37,20 @@ public class ImageFilterUI
 		return settings;
 	}
 
-	private static ImageFilterSettings medianSubtractionUI( ImageFilterSettings settings )
+
+	private static ImageFilterSettings medianDeviationUI( ImageFilterSettings settings )
 	{
 		final GenericDialog gd = new GenericDialog(settings.filterType );
 		gd.addNumericField("Radius", settings.radius , 0, 5, "pixels" );
 		gd.addNumericField("Offset", settings.offset, 0, 5, "gray values" );
+		gd.addCheckbox("Divide by sqrt(median)", settings.normalize );
+		gd.addNumericField("Factor", settings.factor, 2, 5, "" );
 		gd.showDialog();
 		if ( gd.wasCanceled() ) return null;
 		settings.radius = (int) gd.getNextNumber();
 		settings.offset = (double) gd.getNextNumber();
+		settings.normalize = gd.getNextBoolean();
+		settings.factor = gd.getNextNumber();
 		return settings;
 	}
 

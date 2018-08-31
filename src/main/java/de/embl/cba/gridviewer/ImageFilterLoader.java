@@ -2,12 +2,14 @@ package de.embl.cba.gridviewer;
 
 
 import bdv.util.BdvOverlay;
+import bdv.util.volatiles.VolatileViews;
 import ij.ImagePlus;
 import ij.process.FloatProcessor;
 import ij.process.ShortProcessor;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.neighborhood.HyperSphereShape;
 import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.cache.img.CellLoader;
@@ -22,6 +24,7 @@ import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.HashSet;
 
 public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > implements CellLoader< T >
 {
@@ -52,15 +55,19 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 	public void applyFilterToSourceAndPutResultIntoCell( SingleCellArrayImg< T, ? > cell )
 	{
 
-		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION )
-				|| settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
+		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{
-			applyFastFiler(  Views.interval( settings.inputCachedCellImg, cell ), cell );
+			applyFastFiler( Views.interval( settings.inputCachedCellImg, cell ), cell );
 		}
 		else if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
 			simpleSegmentation( Views.interval( settings.inputCachedCellImg, cell ), ( SingleCellArrayImg) cell );
 		}
+		else if ( settings.filterType.equals( ImageFilter.INFORMATION ) )
+		{
+			information( Views.interval( settings.inputCachedCellImg, cell ), ( SingleCellArrayImg) cell );
+		}
+
 	}
 
 
@@ -150,25 +157,22 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 
 	public void applyFastFilter( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
 	{
-		final short[] cellData = ( short[] ) cell.getStorageArray();
-		final ImagePlus inputImp = ImageJFunctions.wrap( input, "" );
-
 		// TODO:
 		// one could improve this by giving the cellData to the fastFilters
 		// such that can directly write the result into it, thereby avoiding one tmp array.
 		// the issue is that the FastFilters work with float arrays, but the cellData is
 		// a short array.
+
+		final short[] cellData = ( short[] ) cell.getStorageArray();
+		final ImagePlus inputImp = ImageJFunctions.wrap( input, "" );
+
 		final FastFilters fastFilters = new FastFilters();
 
-		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) ||  settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
+		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{
-			fastFilters.configureMedianDeviation( settings.radius, settings.offset, inputImp.getType() );
+			fastFilters.configureMedianDeviation( settings, inputImp.getType() );
 		}
 
-		if ( settings.filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION ) )
-		{
-			fastFilters.doAbsoluteSubtraction( true );
-		}
 
 		fastFilters.run( inputImp.getProcessor() );
 		final FloatProcessor result = fastFilters.getResult();
@@ -176,6 +180,51 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 		final short[] resultData = (short[]) shortProcessor.getPixels();
 		System.arraycopy( resultData, 0, cellData, 0, cellData.length );
 	}
+
+
+	private void information( RandomAccessibleInterval< T > input, SingleCellArrayImg cell )
+	{
+		final RandomAccess< T > inputRandomAccess = input.randomAccess();
+		final HyperSphereShape shape = new HyperSphereShape( settings.radius );
+		final HyperSphereShape.NeighborhoodsAccessible< T > nra = shape.neighborhoodsRandomAccessible( Views.extendBorder( input ) );
+		final RandomAccess< Neighborhood< T > > inputNRA = nra.randomAccess( input );
+
+		final int size = ( int ) inputNRA.get().size();
+		final double[] values = new double[ size ];
+
+		final Cursor< T > cellCursor = Views.flatIterable( cell ).localizingCursor();
+
+		final HashSet< Integer > set = new HashSet<>();
+
+		while ( cellCursor.hasNext() )
+		{
+			cellCursor.fwd();
+
+//			inputRandomAccess.setPosition( cellCursor );
+//			final double inputValue = inputRandomAccess.get().getRealDouble();
+
+//			cellCursor.get().setReal( inputValue );
+
+			inputNRA.setPosition( cellCursor );
+
+
+			set.clear();
+
+			int index = 0;
+			for ( final T pixel : inputNRA.get() )
+			{
+				set.add( (int) ( pixel.getRealDouble() / 100.0 ) );
+//				values[ index++ ] = pixel.getRealDouble();
+			}
+
+//			Arrays.sort( values, 0, index );
+//			double backgroundValue = values[ ( index - 1 ) / 2 ];
+
+			cellCursor.get().setReal( set.size() );
+		}
+
+	}
+
 
 	public void applyMedianSubtractionUsingImgLib2( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
 	{

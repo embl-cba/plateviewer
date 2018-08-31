@@ -52,7 +52,6 @@ public class MultiPositionViewerCommand implements Command
 
 		new MultiPositionViewerUI( multiPositionViewer );
 
-
 	}
 
 	public void addChannelsToViewer( ArrayList< File > fileList, String namingScheme, ArrayList< String > channelPatterns )
@@ -65,7 +64,6 @@ public class MultiPositionViewerCommand implements Command
 
 			final ImagesSource imagesSource = new ImagesSource( channelFiles, namingScheme, numIoThreads );
 			imagesSource.setName( channelPattern );
-
 			addSourceToViewer( imagesSource );
 
 		}

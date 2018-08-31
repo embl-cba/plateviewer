@@ -7,9 +7,8 @@ import ij.*;
 import ij.gui.GenericDialog;
 import ij.gui.DialogListener;
 import ij.process.*;
-import ij.measure.Calibration;
+
 import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
 
 /** A collection of fast filters (mean, min, max, median, background, ...)
@@ -139,7 +138,10 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	private static double[] offset = new double[] {  // When subtracting, this will be added to the result.
 			128, 32768, 0, 128, 128                 // Array for image types GRAY8, GRAY16, GRAY32, COLOR_256, COLOR_RGB
 	};
-	private boolean doAbsoluteSubtraction = false;
+
+
+	private boolean subtractAbsolute = false;
+	private boolean normalize = false;
 
 	// F u r t h e r   c l a s s   v a r i a b l e s
 	private int flags = DOES_ALL|CONVERT_TO_FLOAT|SNAPSHOT|SUPPORTS_MASKING|KEEP_PREVIEW;
@@ -149,6 +151,7 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	// Multithreading-related
 	private int maxThreads = Runtime.getRuntime().availableProcessors();  // number of threads for filtering
 	private FloatProcessor ipResult;
+	private float fFactor;
 
 	public FastFilters()
 	{
@@ -227,23 +230,19 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		return (!gd.invalidNumber() && xRadius>=0 && yRadius>=0 && xRadius<1000000 && yRadius<1000000);
 	}
 
-	public void configureMedianDeviation( int radius, double offsetValue, int impType )
+	public void configureMedianDeviation( ImageFilterSettings settings, int impType )
 	{
 		type = MEDIAN;
-		xRadius = radius;
-		yRadius = radius;
+		xRadius = settings.radius;
+		yRadius = settings.radius;
 		linkXY = true;
 		subtract = true;
-		offset[ impType ] = offsetValue;
+		offset[ impType ] = settings.offset;
+		subtractAbsolute = false;
+		normalize = settings.normalize;
+		fFactor = (float) settings.factor;
 		this.impType = impType;
 	}
-
-
-	public void doAbsoluteSubtraction( boolean doAbsoluteSubtraction )
-	{
-		this.doAbsoluteSubtraction = doAbsoluteSubtraction;
-	}
-
 
 	// Process a FloatProcessor (with the CONVERT_TO_FLOAT flag,ImageJ does the conversion).
 	// Called by ImageJ for each stack slice (when processing a full stack); for RGB image also called once for each color.
@@ -281,17 +280,36 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 			float[] snapPixels = (float[])ipInput.toFloat( 0, null ).getPixels();
 			float fOffset = (float)offset[impType];
 
-			if( doAbsoluteSubtraction )
+			if( subtractAbsolute )
 			{
-				for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
-					for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
-						pixels[ p ] = Math.abs( snapPixels[ p ] - pixels[ p ] + fOffset );
+				if ( normalize )
+				{
+					for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
+						for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
+							pixels[ p ] = ( float ) ( Math.abs( snapPixels[ p ] - pixels[ p ]  ) / Math.sqrt( snapPixels[ p ] ) + fOffset );
+				}
+				else
+				{
+					for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
+						for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
+							pixels[ p ] = Math.abs( snapPixels[ p ] - pixels[ p ] + fOffset );
+				}
 			}
 			else
 			{
-				for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
-					for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
-						pixels[ p ] = snapPixels[ p ] - pixels[ p ] + fOffset;
+
+				if ( normalize )
+				{
+					for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
+						for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
+							pixels[ p ] = fFactor * (float) ( ( snapPixels[ p ] - pixels[ p ] ) / Math.sqrt( snapPixels[ p ] ) ) + fOffset;
+				}
+				else
+				{
+					for ( int y = roiRect.y; y < roiRect.y + roiRect.height; y++ )
+						for ( int x = roiRect.x, p = x + y * width; x < roiRect.x + roiRect.width; x++, p++ )
+							pixels[ p ] = snapPixels[ p ] - pixels[ p ] + fOffset;
+				}
 			}
 			if (Thread.currentThread().isInterrupted()) return;
 		}

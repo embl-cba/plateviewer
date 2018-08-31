@@ -21,6 +21,8 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	JComboBox imagesSourcesComboBox;
 	JComboBox imageFiltersComboBox;
 	JButton imageFiltersButton;
+	JButton imageSourceRemovalButton;
+
 
 	final MultiPositionViewer multiPositionViewer;
 	private ArrayList< ImagesSource< T > > imagesSources;
@@ -37,6 +39,8 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		addSiteNavigationComboBox( );
 
 		addWellNavigationComboBox(  );
+
+		addImagesSourceSelectionPanel( this);
 
 		addImageFilterPanel();
 
@@ -57,6 +61,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		}
 	}
 
+
 	private void addImageFilterPanel()
 	{
 		JPanel panel = horizontalLayoutPanel();
@@ -64,8 +69,6 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		addImageFiltersButton( panel );
 
 		addImageFiltersComboBox( panel );
-
-		addImagesSourceComboBox( panel );
 
 		add( panel );
 	}
@@ -83,9 +86,17 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	private void addImageFiltersButton( JPanel panel )
 	{
 		imageFiltersButton = new JButton();
-		imageFiltersButton.setText( "Perform action" );
+		imageFiltersButton.setText( "Compute" );
 		imageFiltersButton.addActionListener( this );
 		panel.add( imageFiltersButton );
+	}
+
+	private void addImageSourceRemovalButton( JPanel panel )
+	{
+		imageSourceRemovalButton = new JButton();
+		imageSourceRemovalButton.setText( "Remove" );
+		imageSourceRemovalButton.addActionListener( this );
+		panel.add( imageSourceRemovalButton );
 	}
 
 	private void addImageFiltersComboBox( JPanel panel )
@@ -102,13 +113,21 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		panel.add( imageFiltersComboBox );
 	}
 
-	private void addImagesSourceComboBox( JPanel panel )
+	private void addImagesSourceSelectionPanel( JPanel panel )
 	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
+		horizontalLayoutPanel.add( new JLabel( "Image source" ) );
+
 		imagesSourcesComboBox = new JComboBox();
 
 		updateImagesSourcesComboBoxItems();
 
-		panel.add( imagesSourcesComboBox );
+		horizontalLayoutPanel.add( imagesSourcesComboBox );
+
+		addImageSourceRemovalButton( horizontalLayoutPanel );
+
+		add( horizontalLayoutPanel );
 	}
 
 	private void updateImagesSourcesComboBoxItems()
@@ -184,6 +203,12 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 			updateBdv( 2000 );
 		}
 
+		if ( e.getSource() == imageSourceRemovalButton )
+		{
+			final ImagesSource inputSource = imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
+			removeSource( inputSource.getName() );
+			updateImagesSourcesComboBoxItems();
+		}
 
 		if ( e.getSource() == imageFiltersButton )
 		{
@@ -191,6 +216,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 			final ImagesSource inputSource = imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
 
 			ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
+
 			settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
 			settings.inputCachedCellImg = inputSource.getCachedCellImg();
 			settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
@@ -199,15 +225,15 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 			final ImageFilter imageFilter = new ImageFilter( settings );
 			final String name = imageFilter.getCachedFilterImgName();
 
-			removeFilterSourceIfExistsAlready( name );
+			removeSource( name );
 
 			final CachedCellImg img = imageFilter.createCachedFilterImg();
 
 			final BdvSource bdvSource = addToViewer( img, name );
 
-			setLut( bdvSource, inputSource, settings.filterType );
+			// TODO: setLut( bdvSource, inputSource, settings.filterType );
 
-			if ( ! settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+			if ( !settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 			{
 				inputSource.getBdvSource().setActive( false );
 			}
@@ -216,9 +242,10 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 			imagesSources.add( new ImagesSource( img, name, bdvSource, bdvOverlaySource ) );
 
+			previousImageFilterSettings = new ImageFilterSettings( settings );
+
 			updateImagesSourcesComboBoxItems();
 
-			previousImageFilterSettings = new ImageFilterSettings( settings );
 		}
 
 
@@ -236,11 +263,11 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		return bdvOverlaySource;
 	}
 
-	public void removeFilterSourceIfExistsAlready( String cachedFilterImgName )
+	public void removeSource( String name )
 	{
 		for ( ImagesSource source : imagesSources )
 		{
-			if ( source.getName().equals( cachedFilterImgName ) )
+			if ( source.getName().equals( name ) )
 			{
 				source.dispose();
 				imagesSources.remove( source );
@@ -271,8 +298,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	{
 		final double[] lutMinMax = imagesSource.getLutMinMax();
 
-		if ( filterType.equals( ImageFilter.MEDIAN_ABSOLUTE_DEVIATION )
-				|| filterType.equals( ImageFilter.MEDIAN_DEVIATION ))
+		if ( filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{
 			bdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
 		}

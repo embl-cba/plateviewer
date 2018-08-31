@@ -1,7 +1,6 @@
 package de.embl.cba.gridviewer;
 
 import bdv.util.BdvOverlay;
-import bdv.util.BdvSource;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
@@ -11,14 +10,14 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 import java.util.ArrayList;
 
-import static de.embl.cba.gridviewer.ImageFilterUI.addSettingsViaUI;
+import static de.embl.cba.gridviewer.ImageFilterUI.addSettingsUI;
 
 public class ImageFilter < T extends NativeType< T > & RealType< T > >
 {
 
 	public static String SIMPLE_SEGMENTATION = "simple segmentation";
 	public static String MEDIAN_DEVIATION = "median deviation";
-	public static String MEDIAN_ABSOLUTE_DEVIATION = "median absolute deviation";
+	public static String INFORMATION = "information";
 
 	private final ImageFilterSettings settings;
 	private final String cachedFilterImgName;
@@ -28,7 +27,7 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 
 	public ImageFilter( ImageFilterSettings settings )
 	{
-		this.settings = addSettingsViaUI( settings );
+		this.settings = addSettingsUI( settings );
 
 		this.cachedFilterImgName = settings.inputName + " - " + settings.filterType;
 
@@ -58,8 +57,9 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 	{
 		ArrayList< String > filterTypes = new ArrayList<>(  );
 		filterTypes.add( MEDIAN_DEVIATION );
-		filterTypes.add( MEDIAN_ABSOLUTE_DEVIATION );
+//		filterTypes.add( INFORMATION ); // TODO: too slow...
 		filterTypes.add( SIMPLE_SEGMENTATION );
+
 		return filterTypes;
 	}
 

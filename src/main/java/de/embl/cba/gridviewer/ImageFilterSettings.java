@@ -11,8 +11,10 @@ public class ImageFilterSettings < T extends NativeType< T > & RealType< T > >
 	public String filterType;
 	public int radius = 7;
 	public double offset = 0;
+	public double factor = 1;
 	public double threshold = 1;
 	public long minObjectSize = 100;
+	public boolean normalize = false;
 	public MultiPositionViewer multiPositionViewer;
 
 	public ImageFilterSettings( )
@@ -27,6 +29,8 @@ public class ImageFilterSettings < T extends NativeType< T > & RealType< T > >
 		this.radius = settings.radius;
 		this.offset = settings.offset;
 		this.threshold = settings.threshold;
+		this.normalize = settings.normalize;
+		this.factor = settings.factor;
 		this.minObjectSize = settings.minObjectSize;
 //		this.multiPositionViewer = settings.multiPositionViewer;
 	}
