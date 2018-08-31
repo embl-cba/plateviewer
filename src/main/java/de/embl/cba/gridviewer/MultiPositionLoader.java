@@ -55,14 +55,7 @@ public class MultiPositionLoader implements CellLoader
 
 		if ( imageSource != null )
 		{
-			executorService.submit( new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					loadImageIntoCell( cell, imageSource.getFile() );
-				}
-			});
+			loadImageIntoCell( cell, imageSource.getFile() );
 		}
 
 	}

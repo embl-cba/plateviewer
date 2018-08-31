@@ -11,6 +11,8 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener
 {
@@ -163,6 +165,8 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		wellNamesComboBox = new JComboBox();
 
 		final ArrayList< String > wellNames = multiPositionViewer.getWellNames();
+		Collections.sort( wellNames );
+
 		for ( String wellName : wellNames )
 		{
 			wellNamesComboBox.addItem( wellName );

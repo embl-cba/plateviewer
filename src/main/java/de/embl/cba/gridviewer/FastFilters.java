@@ -129,15 +129,13 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 	};
 	// F i l t e r   p a r a m e t e r s
 	// Note that this makes it impossible to run the filter in parallel threads with different filter parameters!
-	private static int type = MEAN;             // Filter type
-	private static int xRadius = 5;             // The kernel radius in x direction
-	private static int yRadius = 5;             // The kernel radius in x direction
-	private static boolean linkXY = true;       // Whether to use the same radius in x&y
-	private static int preProcess = 0;          // Preprocessing type
-	private static boolean subtract = false;    // Whether output should be the original minus filtered
-	private static double[] offset = new double[] {  // When subtracting, this will be added to the result.
-			128, 32768, 0, 128, 128                 // Array for image types GRAY8, GRAY16, GRAY32, COLOR_256, COLOR_RGB
-	};
+	private int type = MEAN;             // Filter type
+	private int xRadius = 5;             // The kernel radius in x direction
+	private int yRadius = 5;             // The kernel radius in x direction
+	private boolean linkXY = true;       // Whether to use the same radius in x&y
+	private int preProcess = 0;          // Preprocessing type
+	private boolean subtract = false;    // Whether output should be the original minus filtered
+	private double[] offset = new double[] { 0 };
 
 
 	private boolean subtractAbsolute = false;
@@ -230,32 +228,35 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 		return (!gd.invalidNumber() && xRadius>=0 && yRadius>=0 && xRadius<1000000 && yRadius<1000000);
 	}
 
-	public void configureMedianDeviation( ImageFilterSettings settings, int impType )
+	public void configureMedianDeviation( ImageFilterSettings settings )
 	{
 		type = MEDIAN;
 		xRadius = settings.radius;
 		yRadius = settings.radius;
 		linkXY = true;
 		subtract = true;
-		offset[ impType ] = settings.offset;
+		offset[ 0 ] = settings.offset;
 		subtractAbsolute = false;
 		normalize = settings.normalize;
 		fFactor = (float) settings.factor;
-		this.impType = impType;
+	}
+
+	@Override
+	public void run( ImageProcessor ip )
+	{
 	}
 
 	// Process a FloatProcessor (with the CONVERT_TO_FLOAT flag,ImageJ does the conversion).
 	// Called by ImageJ for each stack slice (when processing a full stack); for RGB image also called once for each color.
-	public void run( ImageProcessor ipInput )
+	public synchronized void run( FloatProcessor ip, FloatProcessor ipSnapShot )
 	{
-		FloatProcessor ip = ipInput.toFloat( 0, null );
 		int width = ip.getWidth();
 		int height = ip.getHeight();
 		Rectangle roiRect = ip.getRoi();
 		int[] taskList = taskLists[type];
 		int nTasks = taskList.length;
-		int extraX = xRadius*(nTasks-1);        //out-of-roi margin that has to be processed for next steps
-		int extraY = yRadius*nTasks;
+		int extraX = xRadius * (nTasks-1);        //out-of-roi margin that has to be processed for next steps
+		int extraY = yRadius * nTasks;
 		if (preProcess > 0) {
 			extraX += xRadius;
 			if (xRadius>0 && yRadius>0) {
@@ -276,9 +277,10 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 			if (Thread.currentThread().isInterrupted()) return; // interruption for new parameters during preview?
 		}
 		if (subtract) {
-			float[] pixels = (float[])ip.getPixels();
-			float[] snapPixels = (float[])ipInput.toFloat( 0, null ).getPixels();
-			float fOffset = (float)offset[impType];
+
+			float[] pixels = (float[]) ip.getPixels();
+			float[] snapPixels = (float[]) ipSnapShot.getPixels();
+			float fOffset = (float) offset[0];
 
 			if( subtractAbsolute )
 			{
@@ -313,18 +315,13 @@ public class FastFilters implements ExtendedPlugInFilter, DialogListener {
 			}
 			if (Thread.currentThread().isInterrupted()) return;
 		}
+
 		if (roiRect.height!=height || roiRect.width!=width)
 			resetOutOfRoi(ip, extraX, extraY); // reset out-of-Rectangle pixels above and below roi
-		showProgress(1.0);
 
 		ipResult = ip;
 
 		return;
-	}
-
-	public FloatProcessor getResult()
-	{
-		return ipResult;
 	}
 
 	/** In a zone of width 'extraX' (in x direction) and 'extraY' in y direction around the roi rectangle,

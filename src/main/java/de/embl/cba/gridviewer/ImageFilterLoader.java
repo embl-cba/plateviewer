@@ -5,6 +5,7 @@ import bdv.util.BdvOverlay;
 import bdv.util.volatiles.VolatileViews;
 import ij.ImagePlus;
 import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -20,6 +21,7 @@ import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.awt.*;
@@ -54,18 +56,19 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 
 	public void applyFilterToSourceAndPutResultIntoCell( SingleCellArrayImg< T, ? > cell )
 	{
+		final IntervalView< T > inputInterval = Views.interval( settings.inputCachedCellImg, cell );
 
 		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{
-			applyFastFiler( Views.interval( settings.inputCachedCellImg, cell ), cell );
+			applyFastFiler( inputInterval, cell );
 		}
 		else if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
-			simpleSegmentation( Views.interval( settings.inputCachedCellImg, cell ), ( SingleCellArrayImg) cell );
+			simpleSegmentation( inputInterval, ( SingleCellArrayImg) cell );
 		}
 		else if ( settings.filterType.equals( ImageFilter.INFORMATION ) )
 		{
-			information( Views.interval( settings.inputCachedCellImg, cell ), ( SingleCellArrayImg) cell );
+			information( inputInterval, ( SingleCellArrayImg) cell );
 		}
 
 	}
@@ -157,28 +160,46 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 
 	public void applyFastFilter( RandomAccessibleInterval< T > input, SingleCellArrayImg< T, ? > cell )
 	{
-		// TODO:
-		// one could improve this by giving the cellData to the fastFilters
-		// such that can directly write the result into it, thereby avoiding one tmp array.
-		// the issue is that the FastFilters work with float arrays, but the cellData is
-		// a short array.
-
 		final short[] cellData = ( short[] ) cell.getStorageArray();
-		final ImagePlus inputImp = ImageJFunctions.wrap( input, "" );
+
+		int w = (int) cell.dimension( 0 );
+		int h = (int) cell.dimension( 1 );
+
+		float[] floatInputPixels = new float[ h * w ];
+		float[] floatInputSnapShot = new float[ h * w ];
+
+		final Cursor< T > inputCursor = Views.flatIterable( input ).cursor();
+		int i = 0;
+		float value;
+		while( inputCursor.hasNext() )
+		{
+			value = (float) inputCursor.next().getRealDouble();
+			floatInputPixels[ i ] = value;
+			floatInputSnapShot[ i++ ] = value;
+		}
+
+		final FloatProcessor floatInputIp = new FloatProcessor( w, h, floatInputPixels );
+		final FloatProcessor floatInputSnapShotIp = new FloatProcessor( w, h, floatInputSnapShot );
 
 		final FastFilters fastFilters = new FastFilters();
 
 		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{
-			fastFilters.configureMedianDeviation( settings, inputImp.getType() );
+			fastFilters.configureMedianDeviation( settings );
 		}
 
+		final long start = System.currentTimeMillis();
+		fastFilters.run( floatInputIp, floatInputSnapShotIp );
+		Utils.debug( "Fast filter time [ms]: " + ( System.currentTimeMillis() - start) );
 
-		fastFilters.run( inputImp.getProcessor() );
-		final FloatProcessor result = fastFilters.getResult();
-		final ShortProcessor shortProcessor = result.convertToShortProcessor();
-		final short[] resultData = (short[]) shortProcessor.getPixels();
-		System.arraycopy( resultData, 0, cellData, 0, cellData.length );
+		final short[] shortResultPixels = new short[ h * w ];
+		for ( i = 0; i < h * w; ++i )
+		{
+			shortResultPixels[ i ] = ( short ) floatInputPixels[ i ];
+		}
+
+		System.arraycopy( shortResultPixels, 0, cellData, 0, cellData.length );
+
 	}
 
 
