@@ -1,7 +1,10 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.gridviewer.imagefilter.ImageFilter;
+import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
+import de.embl.cba.gridviewer.imagesources.ImagesSource;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -11,7 +14,6 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener

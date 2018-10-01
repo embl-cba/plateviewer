@@ -1,8 +1,12 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.gridviewer.Utils;
+import de.embl.cba.gridviewer.bdv.BdvImageNamesOverlay;
+import de.embl.cba.gridviewer.imagesources.ImageSource;
+import de.embl.cba.gridviewer.imagesources.ImagesSource;
 import net.imglib2.FinalInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.cache.img.SingleCellArrayImg;
@@ -181,7 +185,7 @@ public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 						.is2D()
 						.preferredSize( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] )
 						.doubleBuffered( false )
-						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
+						.transformEventHandlerFactory( new BdvImageNamesOverlay.BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 
 		bdv = bdvTmpSource.getBdvHandle();
 

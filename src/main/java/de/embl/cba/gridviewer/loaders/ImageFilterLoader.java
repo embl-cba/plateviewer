@@ -1,12 +1,14 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.gridviewer.loaders;
 
 
 import bdv.util.BdvOverlay;
-import bdv.util.volatiles.VolatileViews;
-import ij.ImagePlus;
+import de.embl.cba.gridviewer.bdv.BdvVolatileTextOverlay;
+import de.embl.cba.gridviewer.bdv.TextOverlay;
+import de.embl.cba.gridviewer.Utils;
+import de.embl.cba.gridviewer.imagefilter.FastFilters;
+import de.embl.cba.gridviewer.imagefilter.ImageFilter;
+import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
 import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -15,7 +17,6 @@ import net.imglib2.algorithm.neighborhood.Neighborhood;
 import net.imglib2.algorithm.neighborhood.RectangleShape;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.roi.labeling.LabelRegion;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.NativeType;

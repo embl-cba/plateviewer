@@ -1,4 +1,4 @@
-import de.embl.cba.gridviewer.MultiPositionViewerCommand;
+import de.embl.cba.gridviewer.viewer.MultiPositionViewerCommand;
 import net.imagej.ImageJ;
 
 public class MultiPositionViewerCommandTest

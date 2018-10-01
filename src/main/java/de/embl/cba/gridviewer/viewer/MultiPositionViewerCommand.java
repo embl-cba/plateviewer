@@ -1,8 +1,11 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
 import bdv.util.BdvOverlay;
+import de.embl.cba.gridviewer.Utils;
+import de.embl.cba.gridviewer.bdv.BdvImageNamesOverlay;
+import de.embl.cba.gridviewer.imagesources.ImagesSource;
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
@@ -12,7 +15,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = "Plugins>EMBL-CBA>Screening>Plate viewer" )
+@Plugin(type = Command.class, menuPath = "Plugins>Screening>Plate viewer" )
 public class MultiPositionViewerCommand implements Command
 {
 	@Parameter

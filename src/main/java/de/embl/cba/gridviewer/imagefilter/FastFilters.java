@@ -1,5 +1,6 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.gridviewer.imagefilter;
 
+import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
 import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
 import ij.plugin.filter.RankFilters;

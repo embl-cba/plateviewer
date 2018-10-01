@@ -1,5 +1,6 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.gridviewer.imagefilter;
 
+import de.embl.cba.gridviewer.viewer.MultiPositionViewer;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;

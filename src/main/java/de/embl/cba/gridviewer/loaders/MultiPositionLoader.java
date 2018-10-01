@@ -1,5 +1,7 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.gridviewer.loaders;
 
+import de.embl.cba.gridviewer.Utils;
+import de.embl.cba.gridviewer.imagesources.ImageSource;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.FinalInterval;

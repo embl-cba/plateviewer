@@ -1,26 +1,26 @@
-package de.embl.cba.gridviewer;
-
+package de.embl.cba.gridviewer.bdv;
 
 import bdv.util.BdvOverlay;
 import net.imglib2.realtransform.AffineTransform2D;
 
-import java.util.List;
 import java.awt.*;
+import java.util.ArrayList;
 
-
-public class BdvImageNamesOverlay extends BdvOverlay
+public class BdvVolatileTextOverlay extends BdvOverlay
 {
+	private final ArrayList< TextOverlay > textOverlays;
+	private final int numDimensions;
 
-	final List< ImagesSource > imagesSources;
-	final List< ImageSource > imageSources;
-	final int numDimensions;
-
-	public BdvImageNamesOverlay( List< ImagesSource > imagesSources )
+	public BdvVolatileTextOverlay( )
 	{
 		super();
-		this.imagesSources = imagesSources;
-		this.imageSources = imagesSources.get( 0 ).getLoader().getImageSources();
+		this.textOverlays = new ArrayList<>( );
 		this.numDimensions = 2;
+	}
+
+	public void addTextOverlay( TextOverlay textOverlay )
+	{
+		textOverlays.add( textOverlay );
 	}
 
 	@Override
@@ -32,21 +32,21 @@ public class BdvImageNamesOverlay extends BdvOverlay
 
 		final double scale = t.get( 0, 0 );
 
-		int fontSize = (int) (scale * 50);
+		/* get a copy of the textOverlays field to avoid concurrent modification exception
+		that can be caused by the addTextOverlay( ) method.*/
+		final ArrayList< TextOverlay > currentTextOverlays = new ArrayList<>( textOverlays );
 
-//		if ( fontSize < 8 ) return;
-
-		for ( final ImageSource imageSource : imageSources )
+		for ( final TextOverlay textOverlay : currentTextOverlays )
 		{
-			String string = imageSource.getPositionName();
+			String string = textOverlay.text;
 
 			double[] center = new double[ numDimensions ];
 
-			t.apply( Utils.getCenter( imageSource.getInterval() ), center );
+			t.apply( textOverlay.position, center );
 
-			g.setColor( Color.MAGENTA );
+			g.setColor( textOverlay.color );
 
-			final FontMetrics fontMetrics = setFont( g, fontSize );
+			final FontMetrics fontMetrics = setFont( g, ( int ) ( scale * textOverlay.size ) );
 
 			int[] stringPosition = getStringPosition( string, center, fontMetrics );
 
@@ -81,4 +81,3 @@ public class BdvImageNamesOverlay extends BdvOverlay
 	}
 
 }
-
