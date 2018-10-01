@@ -9,10 +9,8 @@ import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.Type;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -78,7 +76,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		ImageSourcesGenerator imageSourcesGenerator = null;
 
-		if ( namingScheme.equals( Utils.PATTERN_MD_A01_S1_CHANNEL ) )
+		if ( namingScheme.equals( Utils.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions );
 		}

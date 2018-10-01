@@ -12,7 +12,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = "Plugins>Screening>Multiposition Viewer" )
+@Plugin(type = Command.class, menuPath = "Plugins>EMBL-CBA>Screening>Plate viewer" )
 public class MultiPositionViewerCommand implements Command
 {
 	@Parameter

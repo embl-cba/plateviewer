@@ -63,9 +63,30 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 			final ImageSource imageSource = new ImageSource(
 					file,
 					getInterval( file ),
-					file.getName());
+					getPositionName(file.getName() ),
+					getWellName( file.getName() ));
 
 			imageSources.add( imageSource );
+		}
+	}
+
+	private String getPositionName( String fileName )
+	{
+		return fileName;
+	}
+
+	private String getWellName( String fileName )
+	{
+		final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( fileName );
+
+		if ( matcher.matches() )
+		{
+			final String well = matcher.group( NAMING_SCHEME_WELL_GROUP );
+			return well;
+		}
+		else
+		{
+			return null;
 		}
 	}
 

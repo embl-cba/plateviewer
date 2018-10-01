@@ -9,12 +9,9 @@ import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegions;
-import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
@@ -31,7 +28,7 @@ public class Utils
 {
 
 	public static final String WELL_PLATE_96 = "96 well plate";
-	public static final String PATTERN_MD_A01_S1_CHANNEL = ".*_([A-Z]{1}[0-9]{2})_s(.*)_(.*).tif";
+	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_s(.*)_w([0-9]{1}).*.tif";
 	public static final String PATTERN_MD_A01_CHANNEL = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
 	public static final String PATTERN_ALMF_SCREENING_W0001_P000_C00 = ".*--W([0-9]{4})--P([0-9]{3}).*--C([0-9]{2}).ome.tif";
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
@@ -160,9 +157,9 @@ public class Utils
 				{
 					channelPatternSet.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
 				}
-				else if ( namingScheme.equals( PATTERN_MD_A01_S1_CHANNEL ) )
+				else if ( namingScheme.equals( PATTERN_MD_A01_SITE_WAVELENGTH ) )
 				{
-					channelPatternSet.add( ".*" + matcher.group( 3 ) + ".tif" );
+					channelPatternSet.add( ".*_s.*_w" + matcher.group( 3 ) + ".*" );
 				}
 				else if ( namingScheme.equals( PATTERN_MD_A01_CHANNEL ) )
 				{
@@ -201,7 +198,7 @@ public class Utils
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( PATTERN_MD_A01_S1_CHANNEL ).matcher( filePath ).matches() ) return PATTERN_MD_A01_S1_CHANNEL;
+		if ( Pattern.compile( PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() ) return PATTERN_MD_A01_SITE_WAVELENGTH;
 		if ( Pattern.compile( PATTERN_MD_A01_CHANNEL ).matcher( filePath ).matches() ) return PATTERN_MD_A01_CHANNEL;
 		if ( Pattern.compile( PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
@@ -288,7 +285,7 @@ public class Utils
 		return new FinalInterval( min, max );
 	}
 
-	public static boolean isIntersecting( Interval requestedInterval, FinalInterval imageInterval )
+	public static boolean areIntersecting( Interval requestedInterval, Interval imageInterval )
 	{
 		FinalInterval intersect = Intervals.intersect( requestedInterval, imageInterval );
 

@@ -42,9 +42,9 @@ public class ImageFilterUI
 	{
 		final GenericDialog gd = new GenericDialog(settings.filterType );
 		gd.addNumericField("Radius", settings.radius , 0, 5, "pixels" );
-		gd.addNumericField("Offset", settings.offset, 0, 5, "gray values" );
-		gd.addCheckbox("Divide by sqrt(median)", settings.normalize );
-		gd.addNumericField("Factor", settings.factor, 2, 5, "" );
+		gd.addNumericField("Add", settings.offset, 0, 5, "gray values" );
+		gd.addCheckbox("Divide by Sqrt(median)", settings.normalize );
+		gd.addNumericField("Multiply by", settings.factor, 2, 5, "" );
 		gd.showDialog();
 		if ( gd.wasCanceled() ) return null;
 		settings.radius = (int) gd.getNextNumber();

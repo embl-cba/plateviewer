@@ -69,7 +69,7 @@ public class MultiPositionLoader implements CellLoader
 		{
 			FinalInterval imageInterval = imageSource.getInterval();
 
-			if ( Utils.isIntersecting( requestedInterval, imageInterval ) )
+			if ( Utils.areIntersecting( requestedInterval, imageInterval ) )
 			{
 				return imageSource;
 			}

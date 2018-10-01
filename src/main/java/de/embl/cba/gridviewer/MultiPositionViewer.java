@@ -92,7 +92,7 @@ public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 
 	public void zoomToWell( String wellName )
 	{
-		int sourceIndex = 0;
+		int sourceIndex = 0; // channel 0
 
 		final ArrayList< ImageSource > imageSources = imagesSources.get( sourceIndex ).getLoader().getImageSources();
 
@@ -100,7 +100,7 @@ public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 
 		for ( ImageSource imageSource : imageSources )
 		{
-			if ( imageSource.getFile().getName().contains( wellName ) )
+			if ( imageSource.getWellName().equals( wellName ) )
 			{
 				if ( union == null )
 				{
@@ -179,7 +179,7 @@ public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 				"",
 				Bdv.options()
 						.is2D()
-						.preferredSize( 800, 800 )
+						.preferredSize( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] )
 						.doubleBuffered( false )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 

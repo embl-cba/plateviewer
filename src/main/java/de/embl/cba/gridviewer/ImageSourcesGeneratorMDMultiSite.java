@@ -22,10 +22,9 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 	final private ArrayList< String > wellNames;
 
-	final static String NAMING_SCHEME = Utils.PATTERN_MD_A01_S1_CHANNEL;
+	final static String NAMING_SCHEME = Utils.PATTERN_MD_A01_SITE_WAVELENGTH;
 	public static final int NAMING_SCHEME_WELL_GROUP = 1;
 	public static final int NAMING_SCHEME_SITE_GROUP = 2;
-
 
 
 	public ImageSourcesGeneratorMDMultiSite( ArrayList< File > files, int[] imageDimensions )
@@ -55,10 +54,16 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 			final ImageSource imageSource = new ImageSource(
 					file,
 					getInterval( file ),
-					file.getName());
+					getPositionName(file.getName() ),
+					getWellName(file.getName() ) );
 
 			imageSources.add( imageSource );
 		}
+	}
+
+	private String getPositionName( String fileName )
+	{
+		return fileName;
 	}
 
 	private void configWells( ArrayList< File > files )
@@ -86,6 +91,21 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
+	}
+
+	private String getWellName( String fileName )
+	{
+		final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( fileName );
+
+		if ( matcher.matches() )
+		{
+			final String well = matcher.group( NAMING_SCHEME_WELL_GROUP );
+			return well;
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	private int getNumSites( ArrayList< File > files )

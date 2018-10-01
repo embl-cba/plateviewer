@@ -9,9 +9,10 @@
 	</parent>
 
 	<artifactId>fiji-plugin-plateViewer</artifactId>
-	<version>0.1.02</version>
+	<version>0.1.11</version>
 
 	<name>Fiji Plugin PlateViewer</name>
+	<url>https://github.com/tischi/fiji-plugin-plateViewer</url>
 	<description>TODO</description>
 	<inceptionYear>2018</inceptionYear>
 	<organization>
@@ -72,7 +73,6 @@
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
-		<enforcer.skip>true</enforcer.skip>
 	</properties>
 
 
@@ -121,24 +121,31 @@
 			<artifactId>bigdataviewer_fiji</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>ome</groupId>
-			<artifactId>formats-api</artifactId>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>ome</groupId>-->
+			<!--<artifactId>formats-api</artifactId>-->
+		<!--</dependency>-->
 
-		<dependency>
-			<groupId>ome</groupId>
-			<artifactId>formats-bsd</artifactId>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>ome</groupId>-->
+			<!--<artifactId>formats-bsd</artifactId>-->
+		<!--</dependency>-->
 
-		<dependency>
-			<groupId>ome</groupId>
-			<artifactId>formats-gpl</artifactId>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>ome</groupId>-->
+			<!--<artifactId>formats-gpl</artifactId>-->
+		<!--</dependency>-->
 
 		<dependency>
 			<groupId>ome</groupId>
 			<artifactId>bio-formats_plugins</artifactId>
+			<exclusions>
+				<exclusion>
+					<!-- NB: Exclude problematic uber-JAR that bundles commons-io. -->
+					<groupId>ch.systems.cisd</groupId>
+					<artifactId>jhdf5</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 

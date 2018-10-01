@@ -9,17 +9,24 @@ public class ImageSource
 	private final File file;
 	private final FinalInterval interval;
 	private final String positionName;
+	private final String wellName;
 
-	public ImageSource( File file, FinalInterval interval, String positionName )
+	public ImageSource( File file, FinalInterval interval, String positionName, String wellName )
 	{
 		this.file = file;
 		this.interval = interval;
 		this.positionName = positionName;
+		this.wellName = wellName;
 	}
 
 	public String getPositionName()
 	{
 		return positionName;
+	}
+
+	public String getWellName()
+	{
+		return wellName;
 	}
 
 	public long[] getDimensions()

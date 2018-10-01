@@ -62,10 +62,26 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 			final ImageSource imageSource = new ImageSource(
 					file,
 					getInterval( file, NAMING_SCHEME, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
-					file.getName());
+					file.getName(),
+					getWellName( file.getName() ) );
 
 			imageSources.add( imageSource );
 
+		}
+	}
+
+	private String getWellName( String fileName )
+	{
+		final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( fileName );
+
+		if ( matcher.matches() )
+		{
+			final String well = matcher.group( NAMING_SCHEME_WELL_GROUP );
+			return well;
+		}
+		else
+		{
+			return null;
 		}
 	}
 
