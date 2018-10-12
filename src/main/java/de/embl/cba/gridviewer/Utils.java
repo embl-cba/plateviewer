@@ -29,7 +29,8 @@ public class Utils
 
 	public static final String WELL_PLATE_96 = "96 well plate";
 	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_s(.*)_w([0-9]{1}).*.tif";
-	public static final String PATTERN_MD_A01_CHANNEL = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
+	public static final String PATTERN_MD_A01_SITE = ".*_([A-Z]{1}[0-9]{2})_s([0-9]{1}).*.tif";
+	public static final String PATTERN_MD_A01_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
 	public static final String PATTERN_ALMF_SCREENING_W0001_P000_C00 = ".*--W([0-9]{4})--P([0-9]{3}).*--C([0-9]{2}).ome.tif";
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	public static final String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -147,26 +148,30 @@ public class Utils
 	{
 		final Set< String > channelPatternSet = new HashSet<>( );
 
-		for ( File file : files )
+		if ( namingScheme.equals( PATTERN_MD_A01_SITE ) )
 		{
-			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
-
-			if ( matcher.matches() )
+			channelPatternSet.add( ".*" );
+		}
+		else // multiple channels, figure out which ones...
+		{
+			for ( File file : files )
 			{
-				if ( namingScheme.equals( PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+				final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
+
+				if ( matcher.matches() )
 				{
-					channelPatternSet.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
-				}
-				else if ( namingScheme.equals( PATTERN_MD_A01_SITE_WAVELENGTH ) )
-				{
-					channelPatternSet.add( ".*_s.*_w" + matcher.group( 3 ) + ".*" );
-				}
-				else if ( namingScheme.equals( PATTERN_MD_A01_CHANNEL ) )
-				{
-					channelPatternSet.add( ".*" + matcher.group( 2 ) + ".tif" );
+					if ( namingScheme.equals( PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+					{
+						channelPatternSet.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
+					} else if ( namingScheme.equals( PATTERN_MD_A01_SITE_WAVELENGTH ) )
+					{
+						channelPatternSet.add( ".*_s.*_w" + matcher.group( 3 ) + ".*" );
+					} else if ( namingScheme.equals( PATTERN_MD_A01_WAVELENGTH ) )
+					{
+						channelPatternSet.add( ".*" + matcher.group( 2 ) + ".tif" );
+					}
 				}
 			}
-
 		}
 
 		ArrayList< String > channelPatterns = new ArrayList<>( channelPatternSet );
@@ -199,8 +204,9 @@ public class Utils
 		String filePath = file.getAbsolutePath();
 
 		if ( Pattern.compile( PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() ) return PATTERN_MD_A01_SITE_WAVELENGTH;
-		if ( Pattern.compile( PATTERN_MD_A01_CHANNEL ).matcher( filePath ).matches() ) return PATTERN_MD_A01_CHANNEL;
-		if ( Pattern.compile( PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return PATTERN_ALMF_SCREENING_W0001_P000_C00;
+		else if ( Pattern.compile( PATTERN_MD_A01_SITE ).matcher( filePath ).matches() ) return PATTERN_MD_A01_SITE;
+		else if ( Pattern.compile( PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() ) return PATTERN_MD_A01_WAVELENGTH;
+		else if ( Pattern.compile( PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
 		return PATTERN_NO_MATCH;
 	}

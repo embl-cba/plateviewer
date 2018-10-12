@@ -23,21 +23,23 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 	final private ArrayList< String > wellNames;
 
-	final static String NAMING_SCHEME = Utils.PATTERN_MD_A01_SITE_WAVELENGTH;
+	final private String namingScheme;
 	public static final int NAMING_SCHEME_WELL_GROUP = 1;
 	public static final int NAMING_SCHEME_SITE_GROUP = 2;
 
-
-	public ImageSourcesGeneratorMDMultiSite( ArrayList< File > files, int[] imageDimensions )
+	public ImageSourcesGeneratorMDMultiSite( ArrayList< File > files,
+											 int[] imageDimensions,
+											 String namingScheme )
 	{
 		this.files = files;
 		this.imageDimensions = imageDimensions;
+		this.namingScheme = namingScheme;
 
 		this.imageSources = new ArrayList<>();
 
 		setImageSources();
 
-		wellNames = Utils.getWellNames( files, NAMING_SCHEME, NAMING_SCHEME_WELL_GROUP );
+		wellNames = Utils.getWellNames( files, this.namingScheme, NAMING_SCHEME_WELL_GROUP );
 	}
 
 	public ArrayList< ImageSource > getImageSources()
@@ -96,7 +98,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 	private String getWellName( String fileName )
 	{
-		final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( fileName );
+		final Matcher matcher = Pattern.compile( namingScheme ).matcher( fileName );
 
 		if ( matcher.matches() )
 		{
@@ -143,7 +145,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 		for ( File file : files )
 		{
-			final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
 
 			matcher.matches();
 
@@ -167,7 +169,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 	{
 		String filePath = file.getAbsolutePath();
 
-		final Matcher matcher = Pattern.compile( NAMING_SCHEME ).matcher( filePath );
+		final Matcher matcher = Pattern.compile( namingScheme ).matcher( filePath );
 
 		if ( matcher.matches() )
 		{

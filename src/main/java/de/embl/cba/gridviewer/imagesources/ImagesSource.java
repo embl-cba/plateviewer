@@ -80,13 +80,17 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 		if ( namingScheme.equals( Utils.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions );
+			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, Utils.PATTERN_MD_A01_SITE_WAVELENGTH  );
+		}
+		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_SITE ) )
+		{
+			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, Utils.PATTERN_MD_A01_SITE );
 		}
 		else if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorALMFScreening( files, imageDimensions );
 		}
-		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
+		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_WAVELENGTH ) )
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
 		}
@@ -328,7 +332,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( Utils.PATTERN_MD_A01_CHANNEL ).matcher( filePath ).matches() ) return Utils.PATTERN_MD_A01_CHANNEL;
+		if ( Pattern.compile( Utils.PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() ) return Utils.PATTERN_MD_A01_WAVELENGTH;
 		if ( Pattern.compile( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
 
 		return Utils.PATTERN_NO_MATCH;
@@ -346,7 +350,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 			int[] wellPosition = new int[ 2 ];
 			int[] sitePosition = new int[ 2 ];
 
-			if ( pattern.equals( Utils.PATTERN_MD_A01_CHANNEL ) )
+			if ( pattern.equals( Utils.PATTERN_MD_A01_WAVELENGTH ) )
 			{
 				String well = matcher.group( 1 );
 

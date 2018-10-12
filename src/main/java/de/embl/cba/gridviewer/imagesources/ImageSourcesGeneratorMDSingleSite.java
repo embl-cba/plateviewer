@@ -21,7 +21,7 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 
 	final ArrayList< ImageSource > imageSources;
 
-	final static String NAMING_SCHEME = Utils.PATTERN_MD_A01_CHANNEL;
+	final static String NAMING_SCHEME = Utils.PATTERN_MD_A01_WAVELENGTH;
 	public static final int NAMING_SCHEME_WELL_GROUP = 1;
 
 	final ArrayList< String > wellNames;
