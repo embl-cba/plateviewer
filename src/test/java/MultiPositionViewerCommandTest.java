@@ -11,6 +11,10 @@ public class MultiPositionViewerCommandTest
 
 		// invoke the plugin
 		ij.command().run( MultiPositionViewerCommand.class, true );
+
+		// test data
+		// /Volumes/almfscreen/Gbekor/ATAT1/Nikon/PlateATAT1_pilot_4000_cells
+		// /Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/Eugene
 	}
 
 }

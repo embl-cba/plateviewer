@@ -2,27 +2,23 @@ package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import bdv.viewer.render.TransformAwareBufferedImageOverlayRenderer;
-import de.embl.cba.gridviewer.bdv.BdvUtils;
 import de.embl.cba.gridviewer.imagefilter.ImageFilter;
 import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.gridviewer.imagesources.ImagesSource;
 import ij.ImagePlus;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static de.embl.cba.gridviewer.bdv.BdvUtils.captureView;
 
 public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener
 {
@@ -79,7 +75,6 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	}
 
 
-
 	private void addCaptureViewPanel( JPanel panel )
 	{
 
@@ -94,7 +89,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 			@Override
 			public void actionPerformed( ActionEvent e )
 			{
-				final BufferedImage bufferedImage = BdvUtils.captureView( bdv, Integer.parseInt( numPixelsTextField.getText() ) );
+				final BufferedImage bufferedImage = captureView( bdv, Integer.parseInt( numPixelsTextField.getText() ) );
 				new ImagePlus( "Capture", bufferedImage ).show();
 				//ImageIO.write( target.bi, "png", new File( String.format( "%s/img-%03d.png", dir, timepoint ) ) );
 			}
