@@ -20,8 +20,6 @@ import net.imglib2.util.Intervals;
 
 import java.io.File;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ImagesSource < T extends RealType< T > & NativeType< T > >
 {
@@ -78,24 +76,29 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		ImageSourcesGenerator imageSourcesGenerator = null;
 
-		if ( namingScheme.equals( Utils.PATTERN_MD_A01_SITE_WAVELENGTH ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, Utils.PATTERN_MD_A01_SITE_WAVELENGTH  );
+			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH  );
 		}
-		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_SITE ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, Utils.PATTERN_MD_A01_SITE );
+			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
 		}
-		else if ( namingScheme.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
+		{
+			imageSourcesGenerator = new ImageSourcesGeneratorScanR( files, imageDimensions );
+		}
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorALMFScreening( files, imageDimensions );
 		}
-		else if ( namingScheme.equals( Utils.PATTERN_MD_A01_WAVELENGTH ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
 		}
 
 		imageSources = imageSourcesGenerator.getImageSources();
+
 		wellNames = imageSourcesGenerator.getWellNames();
 
 	}
@@ -234,158 +237,157 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	}
 
 
+//	public static int getNumSites( ArrayList< File > files )
+//	{
+//		Set< String > sites = new HashSet<>( );
+//
+//		for ( File file : files )
+//		{
+//			final String pattern = getPattern( file );
+//
+//			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
+//
+//			if ( matcher.matches() )
+//			{
+//				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM ) )
+//				{
+//					sites.add( matcher.group( 2 ) );
+//				}
+//			}
+//		}
+//
+//		if ( sites.size() == 0 )
+//		{
+//			return 1;
+//		}
+//		else
+//		{
+//			return sites.size();
+//		}
+//
+//	}
+//
+//	public static int getNumWells( ArrayList< File > files )
+//	{
+//		Set< String > wells = new HashSet<>( );
+//		int maxWellNum = 0;
+//
+//		for ( File file : files )
+//		{
+//			final String pattern = getPattern( file );
+//
+//			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
+//
+//			if ( matcher.matches() )
+//			{
+//				wells.add( matcher.group( 1 ) );
+//
+//				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM ) )
+//				{
+//					int wellNum = Integer.parseInt( matcher.group( 1 ) );
+//
+//					if ( wellNum > maxWellNum )
+//					{
+//						maxWellNum = wellNum;
+//					}
+//				}
+//			}
+//		}
+//
+//
+//		if ( maxWellNum > wells.size() )
+//		{
+//			return maxWellNum;
+//		}
+//		else
+//		{
+//			return wells.size();
+//		}
+//
+//	}
 
-	public static int getNumSites( ArrayList< File > files )
-	{
-		Set< String > sites = new HashSet<>( );
-
-		for ( File file : files )
-		{
-			final String pattern = getPattern( file );
-
-			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
-
-			if ( matcher.matches() )
-			{
-				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
-				{
-					sites.add( matcher.group( 2 ) );
-				}
-			}
-		}
-
-		if ( sites.size() == 0 )
-		{
-			return 1;
-		}
-		else
-		{
-			return sites.size();
-		}
-
-	}
-
-	public static int getNumWells( ArrayList< File > files )
-	{
-		Set< String > wells = new HashSet<>( );
-		int maxWellNum = 0;
-
-		for ( File file : files )
-		{
-			final String pattern = getPattern( file );
-
-			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
-
-			if ( matcher.matches() )
-			{
-				wells.add( matcher.group( 1 ) );
-
-				if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
-				{
-					int wellNum = Integer.parseInt( matcher.group( 1 ) );
-
-					if ( wellNum > maxWellNum )
-					{
-						maxWellNum = wellNum;
-					}
-				}
-			}
-		}
-
-
-		if ( maxWellNum > wells.size() )
-		{
-			return maxWellNum;
-		}
-		else
-		{
-			return wells.size();
-		}
-
-	}
-
-	public static void putCellToMaps( ArrayList< Map< String, File > > cellFileMaps,
-									  String cell,
-									  File file )
-	{
-		boolean cellCouldBePlaceInExistingMap = false;
-
-		for( int iMap = 0; iMap < cellFileMaps.size(); ++iMap )
-		{
-			if ( !cellFileMaps.get( iMap ).containsKey( cell ) )
-			{
-				cellFileMaps.get( iMap ).put( cell, file );
-				cellCouldBePlaceInExistingMap = true;
-				break;
-			}
-		}
-
-		if ( ! cellCouldBePlaceInExistingMap )
-		{
-			// new channel
-			cellFileMaps.add( new HashMap<>() );
-			cellFileMaps.get( cellFileMaps.size() - 1 ).put( cell, file );
-		}
-	}
-
-	public static String getPattern( File file )
-	{
-		String filePath = file.getAbsolutePath();
-
-		if ( Pattern.compile( Utils.PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() ) return Utils.PATTERN_MD_A01_WAVELENGTH;
-		if ( Pattern.compile( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00;
-
-		return Utils.PATTERN_NO_MATCH;
-	}
-
-
-	public int[] getCell( File file, String pattern, int numWellColumns, int numSiteColumns )
-	{
-		String filePath = file.getAbsolutePath();
-
-		final Matcher matcher = Pattern.compile( pattern ).matcher( filePath );
-
-		if ( matcher.matches() )
-		{
-			int[] wellPosition = new int[ 2 ];
-			int[] sitePosition = new int[ 2 ];
-
-			if ( pattern.equals( Utils.PATTERN_MD_A01_WAVELENGTH ) )
-			{
-				String well = matcher.group( 1 );
-
-				wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
-				wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
-
-			}
-			else if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
-			{
-
-				int wellNum = Integer.parseInt( matcher.group( 1 ) );
-				int siteNum = Integer.parseInt( matcher.group( 2 ) );
-
-				wellPosition[ 1 ] = wellNum / numWellColumns * numSiteColumns;
-				wellPosition[ 0 ] = wellNum % numWellColumns * numSiteColumns;
-
-				sitePosition[ 1 ] = siteNum / numSiteColumns;
-				sitePosition[ 0 ] = siteNum % numSiteColumns;
-
-			}
-
-//			updateMaxWellDimensionInData( wellPosition );
-//			updateMaxSiteDimensionInData( sitePosition );
-
-			final int[] cellPosition = computeCellPosition( wellPosition, sitePosition );
-
-			return cellPosition;
-
-		}
-		else
-		{
-			return null;
-		}
-
-	}
+//	public static void putCellToMaps( ArrayList< Map< String, File > > cellFileMaps,
+//									  String cell,
+//									  File file )
+//	{
+//		boolean cellCouldBePlaceInExistingMap = false;
+//
+//		for( int iMap = 0; iMap < cellFileMaps.size(); ++iMap )
+//		{
+//			if ( !cellFileMaps.get( iMap ).containsKey( cell ) )
+//			{
+//				cellFileMaps.get( iMap ).put( cell, file );
+//				cellCouldBePlaceInExistingMap = true;
+//				break;
+//			}
+//		}
+//
+//		if ( ! cellCouldBePlaceInExistingMap )
+//		{
+//			// new channel
+//			cellFileMaps.add( new HashMap<>() );
+//			cellFileMaps.get( cellFileMaps.size() - 1 ).put( cell, file );
+//		}
+//	}
+//
+//	public static String getPattern( File file )
+//	{
+//		String filePath = file.getAbsolutePath();
+//
+//		if ( Pattern.compile( Utils.PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() ) return Utils.PATTERN_MD_A01_WAVELENGTH;
+//		if ( Pattern.compile( Utils.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM ).matcher( filePath ).matches() ) return Utils.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM;
+//
+//		return Utils.PATTERN_NO_MATCH;
+//	}
+//
+//
+//	public int[] getCell( File file, String pattern, int numWellColumns, int numSiteColumns )
+//	{
+//		String filePath = file.getAbsolutePath();
+//
+//		final Matcher matcher = Pattern.compile( pattern ).matcher( filePath );
+//
+//		if ( matcher.matches() )
+//		{
+//			int[] wellPosition = new int[ 2 ];
+//			int[] sitePosition = new int[ 2 ];
+//
+//			if ( pattern.equals( Utils.PATTERN_MD_A01_WAVELENGTH ) )
+//			{
+//				String well = matcher.group( 1 );
+//
+//				wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
+//				wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
+//
+//			}
+//			else if ( pattern.equals( Utils.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM ) )
+//			{
+//
+//				int wellNum = Integer.parseInt( matcher.group( 1 ) );
+//				int siteNum = Integer.parseInt( matcher.group( 2 ) );
+//
+//				wellPosition[ 1 ] = wellNum / numWellColumns * numSiteColumns;
+//				wellPosition[ 0 ] = wellNum % numWellColumns * numSiteColumns;
+//
+//				sitePosition[ 1 ] = siteNum / numSiteColumns;
+//				sitePosition[ 0 ] = siteNum % numSiteColumns;
+//
+//			}
+//
+////			updateMaxWellDimensionInData( wellPosition );
+////			updateMaxSiteDimensionInData( sitePosition );
+//
+//			final int[] cellPosition = computeCellPosition( wellPosition, sitePosition );
+//
+//			return cellPosition;
+//
+//		}
+//		else
+//		{
+//			return null;
+//		}
+//
+//	}
 
 	public int[] computeCellPosition( int[] wellPosition, int[] sitePosition )
 	{

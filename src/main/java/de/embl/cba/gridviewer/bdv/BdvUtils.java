@@ -22,8 +22,6 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.*;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.realtransform.RealViews;
-import net.imglib2.realtransform.Scale;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
@@ -36,11 +34,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.net.Inet4Address;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BdvUtils
 {
+
+	public static final String OVERLAY = "overlay";
 
 	public static BufferedImage captureView( Bdv bdv, int size )
 	{
@@ -191,6 +192,34 @@ public abstract class BdvUtils
 		affineTransform3D.translate( shiftToBdvWindowCenter );
 
 		return affineTransform3D;
+	}
+
+
+	public static void addSourcesDisplaySettingsUI( JPanel panel,
+													String name,
+													Bdv bdv,
+													ArrayList< Integer > sourceIndexes,
+													Color color )
+	{
+		int[] buttonDimensions = new int[]{ 50, 30 };
+
+		JPanel channelPanel = new JPanel();
+		channelPanel.setLayout( new BoxLayout( channelPanel, BoxLayout.LINE_AXIS ) );
+		channelPanel.setBorder( BorderFactory.createEmptyBorder(0,10,0,10) );
+		channelPanel.add( Box.createHorizontalGlue() );
+		channelPanel.setOpaque( true );
+		channelPanel.setBackground( color );
+
+		JLabel jLabel = new JLabel( name );
+		jLabel.setHorizontalAlignment( SwingConstants.CENTER );
+
+		channelPanel.add( jLabel );
+		channelPanel.add( createColorButton( channelPanel, buttonDimensions, bdv, sourceIndexes ) );
+		channelPanel.add( createBrightnessButton( buttonDimensions,  name, bdv, sourceIndexes ) );
+		channelPanel.add( createToggleButton( buttonDimensions,  bdv, sourceIndexes ) );
+
+		panel.add( channelPanel );
+
 	}
 
 	public static ARGBType asArgbType( Color color )
@@ -347,5 +376,66 @@ public abstract class BdvUtils
 		compositeImage.show();
 		compositeImage.setTitle( "capture" );
 		IJ.run(compositeImage, "Make Composite", "");
+	}
+
+	public static void addDisplaySettingsUI( Bdv bdv, JPanel panel )
+	{
+		final List< ConverterSetup > converterSetups = bdv.getBdvHandle().getSetupAssignments().getConverterSetups();
+		final List< SourceState< ? > > sources = bdv.getBdvHandle().getViewerPanel().getState().getSources();
+		final List< Integer > nonOverlaySourceIndices = getNonOverlaySourceIndices( bdv, sources );
+		ArrayList< Color > defaultColors = getColors( nonOverlaySourceIndices );
+
+		for ( int sourceIndex : nonOverlaySourceIndices )
+		{
+			final Color color = defaultColors.get( sourceIndex );
+
+			converterSetups.get( sourceIndex ).setColor( asArgbType( color ) );
+
+			final ArrayList< Integer > indices = new ArrayList<>( );
+			indices.add( sourceIndex );
+
+			String name = getName( bdv, sourceIndex );
+
+			addSourcesDisplaySettingsUI( panel, name, bdv, indices, color );
+		}
+
+	}
+
+	public static ArrayList< Color > getColors( List< Integer > nonOverlaySources )
+	{
+		ArrayList< Color > defaultColors = new ArrayList<>(  );
+		if ( nonOverlaySources.size() > 1 )
+		{
+			defaultColors.add( Color.BLUE );
+			defaultColors.add( Color.GREEN );
+			defaultColors.add( Color.RED );
+			defaultColors.add( Color.MAGENTA );
+			defaultColors.add( Color.GRAY );
+			defaultColors.add( Color.GRAY );
+			defaultColors.add( Color.GRAY );
+			defaultColors.add( Color.GRAY );
+			defaultColors.add( Color.GRAY );
+		}
+		else
+		{
+			defaultColors.add( Color.GRAY );
+		}
+		return defaultColors;
+	}
+
+	public static List< Integer > getNonOverlaySourceIndices( Bdv bdv, List< SourceState< ? > > sources )
+	{
+		final List< Integer > nonOverlaySources = new ArrayList<>(  );
+
+		for ( int sourceIndex = 0; sourceIndex < sources.size(); ++sourceIndex )
+		{
+			String name = getName( bdv, sourceIndex );
+			if ( ! name.contains( OVERLAY ) )
+			{
+				nonOverlaySources.add( sourceIndex );
+			}
+		}
+
+		return nonOverlaySources;
 	}
 }

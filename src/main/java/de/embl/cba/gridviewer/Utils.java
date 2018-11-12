@@ -1,5 +1,6 @@
 package de.embl.cba.gridviewer;
 
+import de.embl.cba.gridviewer.imagesources.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
@@ -28,10 +29,8 @@ public class Utils
 {
 
 	public static final String WELL_PLATE_96 = "96 well plate";
-	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_s(.*)_w([0-9]{1}).*.tif";
-	public static final String PATTERN_MD_A01_SITE = ".*_([A-Z]{1}[0-9]{2})_s([0-9]{1}).*.tif";
-	public static final String PATTERN_MD_A01_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
-	public static final String PATTERN_ALMF_SCREENING_W0001_P000_C00 = ".*--W([0-9]{4})--P([0-9]{3}).*--C([0-9]{2}).ome.tif";
+
+
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	public static final String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -148,7 +147,7 @@ public class Utils
 	{
 		final Set< String > channelPatternSet = new HashSet<>( );
 
-		if ( namingScheme.equals( PATTERN_MD_A01_SITE ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
 		{
 			channelPatternSet.add( ".*" );
 		}
@@ -160,13 +159,19 @@ public class Utils
 
 				if ( matcher.matches() )
 				{
-					if ( namingScheme.equals( PATTERN_ALMF_SCREENING_W0001_P000_C00 ) )
+					if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
 					{
 						channelPatternSet.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
-					} else if ( namingScheme.equals( PATTERN_MD_A01_SITE_WAVELENGTH ) )
+					}
+					else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
+					{
+						channelPatternSet.add( ".*" + matcher.group( 3 ) + ".tif"  );
+					}
+					else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 					{
 						channelPatternSet.add( ".*_s.*_w" + matcher.group( 3 ) + ".*" );
-					} else if ( namingScheme.equals( PATTERN_MD_A01_WAVELENGTH ) )
+					}
+					else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
 					{
 						channelPatternSet.add( ".*" + matcher.group( 2 ) + ".tif" );
 					}
@@ -203,10 +208,11 @@ public class Utils
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() ) return PATTERN_MD_A01_SITE_WAVELENGTH;
-		else if ( Pattern.compile( PATTERN_MD_A01_SITE ).matcher( filePath ).matches() ) return PATTERN_MD_A01_SITE;
-		else if ( Pattern.compile( PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() ) return PATTERN_MD_A01_WAVELENGTH;
-		else if ( Pattern.compile( PATTERN_ALMF_SCREENING_W0001_P000_C00 ).matcher( filePath ).matches() ) return PATTERN_ALMF_SCREENING_W0001_P000_C00;
+		if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_MD_A01_SITE;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
 
 		return PATTERN_NO_MATCH;
 	}
@@ -337,6 +343,5 @@ public class Utils
 		final ArrayList< String > wellNames = new ArrayList<>( wellNameSet );
 
 		return wellNames;
-
 	}
 }

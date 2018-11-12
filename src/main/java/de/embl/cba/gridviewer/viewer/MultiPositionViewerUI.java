@@ -2,6 +2,7 @@ package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.gridviewer.bdv.BdvUtils;
 import de.embl.cba.gridviewer.imagefilter.ImageFilter;
 import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.gridviewer.imagesources.ImagesSource;
@@ -47,20 +48,29 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 		setImagesSources( );
 
-		addSiteNavigationComboBox( );
+		BdvUtils.addDisplaySettingsUI( bdv, this );
 
-		addWellNavigationComboBox(  );
+		addHeader( " " ,this );
+
+		addSiteNavigationUI( this );
+
+		addWellNavigationUI( this );
+
+		addHeader( " " ,this );
+
+		addViewCaptureUI( this );
+
+		addHeader( " " ,this );
 
 		addImagesSourceSelectionPanel( this);
 
 		addImageFilterPanel();
 
-		addCaptureViewPanel( this );
-
 		createAndShowUI( );
 
 		previousImageFilterSettings = new ImageFilterSettings( );
 	}
+
 
 	public void setImagesSources( )
 	{
@@ -75,7 +85,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	}
 
 
-	private void addCaptureViewPanel( JPanel panel )
+	private void addViewCaptureUI( JPanel panel )
 	{
 
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
@@ -153,6 +163,15 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		panel.add( imageFiltersComboBox );
 	}
 
+	private void addHeader( String text, JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
+		horizontalLayoutPanel.add( new JLabel( text ) );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
 	private void addImagesSourceSelectionPanel( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
@@ -167,7 +186,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 		addImageSourceRemovalButton( horizontalLayoutPanel );
 
-		add( horizontalLayoutPanel );
+		panel.add( horizontalLayoutPanel );
 	}
 
 	private void updateImagesSourcesComboBoxItems()
@@ -183,8 +202,10 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	}
 
 
-	public void addSiteNavigationComboBox( )
+	public void addSiteNavigationUI( JPanel panel )
 	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
 		imageNamesComboBox = new JComboBox( );
 
 		final ArrayList< String > siteNames = multiPositionViewer.getSiteNames();
@@ -195,14 +216,20 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		}
 		imageNamesComboBox.addActionListener( this );
 
-		add( imageNamesComboBox );
+		horizontalLayoutPanel.add( new JLabel( "Zoom to site: " ) );
+		horizontalLayoutPanel.add( imageNamesComboBox );
+
+		panel.add( horizontalLayoutPanel );
 	}
 
-	public void addWellNavigationComboBox( )
+	public void addWellNavigationUI( JPanel panel )
 	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
 		wellNamesComboBox = new JComboBox();
 
 		final ArrayList< String > wellNames = multiPositionViewer.getWellNames();
+
 		Collections.sort( wellNames );
 
 		for ( String wellName : wellNames )
@@ -211,7 +238,11 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 		}
 
 		wellNamesComboBox.addActionListener( this );
-		add( wellNamesComboBox );
+
+		horizontalLayoutPanel.add( new JLabel( "Zoom to well: " ) );
+		horizontalLayoutPanel.add( wellNamesComboBox );
+
+		panel.add( horizontalLayoutPanel );
 	}
 
 	public void updateBdv( long msecs )
@@ -271,7 +302,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 			final CachedCellImg img = imageFilter.createCachedFilterImg();
 
-			final BdvSource bdvSource = addToViewer( img, name );
+			final BdvSource bdvSource = addOverlayToViewer( img, name );
 
 			// TODO: setLut( bdvSource, inputSource, settings.filterType );
 
@@ -280,7 +311,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 				inputSource.getBdvSource().setActive( false );
 			}
 
-			BdvOverlaySource bdvOverlaySource = addToViewer( settings, imageFilter.getBdvOverlay(), name );
+			BdvOverlaySource bdvOverlaySource = addOverlayToViewer( settings, imageFilter.getBdvOverlay(), name );
 
 			imagesSources.add( new ImagesSource( img, name, bdvSource, bdvOverlaySource ) );
 
@@ -293,7 +324,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 	}
 
-	public BdvOverlaySource addToViewer( ImageFilterSettings settings, BdvOverlay bdvOverlay, String name )
+	public BdvOverlaySource addOverlayToViewer( ImageFilterSettings settings, BdvOverlay bdvOverlay, String name )
 	{
 		BdvOverlaySource bdvOverlaySource = null;
 
@@ -321,7 +352,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	}
 
 
-	private BdvSource addToViewer( CachedCellImg< UnsignedByteType, ? > cachedCellImg, String cachedFilterImgName )
+	private BdvSource addOverlayToViewer( CachedCellImg< UnsignedByteType, ? > cachedCellImg, String cachedFilterImgName )
 	{
 
 		BdvSource bdvSource = BdvFunctions.show(

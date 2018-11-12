@@ -4,11 +4,13 @@ import de.embl.cba.gridviewer.Utils;
 import net.imglib2.FinalInterval;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
+public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 {
 
 	final ArrayList< File > files;
@@ -22,12 +24,12 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	final ArrayList< String > wellNames;
 
-	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
+	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
 
-	public ImageSourcesGeneratorALMFScreening( ArrayList< File > files, int[] imageDimensions )
+	public ImageSourcesGeneratorScanR( ArrayList< File > files, int[] imageDimensions )
 	{
 		this.files = files;
 		this.imageSources = new ArrayList<>();
@@ -67,13 +69,11 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	private static String getWellName( String fileName )
 	{
-		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM ).matcher( fileName );
+		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_SCANR_WELLNAME_WELLNUM ).matcher( fileName );
 
 		if ( matcher.matches() )
 		{
 			String wellName = matcher.group( 1 );
-			wellName += "--" + matcher.group( 2 );
-			wellName += "--W" + matcher.group( 3 );
 			return wellName;
 		}
 		else
