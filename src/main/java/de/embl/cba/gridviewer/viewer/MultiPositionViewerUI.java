@@ -2,7 +2,8 @@ package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.gridviewer.bdv.BdvUtils;
+import de.embl.cba.bdv.utils.BdvUserInterfaceUtils;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.gridviewer.imagefilter.ImageFilter;
 import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.gridviewer.imagesources.ImagesSource;
@@ -19,7 +20,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static de.embl.cba.gridviewer.bdv.BdvUtils.captureView;
+import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.addDisplaySettingsUI;
+import static de.embl.cba.bdv.utils.BdvUtils.captureView;
 
 public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener
 {
@@ -48,7 +50,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 		setImagesSources( );
 
-		BdvUtils.addDisplaySettingsUI( bdv, this );
+		addDisplaySettingsUI( bdv, this );
 
 		addHeader( " " ,this );
 
