@@ -1,4 +1,4 @@
-package de.embl.cba.gridviewer.bdv;
+package de.embl.cba.plateviewer.bdv;
 
 import bdv.util.BdvOverlay;
 import net.imglib2.realtransform.AffineTransform2D;

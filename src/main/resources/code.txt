@@ -15,7 +15,7 @@ if ( pattern.equals( Utils.PATTERN_A01 ) )
 
 
 
-package de.embl.cba.gridviewer;
+package de.embl.cba.plateviewer;
 
 import ij.IJ;
 import ij.ImagePlus;

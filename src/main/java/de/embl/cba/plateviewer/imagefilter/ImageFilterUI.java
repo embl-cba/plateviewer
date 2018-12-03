@@ -1,4 +1,4 @@
-package de.embl.cba.gridviewer.imagefilter;
+package de.embl.cba.plateviewer.imagefilter;
 
 import ij.gui.GenericDialog;
 

@@ -1,4 +1,4 @@
-package de.embl.cba.gridviewer.bdv;
+package de.embl.cba.plateviewer.bdv;
 
 import java.awt.*;
 

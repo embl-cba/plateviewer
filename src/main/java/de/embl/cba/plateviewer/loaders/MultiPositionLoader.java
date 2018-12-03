@@ -1,7 +1,7 @@
-package de.embl.cba.gridviewer.loaders;
+package de.embl.cba.plateviewer.loaders;
 
-import de.embl.cba.gridviewer.Utils;
-import de.embl.cba.gridviewer.imagesources.ImageSource;
+import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.imagesources.ImageSource;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.FinalInterval;
@@ -26,7 +26,7 @@ public class MultiPositionLoader implements CellLoader
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
-	public ImageSource getImageFile( String imageFileName )
+	public ImageSource getImageSource( String imageFileName )
 	{
 		for ( ImageSource imageSource : imageSources )
 		{
@@ -40,7 +40,7 @@ public class MultiPositionLoader implements CellLoader
 	}
 
 
-	public ImageSource getImageFile( int index )
+	public ImageSource getImageSource( int index )
 	{
 		return imageSources.get( index );
 	}
@@ -53,7 +53,7 @@ public class MultiPositionLoader implements CellLoader
 	@Override
 	public synchronized void load( final SingleCellArrayImg cell ) throws Exception
 	{
-		ImageSource imageSource = getImageFile( cell );
+		ImageSource imageSource = getImageSource( cell );
 
 		if ( imageSource != null )
 		{
@@ -63,7 +63,7 @@ public class MultiPositionLoader implements CellLoader
 	}
 
 
-	public ImageSource getImageFile( SingleCellArrayImg cell )
+	public ImageSource getImageSource( SingleCellArrayImg cell )
 	{
 		Interval requestedInterval = Intervals.largestContainedInterval( cell );
 
@@ -80,13 +80,12 @@ public class MultiPositionLoader implements CellLoader
 		return null;
 	}
 
-	public ImageSource getImageFile( long[] coordinates )
+	public ImageSource getImageSource( long[] coordinates )
 	{
 		boolean matches = false;
 
 		for ( ImageSource imageSource : imageSources )
 		{
-
 			FinalInterval interval = imageSource.getInterval();
 
 			for ( int d = 0; d < interval.numDimensions(); ++d )

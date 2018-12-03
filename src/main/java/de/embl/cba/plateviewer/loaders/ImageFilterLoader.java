@@ -1,13 +1,13 @@
-package de.embl.cba.gridviewer.loaders;
+package de.embl.cba.plateviewer.loaders;
 
 
 import bdv.util.BdvOverlay;
-import de.embl.cba.gridviewer.bdv.BdvVolatileTextOverlay;
-import de.embl.cba.gridviewer.bdv.TextOverlay;
-import de.embl.cba.gridviewer.Utils;
-import de.embl.cba.gridviewer.imagefilter.FastFilters;
-import de.embl.cba.gridviewer.imagefilter.ImageFilter;
-import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
+import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
+import de.embl.cba.plateviewer.bdv.TextOverlay;
+import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.imagefilter.FastFilters;
+import de.embl.cba.plateviewer.imagefilter.ImageFilter;
+import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
 import ij.process.FloatProcessor;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;

@@ -1,11 +1,11 @@
-package de.embl.cba.gridviewer.loaders;
+package de.embl.cba.plateviewer.loaders;
 
 
 import bdv.util.*;
-import de.embl.cba.gridviewer.Utils;
-import de.embl.cba.gridviewer.bdv.BdvVolatileTextOverlay;
-import de.embl.cba.gridviewer.bdv.TextOverlay;
-import de.embl.cba.gridviewer.imagesources.ImagesSource;
+import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
+import de.embl.cba.plateviewer.bdv.TextOverlay;
+import de.embl.cba.plateviewer.imagesources.ImagesSource;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -57,7 +57,7 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 	@Override
 	public void load( final SingleCellArrayImg< UnsignedByteType, ? > cell ) throws Exception
 	{
-		if ( imagesSource.getLoader().getImageFile( cell ) == null ) return;
+		if ( imagesSource.getLoader().getImageSource( cell ) == null ) return;
 
 		thresholdImageSourceAndPutResultIntoCell( cell );
 

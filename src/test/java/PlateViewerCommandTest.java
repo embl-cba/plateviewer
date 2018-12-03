@@ -1,4 +1,4 @@
-import de.embl.cba.gridviewer.viewer.PlateViewerCommand;
+import de.embl.cba.plateviewer.PlateViewerCommand;
 import net.imagej.ImageJ;
 
 public class PlateViewerCommandTest

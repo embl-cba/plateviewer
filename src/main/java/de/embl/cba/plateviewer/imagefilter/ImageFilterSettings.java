@@ -1,6 +1,6 @@
-package de.embl.cba.gridviewer.imagefilter;
+package de.embl.cba.plateviewer.imagefilter;
 
-import de.embl.cba.gridviewer.viewer.PlateViewer;
+import de.embl.cba.plateviewer.PlateViewer;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;

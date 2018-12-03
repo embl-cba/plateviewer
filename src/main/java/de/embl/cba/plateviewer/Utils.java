@@ -1,6 +1,6 @@
-package de.embl.cba.gridviewer;
+package de.embl.cba.plateviewer;
 
-import de.embl.cba.gridviewer.imagesources.NamingSchemes;
+import de.embl.cba.plateviewer.imagesources.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
@@ -29,19 +29,20 @@ public class Utils
 {
 
 	public static final String WELL_PLATE_96 = "96 well plate";
-
-
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	public static final String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
 	public static void log( String msg )
 	{
 		IJ.log( msg );
 	}
+	public static boolean logDebug = false;
 
 	public static void debug( String msg )
 	{
-		IJ.log( "[DEBUG] " + msg );
+		if ( logDebug )
+		{
+			IJ.log( "[DEBUG] " + msg );
+		}
 	}
 
 	public static int[] getCellPos( String cellPosString )

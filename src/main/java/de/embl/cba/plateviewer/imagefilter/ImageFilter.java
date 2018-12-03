@@ -1,7 +1,7 @@
-package de.embl.cba.gridviewer.imagefilter;
+package de.embl.cba.plateviewer.imagefilter;
 
 import bdv.util.BdvOverlay;
-import de.embl.cba.gridviewer.loaders.ImageFilterLoader;
+import de.embl.cba.plateviewer.loaders.ImageFilterLoader;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
@@ -11,7 +11,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 import java.util.ArrayList;
 
-import static de.embl.cba.gridviewer.imagefilter.ImageFilterUI.addSettingsUI;
+import static de.embl.cba.plateviewer.imagefilter.ImageFilterUI.addSettingsUI;
 
 public class ImageFilter < T extends NativeType< T > & RealType< T > >
 {

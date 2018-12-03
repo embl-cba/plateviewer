@@ -1,6 +1,6 @@
-package de.embl.cba.gridviewer.imagesources;
+package de.embl.cba.plateviewer.imagesources;
 
-import de.embl.cba.gridviewer.Utils;
+import de.embl.cba.plateviewer.Utils;
 import net.imglib2.FinalInterval;
 
 import java.io.File;

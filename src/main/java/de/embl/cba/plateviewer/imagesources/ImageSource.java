@@ -1,4 +1,4 @@
-package de.embl.cba.gridviewer.imagesources;
+package de.embl.cba.plateviewer.imagesources;
 
 import net.imglib2.FinalInterval;
 
@@ -19,7 +19,7 @@ public class ImageSource
 		this.wellName = wellName;
 	}
 
-	public String getPositionName()
+	public String getSiteName()
 	{
 		return positionName;
 	}

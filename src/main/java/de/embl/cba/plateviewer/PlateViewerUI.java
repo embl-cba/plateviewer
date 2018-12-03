@@ -1,10 +1,11 @@
-package de.embl.cba.gridviewer.viewer;
+package de.embl.cba.plateviewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.gridviewer.imagefilter.ImageFilter;
-import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
-import de.embl.cba.gridviewer.imagesources.ImagesSource;
+import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.imagefilter.ImageFilter;
+import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
+import de.embl.cba.plateviewer.imagesources.ImagesSource;
 import ij.ImagePlus;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -389,7 +390,7 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 	private void createAndShowUI( )
 	{
 		//Create and set up the window.
-		frame = new JFrame( "Multiposition viewer" );
+		frame = new JFrame( "Plate viewer" );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
 		//Create and set up the content pane.

@@ -1,9 +1,9 @@
-package de.embl.cba.gridviewer.imagesources;
+package de.embl.cba.plateviewer.imagesources;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
-import de.embl.cba.gridviewer.loaders.MultiPositionLoader;
-import de.embl.cba.gridviewer.Utils;
+import de.embl.cba.plateviewer.loaders.MultiPositionLoader;
+import de.embl.cba.plateviewer.Utils;
 import ij.IJ;
 import ij.ImagePlus;
 import net.imglib2.FinalInterval;

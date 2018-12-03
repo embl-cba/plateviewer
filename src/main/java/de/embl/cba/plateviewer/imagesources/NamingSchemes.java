@@ -1,4 +1,4 @@
-package de.embl.cba.gridviewer.imagesources;
+package de.embl.cba.plateviewer.imagesources;
 
 public abstract class NamingSchemes
 {

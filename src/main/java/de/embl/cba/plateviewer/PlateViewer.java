@@ -1,13 +1,14 @@
-package de.embl.cba.gridviewer.viewer;
+package de.embl.cba.plateviewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.bdv.utils.BdvMouseMotionListener;
-import de.embl.cba.gridviewer.Utils;
-import de.embl.cba.gridviewer.bdv.BdvImageNamesOverlay;
-import de.embl.cba.gridviewer.imagesources.ImageSource;
-import de.embl.cba.gridviewer.imagesources.ImagesSource;
+import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
+import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
+import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
+import de.embl.cba.plateviewer.imagesources.ImageSource;
+import de.embl.cba.plateviewer.imagesources.ImagesSource;
 import net.imglib2.FinalInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.cache.img.SingleCellArrayImg;
@@ -23,6 +24,7 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class PlateViewer< T extends NativeType< T > & RealType< T > >
@@ -37,17 +39,61 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 	private Bdv bdv;
 
-	public PlateViewer( ImagesSource source, int numIoThreads )
+	public PlateViewer( String inputDirectory, String filePattern, int numIoThreads )
 	{
+
 		this.imagesSources = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
-
+		this.loadingQueue = new SharedQueue( numIoThreads );
 		setBdvWindowDimensions();
 
-		loadingQueue = new SharedQueue( numIoThreads );
+		final ArrayList< File > fileList = getFiles( inputDirectory, filePattern );
 
-		initBdvAndAddSource( source );
+		final String namingScheme = getNamingScheme( fileList );
 
+		final ArrayList< String > channelPatterns = Utils.getChannelPatterns( fileList, namingScheme );
+
+		addChannelsToViewer( fileList, namingScheme, channelPatterns );
+
+		addSiteAndWellNamesOverlay();
+
+		new PlateViewerUI( this );
+	}
+
+	private void addSiteAndWellNamesOverlay()
+	{
+		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay( bdv, imagesSources );
+		BdvFunctions.showOverlay( bdvOverlay, "site and well names - overlay", BdvOptions.options().addTo( bdv ) );
+	}
+
+	public String getNamingScheme( ArrayList< File > fileList )
+	{
+		final String namingScheme = Utils.getNamingScheme( fileList.get( 0 ) );
+		Utils.log( "Detected naming scheme: " +  namingScheme );
+		return namingScheme;
+	}
+
+	public ArrayList< File > getFiles( String inputDirectory, String filePattern )
+	{
+		Utils.log( "Fetching files..." );
+		final ArrayList< File > fileList = Utils.getFileList( new File( inputDirectory ), filePattern );
+		Utils.log( "Number of files: " +  fileList.size() );
+		return fileList;
+	}
+
+	public void addChannelsToViewer( ArrayList< File > fileList, String namingScheme, ArrayList< String > channelPatterns )
+	{
+		for ( String channelPattern : channelPatterns )
+		{
+			Utils.log( "Adding channel: " + channelPattern );
+
+			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelPattern );
+
+			final ImagesSource imagesSource = new ImagesSource( channelFiles, namingScheme, numIoThreads );
+			imagesSource.setName( channelPattern );
+
+			addSource( imagesSource );
+		}
 	}
 
 	public Bdv getBdv()
@@ -125,14 +171,14 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	{
 		int sourceIndex = 0;
 
-		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageFile( imageFileName );
+		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageSource( imageFileName );
 
 		zoomToInterval( imageSource.getInterval() );
 	}
 
 	public boolean isImageExisting( final SingleCellArrayImg< T, ? > cell )
 	{
-		final ImageSource imageFile = imagesSources.get( 0 ).getLoader().getImageFile( cell );
+		final ImageSource imageFile = imagesSources.get( 0 ).getLoader().getImageSource( cell );
 
 		if ( imageFile != null ) return true;
 		else return false;
@@ -173,10 +219,6 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 	private void initBdvAndAddSource( ImagesSource source )
 	{
-
-		// TODO:
-		// - first show overlay, then zoom in, then add channel
-
 		final ArrayImg< BitType, LongArray > dummyImageForInitialisation = ArrayImgs.bits( new long[]{ 100, 100 } );
 
 		BdvSource bdvTmpSource = BdvFunctions.show(
@@ -186,15 +228,15 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 						.is2D()
 						.preferredSize( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] )
 						.doubleBuffered( false )
-						.transformEventHandlerFactory( new BdvImageNamesOverlay.BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
+						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
 
 		bdv = bdvTmpSource.getBdvHandle();
 
-		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( new BdvMouseMotionListener( bdv ) );
+		new BdvGrayValuesOverlay( bdv, Constants.bdvTextOverlayFontSize );
 
 		setBdvBehaviors();
 
-		zoomToInterval( source.getLoader().getImageFile( 0 ).getInterval() );
+		zoomToInterval( source.getLoader().getImageSource( 0 ).getInterval() );
 
 		addSource( source );
 
@@ -204,16 +246,26 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 	public void addSource( ImagesSource source )
 	{
-		imagesSources.add( source );
 
-		BdvSource bdvSource = BdvFunctions.show(
+		if ( bdv == null )
+		{
+			initBdvAndAddSource( source );
+		}
+		else
+		{
+			BdvSource bdvSource = BdvFunctions.show(
 					VolatileViews.wrapAsVolatile( source.getCachedCellImg(), loadingQueue ),
 					source.getName(),
 					BdvOptions.options().addTo( bdv ) );
 
-		bdvSource.setDisplayRange( source.getLutMinMax()[ 0 ], source.getLutMinMax()[ 1 ] );
+			bdvSource.setDisplayRange( source.getLutMinMax()[ 0 ], source.getLutMinMax()[ 1 ] );
 
-		source.setBdvSource( bdvSource );
+			source.setBdvSource( bdvSource );
+
+			imagesSources.add( source );
+		}
+
+
 	}
 
 
@@ -232,7 +284,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	{
 		final long[] coordinates = getMouseCoordinates();
 
-		final ImageSource imageSource = imagesSources.get( 0 ).getLoader().getImageFile( coordinates );
+		final ImageSource imageSource = imagesSources.get( 0 ).getLoader().getImageSource( coordinates );
 
 		if ( imageSource != null )
 		{
