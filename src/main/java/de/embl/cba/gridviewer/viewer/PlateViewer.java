@@ -3,6 +3,7 @@ package de.embl.cba.gridviewer.viewer;
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.bdv.utils.BdvMouseMotionListener;
 import de.embl.cba.gridviewer.Utils;
 import de.embl.cba.gridviewer.bdv.BdvImageNamesOverlay;
 import de.embl.cba.gridviewer.imagesources.ImageSource;
@@ -24,7 +25,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.util.ArrayList;
 
-public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
+public class PlateViewer< T extends NativeType< T > & RealType< T > >
 {
 
 	private final ArrayList< ImagesSource > imagesSources;
@@ -36,7 +37,7 @@ public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 
 	private Bdv bdv;
 
-	public MultiPositionViewer( ImagesSource source, int numIoThreads )
+	public PlateViewer( ImagesSource source, int numIoThreads )
 	{
 		this.imagesSources = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
@@ -189,6 +190,8 @@ public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 
 		bdv = bdvTmpSource.getBdvHandle();
 
+		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( new BdvMouseMotionListener( bdv ) );
+
 		setBdvBehaviors();
 
 		zoomToInterval( source.getLoader().getImageFile( 0 ).getInterval() );
@@ -222,6 +225,7 @@ public class MultiPositionViewer < T extends NativeType< T > & RealType< T > >
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showImageName( );
 		}, "log image info", "P" );
+
 	}
 
 	private void showImageName( )

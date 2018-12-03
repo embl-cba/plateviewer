@@ -1,6 +1,6 @@
 package de.embl.cba.gridviewer.imagefilter;
 
-import de.embl.cba.gridviewer.viewer.MultiPositionViewer;
+import de.embl.cba.gridviewer.viewer.PlateViewer;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -16,7 +16,7 @@ public class ImageFilterSettings < T extends NativeType< T > & RealType< T > >
 	public double threshold = 1;
 	public long minObjectSize = 100;
 	public boolean normalize = false;
-	public MultiPositionViewer multiPositionViewer;
+	public PlateViewer plateViewer;
 
 	public ImageFilterSettings( )
 	{

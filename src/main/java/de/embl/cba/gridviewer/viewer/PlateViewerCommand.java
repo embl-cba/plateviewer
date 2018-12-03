@@ -1,4 +1,4 @@
-package de.embl.cba.gridviewer.commands;
+package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
@@ -6,8 +6,8 @@ import bdv.util.BdvOverlay;
 import de.embl.cba.gridviewer.Utils;
 import de.embl.cba.gridviewer.bdv.BdvImageNamesOverlay;
 import de.embl.cba.gridviewer.imagesources.ImagesSource;
-import de.embl.cba.gridviewer.viewer.MultiPositionViewer;
-import de.embl.cba.gridviewer.viewer.MultiPositionViewerUI;
+import de.embl.cba.gridviewer.viewer.PlateViewer;
+import de.embl.cba.gridviewer.viewer.PlateViewerUI;
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;
@@ -18,7 +18,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Screening>Plate viewer" )
-public class MultiPositionViewerCommand implements Command
+public class PlateViewerCommand implements Command
 {
 	@Parameter
 	public LogService logService;
@@ -35,7 +35,7 @@ public class MultiPositionViewerCommand implements Command
 //	@Parameter (label = "Number of IO threads" )
 	public int numIoThreads = 1;
 
-	MultiPositionViewer multiPositionViewer;
+	PlateViewer plateViewer;
 
 	public void run()
 	{
@@ -55,7 +55,7 @@ public class MultiPositionViewerCommand implements Command
 
 		// TODO: wellNames Overlay
 
-		new MultiPositionViewerUI( multiPositionViewer );
+		new PlateViewerUI( plateViewer );
 
 	}
 
@@ -76,19 +76,19 @@ public class MultiPositionViewerCommand implements Command
 
 	public void addSiteNamesOverlay()
 	{
-		BdvOverlay bdvOverlay = new BdvImageNamesOverlay( multiPositionViewer.getImagesSources());
-		BdvFunctions.showOverlay( bdvOverlay, "names overlay", BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
+		BdvOverlay bdvOverlay = new BdvImageNamesOverlay( plateViewer.getImagesSources());
+		BdvFunctions.showOverlay( bdvOverlay, "names overlay", BdvOptions.options().addTo( plateViewer.getBdv() ) );
 	}
 
 	public void addSourceToViewer( ImagesSource imagesSource )
 	{
-		if ( multiPositionViewer == null )
+		if ( plateViewer == null )
 		{
-			multiPositionViewer = new MultiPositionViewer( imagesSource, numIoThreads );
+			plateViewer = new PlateViewer( imagesSource, numIoThreads );
 		}
 		else
 		{
-			multiPositionViewer.addSource( imagesSource );
+			plateViewer.addSource( imagesSource );
 		}
 	}
 

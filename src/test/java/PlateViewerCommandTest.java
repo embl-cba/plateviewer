@@ -1,7 +1,7 @@
-import de.embl.cba.gridviewer.commands.MultiPositionViewerCommand;
+import de.embl.cba.gridviewer.viewer.PlateViewerCommand;
 import net.imagej.ImageJ;
 
-public class MultiPositionViewerCommandTest
+public class PlateViewerCommandTest
 {
 
 	public static void main(final String... args) throws Exception
@@ -10,7 +10,7 @@ public class MultiPositionViewerCommandTest
 		ij.ui().showUI();
 
 		// invoke the plugin
-		ij.command().run( MultiPositionViewerCommand.class, true );
+		ij.command().run( PlateViewerCommand.class, true );
 
 		// test data
 		// /Volumes/almfscreen/Gbekor/ATAT1/Nikon/PlateATAT1_pilot_4000_cells

@@ -2,8 +2,6 @@ package de.embl.cba.gridviewer.viewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.bdv.utils.BdvUserInterfaceUtils;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.gridviewer.imagefilter.ImageFilter;
 import de.embl.cba.gridviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.gridviewer.imagesources.ImagesSource;
@@ -21,9 +19,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.addDisplaySettingsUI;
-import static de.embl.cba.bdv.utils.BdvUtils.captureView;
+import static de.embl.cba.bdv.utils.BdvViewCaptures.captureView;
 
-public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener
+public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener
 {
 	JFrame frame;
 	JComboBox imageNamesComboBox;
@@ -35,18 +33,18 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	JButton imageSourceRemovalButton;
 
 
-	final MultiPositionViewer multiPositionViewer;
+	final PlateViewer plateViewer;
 	private final Bdv bdv;
 	private ArrayList< ImagesSource< T > > imagesSources;
 	private ImageFilterSettings previousImageFilterSettings;
 
 
-	public MultiPositionViewerUI( MultiPositionViewer multiPositionViewer )
+	public PlateViewerUI( PlateViewer plateViewer )
 	{
 
-		this.multiPositionViewer = multiPositionViewer;
+		this.plateViewer = plateViewer;
 
-		this.bdv = multiPositionViewer.getBdv();
+		this.bdv = plateViewer.getBdv();
 
 		setImagesSources( );
 
@@ -78,7 +76,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	{
 		this.imagesSources = new ArrayList<>(  );
 
-		final ArrayList< ImagesSource > imagesSources = multiPositionViewer.getImagesSources();
+		final ArrayList< ImagesSource > imagesSources = plateViewer.getImagesSources();
 
 		for( ImagesSource imagesSource : imagesSources )
 		{
@@ -210,7 +208,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 		imageNamesComboBox = new JComboBox( );
 
-		final ArrayList< String > siteNames = multiPositionViewer.getSiteNames();
+		final ArrayList< String > siteNames = plateViewer.getSiteNames();
 
 		for ( String siteName : siteNames )
 		{
@@ -230,7 +228,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 		wellNamesComboBox = new JComboBox();
 
-		final ArrayList< String > wellNames = multiPositionViewer.getWellNames();
+		final ArrayList< String > wellNames = plateViewer.getWellNames();
 
 		Collections.sort( wellNames );
 
@@ -258,7 +256,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 				{
 					e.printStackTrace();
 				}
-				multiPositionViewer.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
+				plateViewer.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
 			}
 		})).start();
 	}
@@ -268,13 +266,13 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	{
 		if ( e.getSource() == imageNamesComboBox )
 		{
-			multiPositionViewer.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
+			plateViewer.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
 			updateBdv( 1000 );
 		}
 
 		if ( e.getSource() == wellNamesComboBox )
 		{
-			multiPositionViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
+			plateViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
 			updateBdv( 2000 );
 		}
 
@@ -295,7 +293,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 			settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
 			settings.inputCachedCellImg = inputSource.getCachedCellImg();
 			settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
-			settings.multiPositionViewer = multiPositionViewer;
+			settings.plateViewer = plateViewer;
 
 			final ImageFilter imageFilter = new ImageFilter( settings );
 			final String name = imageFilter.getCachedFilterImgName();
@@ -332,7 +330,7 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 
 		if ( bdvOverlay != null )
 		{
-			bdvOverlaySource = BdvFunctions.showOverlay( bdvOverlay,  name +" - overlay", BdvOptions.options().addTo( settings.multiPositionViewer.getBdv() ) );
+			bdvOverlaySource = BdvFunctions.showOverlay( bdvOverlay,  name +" - overlay", BdvOptions.options().addTo( settings.plateViewer.getBdv() ) );
 		}
 
 		return bdvOverlaySource;
@@ -358,9 +356,9 @@ public class MultiPositionViewerUI < T extends NativeType< T > & RealType< T > >
 	{
 
 		BdvSource bdvSource = BdvFunctions.show(
-				VolatileViews.wrapAsVolatile( cachedCellImg, multiPositionViewer.getLoadingQueue() ),
+				VolatileViews.wrapAsVolatile( cachedCellImg, plateViewer.getLoadingQueue() ),
 				cachedFilterImgName,
-				BdvOptions.options().addTo( multiPositionViewer.getBdv() ) );
+				BdvOptions.options().addTo( plateViewer.getBdv() ) );
 
 		// TODO: set color
 //		bdvSource.setColor( settings.baseImagesSource.getArgbType() );
