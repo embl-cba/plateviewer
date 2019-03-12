@@ -79,11 +79,13 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH  );
+			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite(
+					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH  );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite( files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
+			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite(
+					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
 		{
@@ -146,16 +148,12 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 			union = Intervals.union( imageSource.getInterval(), union );
 		}
 
-		// TODO: better making this smaller and with an offset...
-
 		dimensions = new long[ 2 ];
 
 		for ( int d = 0; d < 2; ++d )
 		{
 			dimensions[ d ] = union.max( d ) + 1;
 		}
-
-		int a = 1;
 	}
 
 	private void setMultiPositionLoader( int numIoThreads )

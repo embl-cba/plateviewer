@@ -2,7 +2,6 @@ package de.embl.cba.plateviewer;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.plateviewer.imagefilter.ImageFilter;
 import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
@@ -95,15 +94,10 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 
 		final JButton button = new JButton( "Capture current view" );
 
-		button.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( ActionEvent e )
-			{
-				final BufferedImage bufferedImage = captureView( bdv, Integer.parseInt( numPixelsTextField.getText() ) );
-				new ImagePlus( "Capture", bufferedImage ).show();
-				//ImageIO.write( target.bi, "png", new File( String.format( "%s/img-%03d.png", dir, timepoint ) ) );
-			}
+		button.addActionListener( e -> {
+			final BufferedImage bufferedImage = captureView( bdv, Integer.parseInt( numPixelsTextField.getText() ) );
+			new ImagePlus( "Capture", bufferedImage ).show();
+			//ImageIO.write( target.bi, "png", new File( String.format( "%s/img-%03d.png", dir, timepoint ) ) );
 		} );
 
 		horizontalLayoutPanel.add( button );
@@ -248,18 +242,16 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 
 	public void updateBdv( long msecs )
 	{
-		(new Thread(new Runnable(){
-			public void run(){
-				try
-				{
-					Thread.sleep( msecs );
-				} catch ( InterruptedException e )
-				{
-					e.printStackTrace();
-				}
-				plateViewer.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
+		(new Thread( () -> {
+			try
+			{
+				Thread.sleep( msecs );
+			} catch ( InterruptedException e )
+			{
+				e.printStackTrace();
 			}
-		})).start();
+			plateViewer.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
+		} )).start();
 	}
 
 	@Override
@@ -289,32 +281,29 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 
 			final ImagesSource inputSource = imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
 
-			ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
-
-			settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
-			settings.inputCachedCellImg = inputSource.getCachedCellImg();
-			settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
-			settings.plateViewer = plateViewer;
+			ImageFilterSettings settings = configureImageFilterSettings( inputSource );
 
 			final ImageFilter imageFilter = new ImageFilter( settings );
-			final String name = imageFilter.getCachedFilterImgName();
 
-			removeSource( name );
+			final String imageFilterSourceName = imageFilter.getCachedFilterImgName();
+			removeSource( imageFilterSourceName );
 
 			final CachedCellImg img = imageFilter.createCachedFilterImg();
+			final BdvSource bdvSource = addSourceToViewer( img, imageFilterSourceName );
 
-			final BdvSource bdvSource = addOverlayToViewer( img, name );
 
-			// TODO: setLut( bdvSource, inputSource, settings.filterType );
-
-			if ( !settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+			if ( !settings.filterType.equals(
+					ImageFilter.SIMPLE_SEGMENTATION ) )
 			{
-				inputSource.getBdvSource().setActive( false );
+				// TODO: do this via checkbox
+				// inputSource.getBdvSource().setActive( false );
 			}
 
-			BdvOverlaySource bdvOverlaySource = addOverlayToViewer( settings, imageFilter.getBdvOverlay(), name );
 
-			imagesSources.add( new ImagesSource( img, name, bdvSource, bdvOverlaySource ) );
+			BdvOverlaySource bdvOverlaySource =
+					addSourceToViewer( settings, imageFilter.getBdvOverlay(), imageFilterSourceName );
+
+			imagesSources.add( new ImagesSource( img, imageFilterSourceName, bdvSource, bdvOverlaySource ) );
 
 			previousImageFilterSettings = new ImageFilterSettings( settings );
 
@@ -325,7 +314,17 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 
 	}
 
-	public BdvOverlaySource addOverlayToViewer( ImageFilterSettings settings, BdvOverlay bdvOverlay, String name )
+	public ImageFilterSettings configureImageFilterSettings( ImagesSource inputSource )
+	{
+		ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
+		settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
+		settings.inputCachedCellImg = inputSource.getCachedCellImg();
+		settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
+		settings.plateViewer = plateViewer;
+		return settings;
+	}
+
+	public BdvOverlaySource addSourceToViewer( ImageFilterSettings settings, BdvOverlay bdvOverlay, String name )
 	{
 		BdvOverlaySource bdvOverlaySource = null;
 
@@ -353,7 +352,9 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 	}
 
 
-	private BdvSource addOverlayToViewer( CachedCellImg< UnsignedByteType, ? > cachedCellImg, String cachedFilterImgName )
+	private BdvSource addSourceToViewer(
+			CachedCellImg< UnsignedByteType, ? > cachedCellImg,
+			String cachedFilterImgName )
 	{
 
 		BdvSource bdvSource = BdvFunctions.show(

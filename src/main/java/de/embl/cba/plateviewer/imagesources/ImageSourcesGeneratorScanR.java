@@ -38,7 +38,6 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 		createImageSources();
 
 		this.wellNames = getWellNames( files );
-
 	}
 
 
@@ -186,6 +185,15 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 
 	}
 
+	/**
+	 * Determines where the image will be displayed
+	 *
+	 * @param file
+	 * @param pattern
+	 * @param numWellColumns
+	 * @param numSiteColumns
+	 * @return
+	 */
 	private FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
 	{
 		String filePath = file.getAbsolutePath();
@@ -198,15 +206,22 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 			int[] sitePosition = new int[ 2 ];
 
 			int wellNum = Integer.parseInt( matcher.group( WELL_GROUP ) ) - 1;
-			int siteNum = Integer.parseInt( matcher.group( SITE_GROUP ) );
+			int siteNum = Integer.parseInt( matcher.group( SITE_GROUP ) ) - 1;
 
 			wellPosition[ 1 ] = wellNum / numWellColumns;
 			wellPosition[ 0 ] = wellNum % numWellColumns;
 
-			sitePosition[ 1 ] = siteNum / numSiteColumns;
-			sitePosition[ 0 ] = siteNum % numSiteColumns;
+			sitePosition[ 0 ] = siteNum / numSiteColumns;
 
-			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
+			final int modulo = siteNum % numSiteColumns;
+
+			if ( sitePosition[ 0 ] % 2 == 0 )
+				sitePosition[ 1 ] = modulo;
+			else
+				sitePosition[ 1 ] = ( numSiteColumns - 1 ) - modulo;
+
+			final FinalInterval interval =
+					Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 
 			return interval;
 		}

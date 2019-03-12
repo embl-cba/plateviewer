@@ -32,8 +32,6 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	private final ArrayList< ImagesSource > imagesSources;
 	private final int numIoThreads;
 	private final SharedQueue loadingQueue;
-
-	private int[] imageDimensions;
 	private int[] bdvWindowDimensions;
 
 	private Bdv bdv;
@@ -80,7 +78,8 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		return fileList;
 	}
 
-	public void addChannelsToViewer( ArrayList< File > fileList, String namingScheme, ArrayList< String > channelPatterns )
+	public void addChannelsToViewer(
+			ArrayList< File > fileList, String namingScheme, ArrayList< String > channelPatterns )
 	{
 		for ( String channelPattern : channelPatterns )
 		{
