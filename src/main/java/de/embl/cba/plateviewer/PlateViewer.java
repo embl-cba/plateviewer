@@ -3,7 +3,6 @@ package de.embl.cba.plateviewer;
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
@@ -73,10 +72,10 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		return namingScheme;
 	}
 
-	public ArrayList< File > getFiles( String inputDirectory, String filePattern )
+	public static ArrayList< File > getFiles( String inputDirectory, String filePattern )
 	{
 		Utils.log( "Fetching files..." );
-		final ArrayList< File > fileList = Utils.getFileList( new File( inputDirectory ), filePattern );
+		final ArrayList< File > fileList = FileUtils.getFileList( new File( inputDirectory ), filePattern );
 		Utils.log( "Number of files: " +  fileList.size() );
 		return fileList;
 	}
@@ -246,7 +245,6 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 	public void addSource( ImagesSource source )
 	{
-
 		if ( bdv == null )
 		{
 			initBdvAndAddSource( source );
@@ -264,8 +262,6 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 			imagesSources.add( source );
 		}
-
-
 	}
 
 

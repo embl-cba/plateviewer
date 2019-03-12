@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>fiji-plugin-plateViewer</artifactId>
-	<version>0.2.10</version>
+	<version>0.2.12</version>
 
 	<name>Fiji Plugin PlateViewer</name>
 	<url>https://github.com/tischi/fiji-plugin-plateViewer</url>

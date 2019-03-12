@@ -4,6 +4,7 @@ import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.process.ColorProcessor;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.cache.img.CellLoader;
@@ -131,6 +132,26 @@ public class MultiPositionLoader implements CellLoader
 			final short[] impdata = ( short[] ) imp.getProcessor().getPixels();
 			final short[] celldata = ( short[] ) cell.getStorageArray();
 			System.arraycopy( impdata, 0, celldata, 0, celldata.length );
+		}
+		else if ( imp.getBitDepth() == 24 ) // RGB
+		{
+			// Compute sum of RGB values and return as short array
+
+			final byte[][] imgDataRGB = new byte[3][];
+			for ( int c = 0; c < 3; c++ )
+			{
+				imgDataRGB[ c ] = ( byte[] ) ((ColorProcessor )imp.getProcessor()).getChannel( c + 1 );
+			}
+
+			final short[] celldata = ( short[] ) cell.getStorageArray();
+
+			for ( int i = 0; i < imgDataRGB[ 0 ].length; i++ )
+			{
+				for ( int c = 0; c < 3; c++ )
+				{
+					celldata[ i ] += imgDataRGB[ c ][ i ] & 0xFF;
+				}
+			}
 		}
 		else if ( imp.getBitDepth() == 32 )
 		{

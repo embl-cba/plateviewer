@@ -59,40 +59,6 @@ public class Utils
 	}
 
 
-	public static ArrayList< File > getFileList( File directory, String fileNameRegExp )
-	{
-		final ArrayList< File > files = new ArrayList<>();
-		populateFileList( directory, fileNameRegExp,files );
-		return files;
-	}
-
-	public static void populateFileList( File directory, String fileNameRegExp, List< File > files) {
-
-		// Get all the files from a directory.
-		File[] fList = directory.listFiles();
-
-		if( fList != null )
-		{
-			for ( File file : fList )
-			{
-				if ( file.isFile() )
-				{
-					final Matcher matcher = Pattern.compile( fileNameRegExp ).matcher( file.getName() );
-
-					if ( matcher.matches() )
-					{
-						files.add( file );
-					}
-
-				}
-				else if ( file.isDirectory() )
-				{
-					populateFileList( file, fileNameRegExp, files );
-				}
-			}
-		}
-	}
-
 	public static < T extends IntegerType >
 	ImgLabeling< Integer, IntType > createImgLabeling( RandomAccessibleInterval< T > rai )
 	{
@@ -162,11 +128,11 @@ public class Utils
 				{
 					if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
 					{
-						channelPatternSet.add( ".*" + matcher.group( 3 ) + ".ome.tif" );
+						channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*" );
 					}
 					else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
 					{
-						channelPatternSet.add( ".*" + matcher.group( 3 ) + ".tif"  );
+						channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*"  );
 					}
 					else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 					{
@@ -174,7 +140,7 @@ public class Utils
 					}
 					else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
 					{
-						channelPatternSet.add( ".*" + matcher.group( 2 ) + ".tif" );
+						channelPatternSet.add( ".*" + matcher.group( 2 ) + "\\..*" );
 					}
 				}
 			}

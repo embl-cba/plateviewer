@@ -31,16 +31,8 @@ public class PlateViewerCommand implements Command
 
 	public void run()
 	{
-
 		new PlateViewer( inputDirectory.toString(), filePattern, 1 );
-
-		// addSiteNamesOverlay();
-
-		// TODO: wellNames Overlay
 	}
-
-
-
 
 }
 

@@ -14,6 +14,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
@@ -220,6 +221,9 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 				type = new UnsignedByteType();
 				break;
 			case 16:
+				type = new UnsignedShortType();
+				break;
+			case 24: // RGB: currently returns sum of all three RGB values
 				type = new UnsignedShortType();
 				break;
 			case 32:
