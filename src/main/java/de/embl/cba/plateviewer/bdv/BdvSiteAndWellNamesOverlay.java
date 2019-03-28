@@ -21,7 +21,6 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 	final int numDimensions;
 	final Bdv bdv;
 	final MultiPositionLoader multiPositionLoader;
-	private final int bdvWindowHeight;
 	private String wellName;
 	private String siteName;
 
@@ -34,7 +33,6 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 
 		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );
 
-		bdvWindowHeight = bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight();
 		wellName = "";
 		siteName = "";
 	}
@@ -48,13 +46,22 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 
 		g.setFont( new Font("TimesRoman", Font.PLAIN, fontSize ) );
 
+
+		int bdvWindowHeight = bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight();
+		int bdvWindowWidth = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth();
+
+
+		int distanceToWindowBottom = 2 * ( fontSize + 5 );
+
 		g.drawString( wellName,
-				bdvTextOverlayFontSize,
-				bdvWindowHeight - ( ( fontSize + 5 ) * 3 ) );
+				bdvWindowWidth / 3,
+				bdvWindowHeight - distanceToWindowBottom  );
+
+		distanceToWindowBottom = 1 * ( fontSize + 5 );
 
 		g.drawString( siteName,
-				bdvTextOverlayFontSize,
-				bdvWindowHeight - ( ( fontSize + 5 ) * 2 ) );
+				bdvWindowWidth / 3,
+				bdvWindowHeight - distanceToWindowBottom );
 	}
 
 

@@ -11,14 +11,12 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 import java.util.ArrayList;
 
-import static de.embl.cba.plateviewer.imagefilter.ImageFilterUI.addSettingsUI;
-
 public class ImageFilter < T extends NativeType< T > & RealType< T > >
 {
 
-	public static String SIMPLE_SEGMENTATION = "simple segmentation";
-	public static String MEDIAN_DEVIATION = "median deviation";
-	public static String INFORMATION = "information";
+	public static String SIMPLE_SEGMENTATION = "Simple segmentation";
+	public static String MEDIAN_DEVIATION = "Local median deviation";
+	public static String INFORMATION = "Information";
 
 	private final ImageFilterSettings settings;
 	private final String cachedFilterImgName;
@@ -28,7 +26,8 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 
 	public ImageFilter( ImageFilterSettings settings )
 	{
-		this.settings = addSettingsUI( settings );
+		this.settings = settings;
+
 
 		this.cachedFilterImgName = settings.inputName + " - " + settings.filterType;
 

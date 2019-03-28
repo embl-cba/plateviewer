@@ -1,4 +1,4 @@
-import de.embl.cba.plateviewer.PlateViewerCommand;
+import de.embl.cba.plateviewer.ui.PlateViewerCommand;
 import net.imagej.ImageJ;
 
 public class RunPlateViewerCommand

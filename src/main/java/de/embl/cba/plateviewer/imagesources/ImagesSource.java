@@ -6,6 +6,7 @@ import de.embl.cba.plateviewer.loaders.MultiPositionLoader;
 import de.embl.cba.plateviewer.Utils;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.process.LUT;
 import net.imglib2.FinalInterval;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
@@ -19,6 +20,7 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.*;
 
@@ -56,7 +58,9 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		createCachedCellImg();
 	}
 
-	public ImagesSource( CachedCellImg< T , ? > cachedCellImg, String name, BdvSource bdvSource, BdvOverlaySource bdvOverlaySource )
+	public ImagesSource(
+			CachedCellImg< T , ? > cachedCellImg,
+			String name, BdvSource bdvSource, BdvOverlaySource bdvOverlaySource )
 	{
 		this.cachedCellImg = cachedCellImg;
 		this.name = name;
@@ -112,7 +116,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	}
 
 
-	public ARGBType getArgbType()
+	public ARGBType getColor()
 	{
 		return argbType;
 	}
@@ -175,14 +179,53 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		final ImagePlus imagePlus = IJ.openImage( file.getAbsolutePath() );
 
-		// TODO: get this from somewhere?
-		argbType = new ARGBType( ARGBType.rgba( 255, 255,255,255 ));
+		setColor( imagePlus );
 
 		setImageBitDepth( imagePlus );
 
 		setImageDimensions( imagePlus );
 
 		setImageMinMax( imagePlus );
+	}
+
+	private void setColor( ImagePlus imagePlus )
+	{
+
+		final String title = imagePlus.getTitle().toLowerCase();
+
+		if ( title.contains( "gfp" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
+		else if ( title.contains( "mcherry" ) )
+			argbType = new ARGBType( ARGBType.rgba( 255, 0, 0, 255 ) );
+		else if ( title.contains( "dapi" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 0, 255, 255 ) );
+		else if ( title.contains( "hoechst" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 0, 255, 255 ) );
+		else if ( title.contains( "yfp" ) )
+			argbType = new ARGBType( ARGBType.rgba( 255, 255, 0, 255 ) );
+		else if ( title.contains( "cfp" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 255, 255, 255 ) );
+		else if ( title.contains( "rfp" ) )
+			argbType = new ARGBType( ARGBType.rgba( 255, 0, 0, 255 ) );
+		else if ( title.contains( "a488" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
+		else if ( title.contains( "alexa488" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
+		else
+		{
+			final LUT[] luts = imagePlus.getLuts();
+
+			final LUT lut = luts[ 0 ];
+			final IndexColorModel colorModel = lut.getColorModel();
+			final int mapSize = colorModel.getMapSize();
+			final int red = colorModel.getRed( mapSize - 1 );
+			final int green = colorModel.getRed( mapSize - 1 );
+			final int blue = colorModel.getRed( mapSize - 1 );
+
+			final int rgba = ARGBType.rgba( red, green, blue, 255 );
+
+			argbType = new ARGBType( rgba );
+		}
 	}
 
 	private void setImageMinMax( ImagePlus imagePlus )

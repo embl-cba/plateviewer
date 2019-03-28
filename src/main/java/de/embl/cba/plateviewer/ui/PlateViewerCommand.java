@@ -1,9 +1,6 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.plateviewer.ui;
 
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
-import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
+import de.embl.cba.plateviewer.PlateViewer;
 import org.scijava.command.Command;
 import org.scijava.command.CommandService;
 import org.scijava.log.LogService;

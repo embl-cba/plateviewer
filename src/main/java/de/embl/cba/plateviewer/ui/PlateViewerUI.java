@@ -1,27 +1,31 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.plateviewer.ui;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.plateviewer.imagefilter.ImageFilter;
 import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
 import ij.ImagePlus;
+import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.addDisplaySettingsUI;
 import static de.embl.cba.bdv.utils.BdvViewCaptures.captureView;
+import static de.embl.cba.plateviewer.imagefilter.ImageFilterUI.getImageFilterSettingsFromUI;
 
-public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends JPanel implements ActionListener
+public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
+		extends JPanel implements ActionListener
 {
 	JFrame frame;
 	JComboBox imageNamesComboBox;
@@ -30,25 +34,33 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 	JComboBox imagesSourcesComboBox;
 	JComboBox imageFiltersComboBox;
 	JButton imageFiltersButton;
-	JButton imageSourceRemovalButton;
-
 
 	final PlateViewer plateViewer;
 	private final Bdv bdv;
-	private ArrayList< ImagesSource< T > > imagesSources;
+	private ArrayList< ImagesSource< R > > imagesSources;
 	private ImageFilterSettings previousImageFilterSettings;
+	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
 
 	public PlateViewerUI( PlateViewer plateViewer )
 	{
-
 		this.plateViewer = plateViewer;
 
 		this.bdv = plateViewer.getBdv();
 
+		sourcesPanel = new PlateViewerSourcesPanel< R >( this );
+	}
+
+	public BdvHandle getBdv()
+	{
+		return bdv.getBdvHandle();
+	}
+
+	public void showUI()
+	{
 		setImagesSources( );
 
-		addDisplaySettingsUI( bdv, this );
+		this.add( sourcesPanel.getPanel() );
 
 		addHeader( " " ,this );
 
@@ -62,17 +74,22 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 
 		addHeader( " " ,this );
 
-		addImagesSourceSelectionPanel( this);
+		addImageProcessingPanel( this );
 
-		addImageFilterPanel();
+		
 
 		createAndShowUI( );
 
 		previousImageFilterSettings = new ImageFilterSettings( );
 	}
 
+	public PlateViewerSourcesPanel< R > getSourcesPanel()
+	{
+		return sourcesPanel;
+	}
 
-	public void setImagesSources( )
+
+	private void setImagesSources( )
 	{
 		this.imagesSources = new ArrayList<>(  );
 
@@ -84,7 +101,6 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 		}
 	}
 
-
 	private void addViewCaptureUI( JPanel panel )
 	{
 
@@ -95,8 +111,10 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 		final JButton button = new JButton( "Capture current view" );
 
 		button.addActionListener( e -> {
-			final BufferedImage bufferedImage = captureView( bdv, Integer.parseInt( numPixelsTextField.getText() ) );
+			final BufferedImage bufferedImage =
+					captureView( bdv, Integer.parseInt( numPixelsTextField.getText() ) );
 			new ImagePlus( "Capture", bufferedImage ).show();
+
 			//ImageIO.write( target.bi, "png", new File( String.format( "%s/img-%03d.png", dir, timepoint ) ) );
 		} );
 
@@ -107,15 +125,11 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addImageFilterPanel()
+	private void addImageProcessingPanel( JPanel panel )
 	{
-		JPanel panel = horizontalLayoutPanel();
-
-		addImageFiltersButton( panel );
-
-		addImageFiltersComboBox( panel );
-
-		add( panel );
+		addImageProcessingComboBox( panel );
+		addImagesSourceSelectionPanel( panel);
+		addImageProcessingButton( panel );
 	}
 
 
@@ -128,24 +142,25 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 		return panel;
 	}
 
-	private void addImageFiltersButton( JPanel panel )
+	private void addImageProcessingButton( JPanel panel )
 	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
 		imageFiltersButton = new JButton();
-		imageFiltersButton.setText( "Compute" );
+		imageFiltersButton.setText( "Process" );
 		imageFiltersButton.addActionListener( this );
-		panel.add( imageFiltersButton );
+		horizontalLayoutPanel.add( imageFiltersButton );
+
+		panel.add( horizontalLayoutPanel );
 	}
 
-	private void addImageSourceRemovalButton( JPanel panel )
-	{
-		imageSourceRemovalButton = new JButton();
-		imageSourceRemovalButton.setText( "Remove" );
-		imageSourceRemovalButton.addActionListener( this );
-		panel.add( imageSourceRemovalButton );
-	}
 
-	private void addImageFiltersComboBox( JPanel panel )
+	private void addImageProcessingComboBox( JPanel panel )
 	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+
+		horizontalLayoutPanel.add( new JLabel( "Processing method: " ) );
+
 		imageFiltersComboBox = new JComboBox();
 
 		for( String filter : ImageFilter.getFilters() )
@@ -153,9 +168,9 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 			imageFiltersComboBox.addItem( filter );
 		}
 
-		imageFiltersComboBox.addActionListener( this );
+		horizontalLayoutPanel.add( imageFiltersComboBox );
 
-		panel.add( imageFiltersComboBox );
+		panel.add( horizontalLayoutPanel );
 	}
 
 	private void addHeader( String text, JPanel panel )
@@ -171,7 +186,7 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "Image source" ) );
+		horizontalLayoutPanel.add( new JLabel( "Processing source:" ) );
 
 		imagesSourcesComboBox = new JComboBox();
 
@@ -179,12 +194,10 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 
 		horizontalLayoutPanel.add( imagesSourcesComboBox );
 
-		addImageSourceRemovalButton( horizontalLayoutPanel );
-
 		panel.add( horizontalLayoutPanel );
 	}
 
-	private void updateImagesSourcesComboBoxItems()
+	public void updateImagesSourcesComboBoxItems()
 	{
 		imagesSourcesComboBox.removeAllItems();
 
@@ -255,60 +268,76 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 	}
 
 	@Override
-	public void actionPerformed( ActionEvent e )
+	public void actionPerformed( ActionEvent a )
 	{
-		if ( e.getSource() == imageNamesComboBox )
+		if ( a.getSource() == imageNamesComboBox )
 		{
 			plateViewer.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
 			updateBdv( 1000 );
 		}
 
-		if ( e.getSource() == wellNamesComboBox )
+		if ( a.getSource() == wellNamesComboBox )
 		{
 			plateViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
 			updateBdv( 2000 );
 		}
 
-		if ( e.getSource() == imageSourceRemovalButton )
+		if ( a.getSource() == imageFiltersButton )
 		{
-			final ImagesSource inputSource = imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
-			removeSource( inputSource.getName() );
-			updateImagesSourcesComboBoxItems();
-		}
-
-		if ( e.getSource() == imageFiltersButton )
-		{
-
-			final ImagesSource inputSource = imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
-
-			ImageFilterSettings settings = configureImageFilterSettings( inputSource );
-
-			final ImageFilter imageFilter = new ImageFilter( settings );
-
-			final String imageFilterSourceName = imageFilter.getCachedFilterImgName();
-			removeSource( imageFilterSourceName );
-
-			final CachedCellImg img = imageFilter.createCachedFilterImg();
-			final BdvSource bdvSource = addSourceToViewer( img, imageFilterSourceName );
-
-
-			if ( !settings.filterType.equals(
-					ImageFilter.SIMPLE_SEGMENTATION ) )
+			SwingUtilities.invokeLater( () ->
 			{
-				// TODO: do this via checkbox
-				// inputSource.getBdvSource().setActive( false );
-			}
+				new Thread( () ->
+				{
+					final ImagesSource inputSource =
+							imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
 
+					ImageFilterSettings settings = configureImageFilterSettings( inputSource );
+					settings = getImageFilterSettingsFromUI( settings );
+					if ( settings == null ) return;
 
-			BdvOverlaySource bdvOverlaySource =
-					addSourceToViewer( settings, imageFilter.getBdvOverlay(), imageFilterSourceName );
+					final ImageFilter imageFilter = new ImageFilter( settings );
 
-			imagesSources.add( new ImagesSource( img, imageFilterSourceName, bdvSource, bdvOverlaySource ) );
+					final String imageFilterSourceName = imageFilter.getCachedFilterImgName();
+					removeSource( imageFilterSourceName );
 
-			previousImageFilterSettings = new ImageFilterSettings( settings );
+					final CachedCellImg filterImg = imageFilter.createCachedFilterImg();
+					final BdvStackSource bdvStackSource =
+							addToViewer( filterImg, imageFilterSourceName );
 
-			updateImagesSourcesComboBoxItems();
+					bdvStackSource.setColor( inputSource.getColor() );
 
+					getSourcesPanel().addSourceToPanel(
+							imageFilterSourceName,
+							bdvStackSource,
+							inputSource.getColor() );
+
+					if ( !settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+					{
+						// TODO: do this via checkbox
+						// inputSource.getBdvSource().setActive( false );
+					}
+
+					BdvOverlaySource bdvOverlaySource = null;
+					if ( imageFilter.getBdvOverlay() != null )
+					{
+							bdvOverlaySource =
+									addToViewer( settings,
+									imageFilter.getBdvOverlay(), imageFilterSourceName );
+					}
+
+					final ImagesSource filteredImagesSource = new ImagesSource( filterImg,
+							imageFilterSourceName, bdvStackSource, bdvOverlaySource );
+
+					imagesSources.add( filteredImagesSource );
+
+					previousImageFilterSettings = new ImageFilterSettings( settings );
+
+					SwingUtilities.invokeLater( () ->
+					{
+						updateImagesSourcesComboBoxItems();
+					});
+				}).start();
+			} );
 		}
 
 
@@ -324,14 +353,14 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 		return settings;
 	}
 
-	public BdvOverlaySource addSourceToViewer( ImageFilterSettings settings, BdvOverlay bdvOverlay, String name )
+	public BdvOverlaySource addToViewer(
+			ImageFilterSettings settings, BdvOverlay bdvOverlay, String name )
 	{
-		BdvOverlaySource bdvOverlaySource = null;
-
-		if ( bdvOverlay != null )
-		{
-			bdvOverlaySource = BdvFunctions.showOverlay( bdvOverlay,  name +" - overlay", BdvOptions.options().addTo( settings.plateViewer.getBdv() ) );
-		}
+		BdvOverlaySource bdvOverlaySource =
+				BdvFunctions.showOverlay(
+						bdvOverlay,
+						name +" - overlay",
+						BdvOptions.options().addTo( settings.plateViewer.getBdv() ) );
 
 		return bdvOverlaySource;
 	}
@@ -349,23 +378,25 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 				break;
 			}
 		}
+
+		updateImagesSourcesComboBoxItems();
 	}
 
 
-	private BdvSource addSourceToViewer(
+	private BdvStackSource addToViewer(
 			CachedCellImg< UnsignedByteType, ? > cachedCellImg,
 			String cachedFilterImgName )
 	{
 
-		BdvSource bdvSource = BdvFunctions.show(
+		final BdvStackSource< Volatile< UnsignedByteType > > bdvStackSource = BdvFunctions.show(
 				VolatileViews.wrapAsVolatile( cachedCellImg, plateViewer.getLoadingQueue() ),
 				cachedFilterImgName,
 				BdvOptions.options().addTo( plateViewer.getBdv() ) );
 
 		// TODO: set color
-//		bdvSource.setColor( settings.baseImagesSource.getArgbType() );
+//		bdvSource.setColor( settings.baseImagesSource.getColor() );
 
-		return bdvSource;
+		return bdvStackSource;
 
 	}
 
@@ -394,6 +425,11 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 		frame = new JFrame( "Plate viewer" );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
+		getSourcesPanel().sourceNameToPanel.size();
+		int height = 0; // TODO: actually, I only want to set the width
+		this.setPreferredSize( new Dimension(700, 400) );
+		frame.setPreferredSize( new Dimension(700, 400) );
+
 		//Create and set up the content pane.
 		setOpaque( true ); //content panes must be opaque
 		setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
@@ -405,10 +441,10 @@ public class PlateViewerUI< T extends NativeType< T > & RealType< T > > extends 
 		frame.setVisible( true );
 	}
 
-	private void refreshUI()
+	public void refreshUI()
 	{
-		this.revalidate();
-		this.repaint();
+		frame.revalidate();
+		frame.repaint();
 		frame.pack();
 	}
 

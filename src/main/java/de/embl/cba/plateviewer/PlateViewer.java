@@ -8,6 +8,7 @@ import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
+import de.embl.cba.plateviewer.ui.PlateViewerUI;
 import net.imglib2.FinalInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.cache.img.SingleCellArrayImg;
@@ -35,6 +36,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	private int[] bdvWindowDimensions;
 
 	private Bdv bdv;
+	private PlateViewerUI plateViewerUI;
 
 	public PlateViewer( String inputDirectory, String filePattern, int numIoThreads )
 	{
@@ -48,13 +50,15 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 		final String namingScheme = getNamingScheme( fileList );
 
-		final ArrayList< String > channelPatterns = Utils.getChannelPatterns( fileList, namingScheme );
+		final ArrayList< String > channelPatterns =
+				Utils.getChannelPatterns( fileList, namingScheme );
 
 		addChannelsToViewer( fileList, namingScheme, channelPatterns );
 
 		addSiteAndWellNamesOverlay();
 
-		new PlateViewerUI( this );
+		plateViewerUI.showUI();
+
 	}
 
 	private void addSiteAndWellNamesOverlay()
@@ -87,7 +91,9 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelPattern );
 
-			final ImagesSource imagesSource = new ImagesSource( channelFiles, namingScheme, numIoThreads );
+			final ImagesSource imagesSource =
+					new ImagesSource( channelFiles, namingScheme, numIoThreads );
+
 			imagesSource.setName( channelPattern );
 
 			addSource( imagesSource );
@@ -122,7 +128,8 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 	public ArrayList< String > getSiteNames()
 	{
-		final ArrayList< ImageSource > imageSources = imagesSources.get( 0 ).getLoader().getImageSources();
+		final ArrayList< ImageSource > imageSources =
+				imagesSources.get( 0 ).getLoader().getImageSources();
 
 		final ArrayList< String > imageNames = new ArrayList<>(  );
 
@@ -215,9 +222,10 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		return affineTransform3D;
 	}
 
-	private void initBdvAndAddSource( ImagesSource source )
+	private void initBdvAndPlateViewerUI( ImagesSource source )
 	{
-		final ArrayImg< BitType, LongArray > dummyImageForInitialisation = ArrayImgs.bits( new long[]{ 100, 100 } );
+		final ArrayImg< BitType, LongArray > dummyImageForInitialisation
+				= ArrayImgs.bits( new long[]{ 100, 100 } );
 
 		BdvSource bdvTmpSource = BdvFunctions.show(
 				dummyImageForInitialisation,
@@ -230,36 +238,46 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 		bdv = bdvTmpSource.getBdvHandle();
 
+		plateViewerUI = new PlateViewerUI( this );
+
 		new BdvGrayValuesOverlay( bdv, Constants.bdvTextOverlayFontSize );
 
 		setBdvBehaviors();
 
-		zoomToInterval( source.getLoader().getImageSource( 0 ).getInterval() );
-
 		addSource( source );
+
+		zoomToInterval( source.getLoader().getImageSource( 0 ).getInterval() );
 
 		bdvTmpSource.removeFromBdv();
 
 	}
 
-	public void addSource( ImagesSource source )
+	public void addSource( ImagesSource imagesSource )
 	{
 		if ( bdv == null )
 		{
-			initBdvAndAddSource( source );
+			initBdvAndPlateViewerUI( imagesSource );
 		}
 		else
 		{
-			BdvSource bdvSource = BdvFunctions.show(
-					VolatileViews.wrapAsVolatile( source.getCachedCellImg(), loadingQueue ),
-					source.getName(),
+			final BdvStackSource bdvStackSource = BdvFunctions.show(
+					VolatileViews.wrapAsVolatile( imagesSource.getCachedCellImg(), loadingQueue ),
+					imagesSource.getName(),
 					BdvOptions.options().addTo( bdv ) );
 
-			bdvSource.setDisplayRange( source.getLutMinMax()[ 0 ], source.getLutMinMax()[ 1 ] );
+			bdvStackSource.setDisplayRange(
+					imagesSource.getLutMinMax()[ 0 ], imagesSource.getLutMinMax()[ 1 ] );
 
-			source.setBdvSource( bdvSource );
+			bdvStackSource.setColor( imagesSource.getColor() );
 
-			imagesSources.add( source );
+			imagesSource.setBdvSource( bdvStackSource );
+
+			plateViewerUI.getSourcesPanel().addSourceToPanel(
+					imagesSource.getName(),
+					bdvStackSource,
+					imagesSource.getColor() );
+
+			imagesSources.add( imagesSource );
 		}
 	}
 

@@ -10,6 +10,7 @@ import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegions;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.IntType;
@@ -17,6 +18,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.Views;
 
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -310,5 +312,13 @@ public class Utils
 		final ArrayList< String > wellNames = new ArrayList<>( wellNameSet );
 
 		return wellNames;
+	}
+
+	public static Color asColor( ARGBType color )
+	{
+		return new Color(
+				ARGBType.red( color.get() ),
+				ARGBType.green( color.get() ),
+				ARGBType.blue( color.get() ));
 	}
 }
