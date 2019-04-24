@@ -8,15 +8,21 @@ import loci.formats.IFormatWriter;
 import loci.formats.ImageReader;
 import loci.formats.ImageWriter;
 import loci.formats.ome.OMEPyramidStore;
+import loci.formats.out.TiffWriter;
 import loci.formats.services.OMEXMLService;
 import ome.xml.model.primitives.PositiveInteger;
+
+import java.io.File;
 
 public class WriteMultiResolutionTiff
 {
 	public static void main(String[] args) throws Exception {
 
-		String in = "/Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/MD-P2-S0-C2-T1/180730-Nup93-mEGFP-clone79-imaging-pipeline_A01_w2.tif";
-		String out = "/Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/MultiResolutionTiff/test01.tif";
+		String in = WriteMultiResolutionTiff.class.getResource(
+				"../MultiResolutionTiff/image.tif").getFile();
+
+		String out =  "/Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/MultiResolutionTiff"
+				+ File.separator + "image-scale2res4-uncompressed.tif";
 
 		int scale = 2;
 		int resolutions = 4;
@@ -26,7 +32,6 @@ public class WriteMultiResolutionTiff
 		OMEXMLService service = factory.getInstance(OMEXMLService.class);
 		OMEPyramidStore meta = ( OMEPyramidStore ) service.createOMEXMLMetadata();
 		reader.setMetadataStore(meta);
-
 		reader.setId(in);
 
 		for (int i=1; i<resolutions; i++) {
@@ -44,6 +49,10 @@ public class WriteMultiResolutionTiff
 		writer.setMetadataRetrieve(meta);
 		writer.setId(out);
 		writer.saveBytes(0, img);
+		// TODO: Does not seem to work...
+		writer.setCompression( TiffWriter.COMPRESSION_LZW );
+//		writer.setCompression( TiffWriter.COMPRESSION_UNCOMPRESSED );
+//
 		int type = reader.getPixelType();
 		for (int i=1; i<resolutions; i++) {
 			writer.setResolution(i);

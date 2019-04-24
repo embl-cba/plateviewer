@@ -54,6 +54,7 @@ public class MultiResolutionTiffWriter
 		writer.setMetadataRetrieve(meta);
 		writer.setId(out);
 		writer.saveBytes(0, img);
+
 		int type = reader.getPixelType();
 		for (int i=1; i<resolutions; i++) {
 			writer.setResolution(i);
