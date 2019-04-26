@@ -69,21 +69,26 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>de.embl.cba.granulometry</package-name>
+		<package-name>de.embl.cba.plateviewer</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
 		<!-- BioFormats -->
-        <bioformats.version>6.1.0-m1</bioformats.version>
-        <logback.version>1.1.1</logback.version>
+		<bioformats.version>6.1.0-m1</bioformats.version>
     </properties>
 
 
 	<repositories>
-		<!-- NB: for SciJava dependencies -->
+		<!-- for SciJava dependencies -->
 		<repository>
 			<id>imagej.public</id>
 			<url>https://maven.imagej.net/content/groups/public</url>
+		</repository>
+		<!-- for CBA dependencies -->
+		<repository>
+			<id>bintray-tischi-snapshots</id>
+			<name>bintray</name>
+			<url>https://dl.bintray.com/tischi/snapshots</url>
 		</repository>
 	</repositories>
 
@@ -141,11 +146,13 @@
 			<artifactId>formats-api</artifactId>
 			<version>${bioformats.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>ome</groupId>
 			<artifactId>formats-bsd</artifactId>
 			<version>${bioformats.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>ome</groupId>
 			<artifactId>formats-gpl</artifactId>
@@ -158,29 +165,11 @@
 			<version>6.0.1</version>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>ch.qos.logback</groupId>-->
-<!--			<artifactId>logback-core</artifactId>-->
-<!--			<version>${logback.version}</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>ch.qos.logback</groupId>-->
-<!--			<artifactId>logback-classic</artifactId>-->
-<!--			<version>${logback.version}</version>-->
-<!--		</dependency>-->
-<!--		-->
-<!--		<dependency>-->
-<!--			<groupId>ome</groupId>-->
-<!--			<artifactId>formats-common</artifactId>-->
-<!--			<version>${bioformats.version}</version>-->
-<!--		</dependency>-->
-
-
 		<!-- CBA -->
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>bdv-utils</artifactId>
-			<version>0.2.10</version>
+			<version>0.2.11</version>
 		</dependency>
 
 	</dependencies>
