@@ -21,8 +21,8 @@ public class WriteMultiResolutionTiff
 		String in = WriteMultiResolutionTiff.class.getResource(
 				"../MultiResolutionTiff/image.tif").getFile();
 
-		String out =  "/Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/MultiResolutionTiff"
-				+ File.separator + "image-scale2res4-uncompressed.tif";
+		String out =  "src/test/resources/MultiResolutionTiff"
+				+ File.separator + "image-scale2res4-lzw.ome.tif";
 
 		int scale = 2;
 		int resolutions = 4;
