@@ -16,7 +16,7 @@ import java.io.File;
 
 public class WriteMultiResolutionTiff
 {
-	public static void main(String[] args) throws Exception {
+	public static void main(String... args) throws Exception {
 
 		String in = WriteMultiResolutionTiff.class.getResource(
 				"../MultiResolutionTiff/image.tif").getFile();
@@ -69,5 +69,7 @@ public class WriteMultiResolutionTiff
 		reader.close();
 
 		System.out.println("Done.");
+
+
 	}
 }
