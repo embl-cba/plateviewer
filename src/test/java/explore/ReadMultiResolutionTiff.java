@@ -11,7 +11,7 @@ public class ReadMultiResolutionTiff
 	public static void main(String[] args) throws FormatException, IOException
 	{
 
-		String id = "/Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/MultiResolutionTiff/image-scale2res4.tif";
+		String id = ReadMultiResolutionTiff.class.getResource( "..//PyramidalTiff/image-scale2res4-lzw.ome.tif" ).getFile();
 
 		// configure reader
 		IFormatReader reader = new ImageReader();
@@ -38,8 +38,6 @@ public class ReadMultiResolutionTiff
 				final int sizeX = reader.getSizeX();
 				final int sizeY = reader.getSizeY();
 				final byte[] bytes = reader.openBytes( 0 );
-				int a = 1;
-
 			}
 		}
 

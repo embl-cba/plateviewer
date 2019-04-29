@@ -19,10 +19,7 @@ public class WriteMultiResolutionTiff
 	public static void main(String... args) throws Exception {
 
 		String in = WriteMultiResolutionTiff.class.getResource(
-				"../MultiResolutionTiff/image.tif").getFile();
-
-		String out =  "src/test/resources/MultiResolutionTiff"
-				+ File.separator + "image-scale2res4-lzw.ome.tif";
+				"../PyramidalTiff/image.tif").getFile();
 
 		int scale = 2;
 		int resolutions = 4;
@@ -44,6 +41,8 @@ public class WriteMultiResolutionTiff
 		byte[] img = reader.openBytes(0);
 
 		// write image plane to disk
+		String out =  "src/test/resources/PyramidalTiff"
+				+ File.separator + "image-scale2res4-lzw.ome.tif";
 		System.out.println("Writing image to '" + out + "'...");
 		IFormatWriter writer = new ImageWriter();
 		writer.setMetadataRetrieve(meta);
@@ -51,15 +50,25 @@ public class WriteMultiResolutionTiff
 		writer.setCompression( TiffWriter.COMPRESSION_LZW );
 		writer.saveBytes(0, img);
 		int type = reader.getPixelType();
-		for (int i=1; i<resolutions; i++) {
+
+		for (int i=1; i<resolutions; i++)
+		{
 			writer.setResolution(i);
+
 			int x = meta.getResolutionSizeX(0, i).getValue();
 			int y = meta.getResolutionSizeY(0, i).getValue();
-			byte[] downsample = scaler.downsample(img, reader.getSizeX(),
-					reader.getSizeY(), Math.pow(scale, i),
-					FormatTools.getBytesPerPixel(type), reader.isLittleEndian(),
-					FormatTools.isFloatingPoint(type), reader.getRGBChannelCount(),
+
+			byte[] downsample = scaler.downsample(
+					img,
+					reader.getSizeX(),
+					reader.getSizeY(),
+					Math.pow(scale, i),
+					FormatTools.getBytesPerPixel(type),
+					reader.isLittleEndian(),
+					FormatTools.isFloatingPoint(type),
+					reader.getRGBChannelCount(),
 					reader.isInterleaved());
+
 			writer.saveBytes(0, downsample);
 		}
 		writer.close();
