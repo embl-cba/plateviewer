@@ -21,8 +21,8 @@ public class WriteMultiResolutionTiff
 		String in = WriteMultiResolutionTiff.class.getResource(
 				"../MultiResolutionTiff/image.tif").getFile();
 
-		String out =  "/Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/MultiResolutionTiff"
-				+ File.separator + "image-scale2res4-uncompressed.tif";
+		String out =  "src/test/resources/MultiResolutionTiff"
+				+ File.separator + "image-scale2res4-lzw.ome.tif";
 
 		int scale = 2;
 		int resolutions = 4;
@@ -48,11 +48,8 @@ public class WriteMultiResolutionTiff
 		IFormatWriter writer = new ImageWriter();
 		writer.setMetadataRetrieve(meta);
 		writer.setId(out);
-		writer.saveBytes(0, img);
-		// TODO: Does not seem to work...
 		writer.setCompression( TiffWriter.COMPRESSION_LZW );
-//		writer.setCompression( TiffWriter.COMPRESSION_UNCOMPRESSED );
-//
+		writer.saveBytes(0, img);
 		int type = reader.getPixelType();
 		for (int i=1; i<resolutions; i++) {
 			writer.setResolution(i);
