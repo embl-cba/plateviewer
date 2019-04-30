@@ -2,9 +2,12 @@ package de.embl.cba.plateviewer.ui;
 
 import bdv.util.BdvStackSource;
 import de.embl.cba.plateviewer.Utils;
+import net.imglib2.Volatile;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.volatiles.VolatileUnsignedByteType;
+import net.imglib2.type.volatiles.VolatileUnsignedShortType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,7 +55,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
     public void addSourceToPanel(
             String sourceName,
-            BdvStackSource bdvStackSource,
+            BdvStackSource< R > bdvStackSource,
             ARGBType argb )
     {
 
@@ -72,10 +75,13 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
             int[] buttonDimensions = new int[]{ 50, 30 };
 
+            final R type = bdvStackSource.getSources().get( 0 ).getSpimSource().getType();
+
+
             final JButton colorButton =
                     createColorButton( panel, buttonDimensions, bdvStackSource );
-            final JButton brightnessButton =
-                    createBrightnessButton( buttonDimensions, sourceName, bdvStackSource );
+            JButton brightnessButton =
+                    getBrightnessButton( sourceName, bdvStackSource, buttonDimensions, type );
             final JButton removeButton =
                     createRemoveButton( sourceName, bdvStackSource, buttonDimensions );
             final JCheckBox visibilityCheckbox =
@@ -90,6 +96,33 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             add( panel );
             refreshUI();
         }
+    }
+
+    public JButton getBrightnessButton( String sourceName, BdvStackSource< R > bdvStackSource, int[] buttonDimensions, R type )
+    {
+        JButton brightnessButton;
+        if ( type instanceof VolatileUnsignedShortType )
+            brightnessButton = createBrightnessButton(
+                    buttonDimensions,
+                    sourceName,
+                    bdvStackSource,
+                    0,
+                    65535);
+        else if ( type instanceof VolatileUnsignedByteType )
+            brightnessButton = createBrightnessButton(
+                    buttonDimensions,
+                    sourceName,
+                    bdvStackSource,
+                    0,
+                    255 );
+        else
+            brightnessButton = createBrightnessButton(
+                    buttonDimensions,
+                    sourceName,
+                    bdvStackSource,
+                    0,
+                    65535 );
+        return brightnessButton;
     }
 
     private JButton createRemoveButton(

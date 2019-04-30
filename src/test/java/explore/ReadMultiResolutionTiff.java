@@ -11,7 +11,7 @@ public class ReadMultiResolutionTiff
 	public static void main(String[] args) throws FormatException, IOException
 	{
 
-		String id = ReadMultiResolutionTiff.class.getResource( "..//PyramidalTiff/image-scale2res4-lzw.ome.tif" ).getFile();
+		String id = ReadMultiResolutionTiff.class.getResource( "../PyramidalTiff/image-scale2res4-lzw.ome.tif" ).getFile();
 
 		// configure reader
 		IFormatReader reader = new ImageReader();
@@ -23,7 +23,8 @@ public class ReadMultiResolutionTiff
 
 		System.out.println("  Series count = " + seriesCount);
 
-		for (int series=0; series<seriesCount; series++) {
+		for (int series=0; series<seriesCount; series++)
+		{
 			reader.setSeries(series);
 			int resolutionCount = reader.getResolutionCount();
 
