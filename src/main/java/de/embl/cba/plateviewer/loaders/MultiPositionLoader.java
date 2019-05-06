@@ -30,12 +30,8 @@ public class MultiPositionLoader implements CellLoader
 	public ImageSource getImageSource( String imageFileName )
 	{
 		for ( ImageSource imageSource : imageSources )
-		{
 			if ( imageSource.getFile().getName().equals( imageFileName ) )
-			{
 				return imageSource;
-			}
-		}
 
 		return null;
 	}
@@ -52,15 +48,12 @@ public class MultiPositionLoader implements CellLoader
 	}
 
 	@Override
-	public synchronized void load( final SingleCellArrayImg cell ) throws Exception
+	public synchronized void load( final SingleCellArrayImg cell )
 	{
 		ImageSource imageSource = getImageSource( cell );
 
 		if ( imageSource != null )
-		{
 			loadImageIntoCell( cell, imageSource.getFile() );
-		}
-
 	}
 
 
@@ -73,9 +66,7 @@ public class MultiPositionLoader implements CellLoader
 			FinalInterval imageInterval = imageSource.getInterval();
 
 			if ( Utils.areIntersecting( requestedInterval, imageInterval ) )
-			{
 				return imageSource;
-			}
 		}
 
 		return null;
@@ -102,10 +93,7 @@ public class MultiPositionLoader implements CellLoader
 				}
 			}
 
-			if ( matches )
-			{
-				return imageSource;
-			}
+			if ( matches ) return imageSource;
 
 		}
 

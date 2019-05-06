@@ -15,7 +15,7 @@ public class ReadMultiResolutionTiff
 
 		// configure reader
 		IFormatReader reader = new ImageReader();
-		reader.setFlattenedResolutions(false);
+		reader.setFlattenedResolutions( false );
 		System.out.println("Initializing file: " + id);
 		reader.setId(id); // parse metadata
 
@@ -38,6 +38,7 @@ public class ReadMultiResolutionTiff
 				final int bitsPerPixel = reader.getBitsPerPixel();
 				final int sizeX = reader.getSizeX();
 				final int sizeY = reader.getSizeY();
+
 				final byte[] bytes = reader.openBytes( 0 );
 			}
 		}

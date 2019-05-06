@@ -148,16 +148,13 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		FinalInterval union = new FinalInterval( imageSources.get( 0 ).getInterval() );
 
 		for ( ImageSource imageSource : imageSources )
-		{
 			union = Intervals.union( imageSource.getInterval(), union );
-		}
 
 		dimensions = new long[ 2 ];
 
 		for ( int d = 0; d < 2; ++d )
-		{
 			dimensions[ d ] = union.max( d ) + 1;
-		}
+
 	}
 
 	private void setMultiPositionLoader( int numIoThreads )

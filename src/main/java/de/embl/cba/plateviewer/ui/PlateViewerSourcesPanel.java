@@ -2,7 +2,6 @@ package de.embl.cba.plateviewer.ui;
 
 import bdv.util.BdvStackSource;
 import de.embl.cba.plateviewer.Utils;
-import net.imglib2.Volatile;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
@@ -16,7 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static de.embl.cba.bdv.utils.BdvUserInterfaceUtils.*;
+import static de.embl.cba.bdv.utils.BdvDialogs.*;
 
 public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R > > extends JPanel
 {

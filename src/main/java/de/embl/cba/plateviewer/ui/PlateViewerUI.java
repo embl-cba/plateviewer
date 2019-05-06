@@ -2,11 +2,11 @@ package de.embl.cba.plateviewer.ui;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
 import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.plateviewer.imagefilter.ImageFilter;
 import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
-import ij.ImagePlus;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -17,11 +17,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static de.embl.cba.bdv.utils.BdvViewCaptures.captureView;
 import static de.embl.cba.plateviewer.imagefilter.ImageFilterUI.getImageFilterSettingsFromUI;
 
 public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
@@ -48,7 +46,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 
 		this.bdv = plateViewer.getBdv();
 
-		sourcesPanel = new PlateViewerSourcesPanel< R >( this );
+		sourcesPanel = new PlateViewerSourcesPanel< >( this );
 	}
 
 	public BdvHandle getBdv()
@@ -105,22 +103,17 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 	{
 
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
-		final JTextField numPixelsTextField = new JTextField( "1000" );
-
+//		final JTextField numPixelsTextField = new JTextField( "1000" );
 
 		final JButton button = new JButton( "Capture current view" );
 
 		button.addActionListener( e -> {
-			final BufferedImage bufferedImage =
-					captureView( bdv, Integer.parseInt( numPixelsTextField.getText() ) );
-			new ImagePlus( "Capture", bufferedImage ).show();
-
-			//ImageIO.write( target.bi, "png", new File( String.format( "%s/img-%03d.png", dir, timepoint ) ) );
+			BdvViewCaptures.captureView( bdv.getBdvHandle(), 1.0, "pixel" );
 		} );
 
 		horizontalLayoutPanel.add( button );
-		horizontalLayoutPanel.add( new JLabel( "Size [pixels]" ) );
-		horizontalLayoutPanel.add( numPixelsTextField );
+//		horizontalLayoutPanel.add( new JLabel( "Size [pixels]" ) );
+//		horizontalLayoutPanel.add( numPixelsTextField );
 
 		panel.add( horizontalLayoutPanel );
 	}

@@ -41,4 +41,23 @@ public class FileUtils
 			}
 		}
 	}
+
+	public static ArrayList< File > filterFiles( ArrayList< File > files, String filterPattern )
+	{
+
+		final ArrayList< File > filteredFiles = new ArrayList<>( );
+
+		for ( File file : files )
+		{
+			final Matcher matcher = Pattern.compile( filterPattern ).matcher( file.getName() );
+
+			if ( matcher.matches() )
+			{
+				filteredFiles.add( file );
+			}
+
+		}
+
+		return filteredFiles;
+	}
 }

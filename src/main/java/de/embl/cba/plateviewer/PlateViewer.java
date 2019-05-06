@@ -40,7 +40,6 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 	public PlateViewer( String inputDirectory, String filePattern, int numIoThreads )
 	{
-
 		this.imagesSources = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
 		this.loadingQueue = new SharedQueue( numIoThreads );
@@ -64,10 +63,13 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	private void addSiteAndWellNamesOverlay()
 	{
 		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay( bdv, imagesSources );
-		BdvFunctions.showOverlay( bdvOverlay, "site and well names - overlay", BdvOptions.options().addTo( bdv ) );
+		BdvFunctions.showOverlay(
+				bdvOverlay,
+				"site and well names - overlay",
+				BdvOptions.options().addTo( bdv ) );
 	}
 
-	public String getNamingScheme( ArrayList< File > fileList )
+	public static String getNamingScheme( ArrayList< File > fileList )
 	{
 		final String namingScheme = Utils.getNamingScheme( fileList.get( 0 ) );
 		Utils.log( "Detected naming scheme: " +  namingScheme );
@@ -83,13 +85,16 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	}
 
 	public void addChannelsToViewer(
-			ArrayList< File > fileList, String namingScheme, ArrayList< String > channelPatterns )
+			ArrayList< File > fileList,
+			String namingScheme,
+			ArrayList< String > channelPatterns )
 	{
 		for ( String channelPattern : channelPatterns )
 		{
 			Utils.log( "Adding channel: " + channelPattern );
 
-			final ArrayList< File > channelFiles = Utils.filterFiles( fileList, channelPattern );
+			final ArrayList< File > channelFiles = FileUtils.filterFiles(
+					fileList, channelPattern );
 
 			final ImagesSource imagesSource =
 					new ImagesSource( channelFiles, namingScheme, numIoThreads );
@@ -234,7 +239,9 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 						.is2D()
 						.preferredSize( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] )
 						.doubleBuffered( false )
-						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar.BehaviourTransformEventHandlerPlanarFactory() ) );
+						.transformEventHandlerFactory(
+								new BehaviourTransformEventHandlerPlanar
+										.BehaviourTransformEventHandlerPlanarFactory() ) );
 
 		bdv = bdvTmpSource.getBdvHandle();
 

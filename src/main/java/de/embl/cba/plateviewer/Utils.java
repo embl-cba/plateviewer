@@ -112,7 +112,8 @@ public class Utils
 		return center;
 	}
 
-	public static ArrayList< String > getChannelPatterns( List< File > files, String namingScheme )
+	public static ArrayList< String > getChannelPatterns(
+			List< File > files, String namingScheme )
 	{
 		final Set< String > channelPatternSet = new HashSet<>( );
 
@@ -151,25 +152,6 @@ public class Utils
 		ArrayList< String > channelPatterns = new ArrayList<>( channelPatternSet );
 
 		return channelPatterns;
-	}
-
-	public static ArrayList< File > filterFiles( ArrayList< File > files, String filterPattern )
-	{
-
-		final ArrayList< File > filteredFiles = new ArrayList<>( );
-
-		for ( File file : files )
-		{
-			final Matcher matcher = Pattern.compile( filterPattern ).matcher( file.getName() );
-
-			if ( matcher.matches() )
-			{
-				filteredFiles.add( file );
-			}
-
-		}
-
-		return filteredFiles;
 	}
 
 
