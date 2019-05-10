@@ -74,9 +74,8 @@
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
 		<!-- BioFormats -->
-		<bioformats.version>6.1.0-m1</bioformats.version>
+		<bioformats.version>6.1.0-m2</bioformats.version>
     </properties>
-
 
 	<repositories>
 		<!-- for SciJava dependencies -->
@@ -166,6 +165,7 @@
 		</dependency>
 
 		<!-- CBA -->
+
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>bdv-utils</artifactId>

@@ -46,8 +46,9 @@ public class WriteMultiResolutionTiff
 		System.out.println("Writing image to '" + out + "'...");
 		IFormatWriter writer = new ImageWriter();
 		writer.setMetadataRetrieve(meta);
-		writer.setId(out);
-		writer.setCompression( TiffWriter.COMPRESSION_LZW );
+		writer.setId( out );
+//		writer.setWriteSequentially(true);
+//		writer.setCompression( TiffWriter.COMPRESSION_LZW );
 		writer.saveBytes(0, img);
 		int type = reader.getPixelType();
 
