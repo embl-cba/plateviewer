@@ -81,15 +81,12 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
                     createColorButton( panel, buttonDimensions, bdvStackSource );
             JButton brightnessButton =
                     getBrightnessButton( sourceName, bdvStackSource, buttonDimensions, type );
-            final JButton removeButton =
-                    createRemoveButton( sourceName, bdvStackSource, buttonDimensions );
             final JCheckBox visibilityCheckbox =
                     createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
 
             panel.add( jLabel );
             panel.add( colorButton );
             panel.add( brightnessButton );
-            panel.add( removeButton );
             panel.add( visibilityCheckbox );
 
             add( panel );
