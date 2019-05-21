@@ -264,28 +264,29 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		if ( bdv == null )
 		{
 			initBdvAndPlateViewerUI( imagesSource );
+			return;
 		}
-		else
-		{
-			final BdvStackSource bdvStackSource = BdvFunctions.show(
-					VolatileViews.wrapAsVolatile( imagesSource.getCachedCellImg(), loadingQueue ),
-					imagesSource.getName(),
-					BdvOptions.options().addTo( bdv ) );
 
-			bdvStackSource.setDisplayRange(
-					imagesSource.getLutMinMax()[ 0 ], imagesSource.getLutMinMax()[ 1 ] );
+		final BdvStackSource bdvStackSource = BdvFunctions.show(
+				VolatileViews.wrapAsVolatile(
+						imagesSource.getCachedCellImg(),
+						loadingQueue ),
+				imagesSource.getName(),
+				BdvOptions.options().addTo( bdv ) );
 
-			bdvStackSource.setColor( imagesSource.getColor() );
+		bdvStackSource.setDisplayRange(
+				imagesSource.getLutMinMax()[ 0 ], imagesSource.getLutMinMax()[ 1 ] );
 
-			imagesSource.setBdvSource( bdvStackSource );
+		bdvStackSource.setColor( imagesSource.getColor() );
 
-			plateViewerUI.getSourcesPanel().addSourceToPanel(
-					imagesSource.getName(),
-					bdvStackSource,
-					imagesSource.getColor() );
+		imagesSource.setBdvSource( bdvStackSource );
 
-			imagesSources.add( imagesSource );
-		}
+		plateViewerUI.getSourcesPanel().addSourceToPanel(
+				imagesSource.getName(),
+				bdvStackSource,
+				imagesSource.getColor() );
+
+		imagesSources.add( imagesSource );
 	}
 
 

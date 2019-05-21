@@ -5,7 +5,7 @@ public class PlateViewerTest
 	public static void main( String[] args )
 	{
 //		new PlateViewer(
-//				PlateViewerTest.class.getResource( "ALMF-EMBL-P2-S4-C2-T1" ).getFile(),
+//				PlateViewerTest.class.getResource( "ALMF-EMBL-ZeroBased-P2-S4-C2-T1" ).getFile(),
 //				".*.tif",
 //				1);
 

@@ -25,6 +25,7 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
+	private boolean zeroBasedSites;
 
 
 	public ImageSourcesGeneratorALMFScreening( ArrayList< File > files, int[] imageDimensions )
@@ -36,7 +37,6 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 		createImageSources();
 
 		this.wellNames = getWellNames( files );
-
 	}
 
 
@@ -91,7 +91,11 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 		{
 			final ImageSource imageSource = new ImageSource(
 					file,
-					getInterval( file, WELL_SITE_CHANNEL_PATTERN, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
+					getInterval(
+							file,
+							WELL_SITE_CHANNEL_PATTERN,
+							wellDimensions[ 0 ],
+							siteDimensions[ 0 ] ),
 					file.getName(),
 					getWellName( file.getName() ) );
 
@@ -113,9 +117,21 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	private void configSites( ArrayList< File > files )
 	{
-		numSites = getNumSites( files );
-		siteDimensions = new int[ 2 ];
+		final Set< Integer > sites = getSitesSet( files );
 
+		if ( sites.size() == 0 )
+			numSites = 1;
+		else
+			numSites = sites.size();
+
+		for ( Integer site : sites )
+			if ( site == 0 )
+			{
+				zeroBasedSites = true;
+				break;
+			}
+
+		siteDimensions = new int[ 2 ];
 		for ( int d = 0; d < siteDimensions.length; ++d )
 		{
 			siteDimensions[ d ] = ( int ) Math.ceil( Math.sqrt( numSites ) );
@@ -123,34 +139,26 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 		}
 
 		Utils.log( "Distinct sites: " +  numSites );
+		Utils.log( "Sites are zero based: " +  zeroBasedSites );
 		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
+
 	}
 
-	private int getNumSites( ArrayList< File > files )
+	private Set< Integer > getSitesSet( ArrayList< File > files )
 	{
-		Set< String > sites = new HashSet<>( );
+		Set< Integer > sites = new HashSet<>( );
 
 		for ( File file : files )
 		{
-
-			final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( file.getName() );
+			final Matcher matcher =
+					Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( file.getName() );
 
 			if ( matcher.matches() )
-			{
-				sites.add( matcher.group( SITE_GROUP ) );
-			}
+				sites.add( Integer.parseInt( matcher.group( SITE_GROUP ) ) );
 		}
 
-		if ( sites.size() == 0 )
-		{
-			return 1;
-		}
-		else
-		{
-			return sites.size();
-		}
-
+		return sites;
 	}
 
 	private int getNumWells( ArrayList< File > files )
@@ -186,7 +194,11 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	}
 
-	private FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
+	private FinalInterval getInterval(
+			File file,
+			String pattern,
+			int numWellColumns,
+			int numSiteColumns )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -198,7 +210,9 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 			int[] sitePosition = new int[ 2 ];
 
 			int wellNum = Integer.parseInt( matcher.group( WELL_GROUP ) ) - 1;
+
 			int siteNum = Integer.parseInt( matcher.group( SITE_GROUP ) );
+			if ( ! zeroBasedSites ) siteNum -= 1;
 
 			wellPosition[ 1 ] = wellNum / numWellColumns;
 			wellPosition[ 0 ] = wellNum % numWellColumns;
@@ -206,7 +220,12 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 			sitePosition[ 1 ] = siteNum / numSiteColumns;
 			sitePosition[ 0 ] = siteNum % numSiteColumns;
 
-			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
+			final FinalInterval interval =
+					Utils.createInterval(
+							wellPosition,
+							sitePosition,
+							siteDimensions,
+							imageDimensions );
 
 			return interval;
 		}

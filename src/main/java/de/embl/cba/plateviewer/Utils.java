@@ -235,15 +235,23 @@ public class Utils
 		return min;
 	}
 
-	public static FinalInterval createInterval( int[] wellPosition, int[] sitePosition, int[] siteDimensions, int[] imageDimensions )
+	public static FinalInterval createInterval(
+			int[] wellPosition,
+			int[] sitePosition,
+			int[] siteDimensions,
+			int[] imageDimensions )
 	{
-		final long[] min = computeMinCoordinates( imageDimensions, wellPosition, sitePosition, siteDimensions );
+		final long[] min =
+				computeMinCoordinates(
+						imageDimensions,
+						wellPosition,
+						sitePosition,
+						siteDimensions );
+
 		final long[] max = new long[ min.length ];
 
 		for ( int d = 0; d < min.length; ++d )
-		{
 			max[ d ] = min[ d ] + imageDimensions[ d ] - 1;
-		}
 
 		return new FinalInterval( min, max );
 	}

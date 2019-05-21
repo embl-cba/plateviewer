@@ -79,6 +79,18 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	public void setImagesSourceAndWellNames( ArrayList< File > files, String namingScheme )
 	{
+		ImageSourcesGenerator imageSourcesGenerator =
+				getImageSourcesGenerator( files, namingScheme );
+
+		imageSources = imageSourcesGenerator.getImageSources();
+
+		wellNames = imageSourcesGenerator.getWellNames();
+	}
+
+	public ImageSourcesGenerator getImageSourcesGenerator(
+			ArrayList< File > files,
+			String namingScheme )
+	{
 		ImageSourcesGenerator imageSourcesGenerator = null;
 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
@@ -103,14 +115,10 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
 		}
-
-		imageSources = imageSourcesGenerator.getImageSources();
-
-		wellNames = imageSourcesGenerator.getWellNames();
-
+		return imageSourcesGenerator;
 	}
 
- 	public ArrayList< String > getWellNames()
+	public ArrayList< String > getWellNames()
 	{
 		return wellNames;
 	}
@@ -208,6 +216,12 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 			argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
 		else if ( title.contains( "alexa488" ) )
 			argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
+		else if ( title.contains( "c00.ome.tif" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 0, 255, 255 ) );
+		else if ( title.contains( "c01.ome.tif" ) )
+			argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
+		else if ( title.contains( "c02.ome.tif" ) )
+			argbType = new ARGBType( ARGBType.rgba( 255, 0, 255, 255 ) );
 		else
 		{
 			final LUT[] luts = imagePlus.getLuts();

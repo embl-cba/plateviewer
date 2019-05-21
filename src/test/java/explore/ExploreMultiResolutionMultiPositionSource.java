@@ -19,7 +19,7 @@ public class ExploreMultiResolutionMultiPositionSource
 	{
 
 		final String inputDirectory = ExploreMultiResolutionMultiPositionSource.class.getResource(
-				"../ALMF-EMBL-P2-S4-C2-T1" ).getFile();
+				"../ALMF-EMBL-ZeroBased-P2-S4-C2-T1" ).getFile();
 
 
 		final ArrayList< File > fileList = FileUtils.getFileList(
