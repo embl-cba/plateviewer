@@ -6,13 +6,14 @@ import net.imglib2.FinalInterval;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 {
-	final ArrayList< File > files;
+	final List< File > files;
 
 	int numSites;
 	int[] siteDimensions;
@@ -20,14 +21,13 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 	int[] imageDimensions;
 
 	final private ArrayList< ImageSource > imageSources;
-
 	final private ArrayList< String > wellNames;
 
 	final private String namingScheme;
 	public static final int NAMING_SCHEME_WELL_GROUP = 1;
 	public static final int NAMING_SCHEME_SITE_GROUP = 2;
 
-	public ImageSourcesGeneratorMDMultiSite( ArrayList< File > files,
+	public ImageSourcesGeneratorMDMultiSite( List< File > files,
 											 int[] imageDimensions,
 											 String namingScheme )
 	{
@@ -69,7 +69,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 		return fileName;
 	}
 
-	private void configWells( ArrayList< File > files )
+	private void configWells( List< File > files )
 	{
 		int[] maximalWellPositionsInData = getMaximalWellPositionsInData( files );
 
@@ -85,7 +85,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 	}
 
 
-	private void configSites( ArrayList< File > files )
+	private void configSites( List< File > files )
 	{
 		numSites = getNumSites( files );
 		siteDimensions = new int[ 2 ];
@@ -111,7 +111,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 		}
 	}
 
-	private int getNumSites( ArrayList< File > files )
+	private int getNumSites( List< File > files )
 	{
 		Set< String > sites = new HashSet<>( );
 
@@ -139,7 +139,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 	}
 
 
-	private int[] getMaximalWellPositionsInData( ArrayList< File > files )
+	private int[] getMaximalWellPositionsInData( List< File > files )
 	{
 		int[] maximalWellPosition = new int[ 2 ];
 

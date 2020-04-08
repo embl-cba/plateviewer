@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 {
-	final ArrayList< File > files;
+	final List< File > files;
 
 	int numSites, numWells;
 	int[] siteDimensions;
@@ -27,7 +27,7 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 	final ArrayList< String > wellNames;
 
 
-	public ImageSourcesGeneratorMDSingleSite( ArrayList< File > files, int[] imageDimensions )
+	public ImageSourcesGeneratorMDSingleSite( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
 		this.imageSources = new ArrayList<>();
@@ -91,7 +91,7 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 		}
 	}
 
-	private void configWells( ArrayList< File > files )
+	private void configWells( List< File > files )
 	{
 		int[] maximalWellPositionsInData = getMaximalWellPositionsInData( files );
 
@@ -102,7 +102,7 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 		Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 	}
 
-	private void configSites( ArrayList< File > files )
+	private void configSites( List< File > files )
 	{
 		numSites = 1; //getNumSites( files );
 		siteDimensions = new int[ 2 ];
@@ -113,7 +113,7 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
 	}
 
-	private int[] getMaximalWellPositionsInData( ArrayList< File > files )
+	private int[] getMaximalWellPositionsInData( List< File > files )
 	{
 		int[] maximalWellPosition = new int[ 2 ];
 

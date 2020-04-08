@@ -6,14 +6,14 @@ import net.imglib2.FinalInterval;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 {
-
-	final ArrayList< File > files;
+	final List< File > files;
 
 	int numSites, numWells;
 	int[] siteDimensions;
@@ -29,7 +29,7 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 	public static final int SITE_GROUP = 2;
 
 
-	public ImageSourcesGeneratorScanR( ArrayList< File > files, int[] imageDimensions )
+	public ImageSourcesGeneratorScanR( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
 		this.imageSources = new ArrayList<>();
@@ -53,7 +53,7 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 		return wellNames;
 	}
 
-	private static ArrayList< String > getWellNames( ArrayList< File > files )
+	private static ArrayList< String > getWellNames( List< File > files )
 	{
 		Set< String > wellNameSet = new HashSet<>(  );
 
@@ -99,7 +99,7 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 	}
 
 
-	private void configWells( ArrayList< File > files )
+	private void configWells( List< File > files )
 	{
 		numWells = getNumWells( files );
 
@@ -110,7 +110,7 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 		Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 	}
 
-	private void configSites( ArrayList< File > files )
+	private void configSites( List< File > files )
 	{
 		numSites = getNumSites( files );
 		siteDimensions = new int[ 2 ];
@@ -126,7 +126,7 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
 	}
 
-	private int getNumSites( ArrayList< File > files )
+	private int getNumSites( List< File > files )
 	{
 		Set< String > sites = new HashSet<>( );
 
@@ -150,7 +150,7 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 		}
 	}
 
-	private int getNumWells( ArrayList< File > files )
+	private int getNumWells( List< File > files )
 	{
 		Set< String > wells = new HashSet<>( );
 		int maxWellNum = 0;

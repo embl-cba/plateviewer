@@ -8,9 +8,9 @@ import java.util.regex.Pattern;
 
 public class FileUtils
 {
-	public static ArrayList< File > getFileList( File directory, String fileNameRegExp )
+	public static List< File > getFileList( File directory, String fileNameRegExp )
 	{
-		final ArrayList< File > files = new ArrayList<>();
+		final List< File > files = new ArrayList<>();
 		populateFileList( directory, fileNameRegExp,files );
 		return files;
 	}
@@ -42,9 +42,9 @@ public class FileUtils
 		}
 	}
 
-	public static ArrayList< File > filterFiles( List< File > files, String filterPattern )
+	public static List< File > filterFiles( List< File > files, String filterPattern )
 	{
-		final ArrayList< File > filteredFiles = new ArrayList<>( );
+		final List< File > filteredFiles = new ArrayList<>( );
 
 		for ( File file : files )
 		{

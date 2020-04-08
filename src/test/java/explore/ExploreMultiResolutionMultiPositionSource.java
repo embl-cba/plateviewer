@@ -23,7 +23,7 @@ public class ExploreMultiResolutionMultiPositionSource
 				"../ALMF-EMBL-ZeroBased-P2-S4-C2-T1" ).getFile();
 
 
-		final ArrayList< File > fileList = FileUtils.getFileList(
+		final List< File > fileList = FileUtils.getFileList(
 				new File( inputDirectory ),
 				".*.tif" );
 
@@ -32,7 +32,7 @@ public class ExploreMultiResolutionMultiPositionSource
 		final List< String > channelPatterns =
 				Utils.getChannelPatterns( fileList, namingScheme );
 
-		final ArrayList< File > channelFiles = FileUtils.filterFiles(
+		final List< File > channelFiles = FileUtils.filterFiles(
 				fileList,
 				channelPatterns.get( 0 ) );
 

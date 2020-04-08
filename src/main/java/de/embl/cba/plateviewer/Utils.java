@@ -300,7 +300,7 @@ public class Utils
 		return labelRegions;
 	}
 
-	public static ArrayList< String > getWellNames( ArrayList< File > files, String namingScheme, int wellGroup )
+	public static ArrayList< String > getWellNames( List< File > files, String namingScheme, int wellGroup )
 	{
 		Set< String > wellNameSet = new HashSet<>(  );
 

@@ -8,6 +8,7 @@ import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
+import de.embl.cba.plateviewer.imagesources.NamingSchemes;
 import de.embl.cba.plateviewer.ui.PlateViewerUI;
 import net.imglib2.FinalInterval;
 import net.imglib2.RealPoint;
@@ -46,7 +47,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		this.loadingQueue = new SharedQueue( numIoThreads );
 		setBdvWindowDimensions();
 
-		final ArrayList< File > fileList = getFiles( inputDirectory, filterPattern );
+		final List< File > fileList = getFiles( inputDirectory, filterPattern );
 
 		final String namingScheme = getNamingScheme( fileList );
 
@@ -69,17 +70,17 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 				BdvOptions.options().addTo( bdv ) );
 	}
 
-	public static String getNamingScheme( ArrayList< File > fileList )
+	public static String getNamingScheme( List< File > fileList )
 	{
 		final String namingScheme = Utils.getNamingScheme( fileList.get( 0 ) );
 		Utils.log( "Detected naming scheme: " +  namingScheme );
 		return namingScheme;
 	}
 
-	public static ArrayList< File > getFiles( String inputDirectory, String filePattern )
+	public static List< File > getFiles( String inputDirectory, String filePattern )
 	{
 		Utils.log( "Fetching files..." );
-		final ArrayList< File > fileList = FileUtils.getFileList( new File( inputDirectory ), filePattern );
+		final List< File > fileList = FileUtils.getFileList( new File( inputDirectory ), filePattern );
 		Utils.log( "Number of files: " +  fileList.size() );
 		return fileList;
 	}
@@ -93,8 +94,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		{
 			Utils.log( "Adding channel: " + channelPattern );
 
-			final ArrayList< File > channelFiles = FileUtils.filterFiles(
-					fileList, channelPattern );
+			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelPattern );
 
 			final ImagesSource imagesSource =
 					new ImagesSource( channelFiles, namingScheme, numIoThreads );
@@ -103,6 +103,23 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 			addSource( imagesSource );
 		}
+	}
+
+	public List< File > getChannelFiles( List< File > fileList, String namingScheme, String channelPattern )
+	{
+		List< File > channelFiles;
+		if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA ) )
+		{
+			// each file contains all channels => we need all
+			channelFiles = fileList;
+		}
+		else
+		{
+			// one channel per file => we need to filter the relevant files
+			channelFiles = FileUtils.filterFiles( fileList, channelPattern );
+		}
+
+		return channelFiles;
 	}
 
 	public Bdv getBdv()

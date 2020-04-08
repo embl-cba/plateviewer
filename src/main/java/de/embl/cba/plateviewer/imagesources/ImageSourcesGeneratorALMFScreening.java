@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 {
 
-	final ArrayList< File > files;
+	final List< File > files;
 
 	int numSites, numWells;
 	int[] siteDimensions;
@@ -27,8 +27,7 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 	public static final int SITE_GROUP = 2;
 	private boolean zeroBasedSites;
 
-
-	public ImageSourcesGeneratorALMFScreening( ArrayList< File > files, int[] imageDimensions )
+	public ImageSourcesGeneratorALMFScreening( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
 		this.imageSources = new ArrayList<>();
@@ -38,7 +37,6 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 		this.wellNames = getWellNames( files );
 	}
-
 
 	@Override
 	public ArrayList< ImageSource > getImageSources()
@@ -52,7 +50,7 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 		return wellNames;
 	}
 
-	private static ArrayList< String > getWellNames( ArrayList< File > files )
+	private static ArrayList< String > getWellNames( List< File > files )
 	{
 		Set< String > wellNameSet = new HashSet<>(  );
 
@@ -104,7 +102,7 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 	}
 
 
-	private void configWells( ArrayList< File > files )
+	private void configWells( List< File > files )
 	{
 		numWells = getNumWells( files );
 
@@ -115,7 +113,7 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 		Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 	}
 
-	private void configSites( ArrayList< File > files )
+	private void configSites( List< File > files )
 	{
 		final Set< Integer > sites = getSitesSet( files );
 
@@ -145,7 +143,7 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	}
 
-	private Set< Integer > getSitesSet( ArrayList< File > files )
+	private Set< Integer > getSitesSet( List< File > files )
 	{
 		Set< Integer > sites = new HashSet<>( );
 
@@ -161,7 +159,7 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 		return sites;
 	}
 
-	private int getNumWells( ArrayList< File > files )
+	private int getNumWells( List< File > files )
 	{
 		Set< String > wells = new HashSet<>( );
 		int maxWellNum = 0;

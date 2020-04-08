@@ -2,6 +2,10 @@ package de.embl.cba.plateviewer.imagesources;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
+import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
+import ch.systemsx.cisd.hdf5.HDF5Factory;
+import ch.systemsx.cisd.hdf5.IHDF5Reader;
+import ch.systemsx.cisd.hdf5.UnsignedIntUtils;
 import de.embl.cba.plateviewer.loaders.MultiPositionLoader;
 import de.embl.cba.plateviewer.Utils;
 import ij.IJ;
@@ -15,6 +19,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedLongType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
@@ -25,7 +30,6 @@ import java.util.*;
 
 public class ImagesSource < T extends RealType< T > & NativeType< T > >
 {
-
 	private long[] dimensions;
 	private int[] imageDimensions;
 	private double[] lutMinMax;
@@ -42,13 +46,14 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private BdvSource bdvSource;
 	private BdvOverlaySource bdvOverlaySource;
+	private NativeType nativeType;
 
-	public ImagesSource( ArrayList< File > files, String name, int numIoThreads )
+	public ImagesSource( List< File > files, String name, int numIoThreads )
 	{
 		this( files, null, name, numIoThreads );
 	}
 
-	public ImagesSource( ArrayList< File > files, String hdf5DataSetName, String name, int numIoThreads )
+	public ImagesSource( List< File > files, String hdf5DataSetName, String name, int numIoThreads )
 	{
 		this.hdf5DataSetName = hdf5DataSetName;
 
@@ -84,7 +89,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	}
 
 
-	public void setImagesSourceAndWellNames( ArrayList< File > files, String namingScheme )
+	public void setImagesSourceAndWellNames( List< File > files, String namingScheme )
 	{
 		ImageSourcesGenerator imageSourcesGenerator =
 				getImageSourcesGenerator( files, namingScheme );
@@ -95,7 +100,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	}
 
 	public ImageSourcesGenerator getImageSourcesGenerator(
-			ArrayList< File > files,
+			List< File > files,
 			String namingScheme )
 	{
 		ImageSourcesGenerator imageSourcesGenerator = null;
@@ -205,7 +210,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 		setColor( imagePlus );
 
-		setImageBitDepth( imagePlus );
+		setImageDataType( imagePlus );
 
 		setImageDimensions( imagePlus );
 
@@ -214,7 +219,38 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private void setImagePropertiesUsingJHdf5( File file )
 	{
+		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( file );
 
+		argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
+
+		setImageDataType( hdf5Reader );
+
+		setImageDimensions( hdf5Reader );
+
+		setImageMinMax( hdf5Reader );
+	}
+
+	private void setImageMinMax( IHDF5Reader hdf5Reader )
+	{
+		if ( nativeType instanceof UnsignedByteType )
+		{
+			final byte[] bytes = hdf5Reader.int8().readArray( hdf5DataSetName );
+			lutMinMax[ 0 ] = 255;
+			for ( byte value : bytes )
+			{
+				final short uint8 = UnsignedIntUtils.toUint8( value );
+				if ( uint8 < lutMinMax[ 0 ] ) lutMinMax[ 0 ] = uint8;
+				if ( uint8 > lutMinMax[ 1 ] ) lutMinMax[ 1 ]  = uint8;
+			}
+		}
+	}
+
+	private void setImageDimensions( IHDF5Reader hdf5Reader )
+	{
+		final long[] dimensions = hdf5Reader.getDataSetInformation( hdf5DataSetName ).getDimensions();
+		imageDimensions = new int[ 2 ];
+		imageDimensions[ 0 ] = (int) dimensions[ 0 ];
+		imageDimensions[ 1 ] = (int) dimensions[ 1 ];
 	}
 
 	private void setColor( ImagePlus imagePlus )
@@ -269,9 +305,52 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		lutMinMax[ 1 ] = imagePlus.getProcessor().getMax();
 	}
 
-	private void setImageBitDepth( ImagePlus imagePlus )
+	private void setImageDataType( IHDF5Reader hdf5Reader )
 	{
-		bitDepth = imagePlus.getBitDepth();
+		final HDF5DataSetInformation information = hdf5Reader.getDataSetInformation( hdf5DataSetName );
+		final String dataType = information.getTypeInformation().toString();
+
+		switch ( dataType )
+		{
+			case "INTEGER(1)":
+				nativeType = new UnsignedByteType();
+				break;
+			case "INTEGER(2)":
+				nativeType = new UnsignedShortType();
+				break;
+			case "INTEGER(4)":
+				nativeType = new UnsignedLongType();
+				break;
+			case "FLOAT(4)":
+				nativeType = new FloatType();
+				break;
+			default:
+				nativeType = null;
+		}
+	}
+
+
+	private void setImageDataType( ImagePlus imagePlus )
+	{
+		int bitDepth = imagePlus.getBitDepth();
+
+		switch ( bitDepth )
+		{
+			case 8:
+				nativeType = new UnsignedByteType();
+				break;
+			case 16:
+				nativeType = new UnsignedShortType();
+				break;
+			case 24: // RGB: currently returns sum of all three RGB values
+				nativeType = new UnsignedShortType();
+				break;
+			case 32:
+				nativeType = new FloatType();
+				break;
+			default:
+				nativeType = null;
+		}
 	}
 
 	private void setImageDimensions( ImagePlus imagePlus )
@@ -288,35 +367,14 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private void createCachedCellImg()
 	{
-		NativeType type = null;
-
-		switch ( bitDepth )
-		{
-			case 8:
-				type = new UnsignedByteType();
-				break;
-			case 16:
-				type = new UnsignedShortType();
-				break;
-			case 24: // RGB: currently returns sum of all three RGB values
-				type = new UnsignedShortType();
-				break;
-			case 32:
-				type = new FloatType();
-				break;
-			default:
-				type = null;
-		}
-
 		cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 				dimensions,
-				type,
+				nativeType,
 				loader,
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
 	}
 
-
-//	public static int getNumSites( ArrayList< File > files )
+//	public static int getNumSites( List< File > files )
 //	{
 //		Set< String > sites = new HashSet<>( );
 //
@@ -346,7 +404,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 //
 //	}
 //
-//	public static int getNumWells( ArrayList< File > files )
+//	public static int getNumWells( List< File > files )
 //	{
 //		Set< String > wells = new HashSet<>( );
 //		int maxWellNum = 0;
