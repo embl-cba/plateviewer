@@ -44,8 +44,12 @@ public class WriteMultiResolutionTiff
 		String out =  "src/test/resources/PyramidalTiff"
 				+ File.separator + "image-scale2res4-lzw.ome.tif";
 		System.out.println("Writing image to '" + out + "'...");
+
+		if ( new File( out ).exists()  )
+			new File( out ).delete();
+
 		IFormatWriter writer = new ImageWriter();
-		writer.setMetadataRetrieve(meta);
+		writer.setMetadataRetrieve( meta );
 		writer.setId( out );
 		writer.setCompression( TiffWriter.COMPRESSION_LZW );
 		writer.saveBytes(0, img );

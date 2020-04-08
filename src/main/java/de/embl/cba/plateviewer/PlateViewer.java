@@ -26,6 +26,7 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class PlateViewer< T extends NativeType< T > & RealType< T > >
 {
@@ -38,18 +39,18 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	private Bdv bdv;
 	private PlateViewerUI plateViewerUI;
 
-	public PlateViewer( String inputDirectory, String filePattern, int numIoThreads )
+	public PlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
 	{
 		this.imagesSources = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
 		this.loadingQueue = new SharedQueue( numIoThreads );
 		setBdvWindowDimensions();
 
-		final ArrayList< File > fileList = getFiles( inputDirectory, filePattern );
+		final ArrayList< File > fileList = getFiles( inputDirectory, filterPattern );
 
 		final String namingScheme = getNamingScheme( fileList );
 
-		final ArrayList< String > channelPatterns =
+		final List< String > channelPatterns =
 				Utils.getChannelPatterns( fileList, namingScheme );
 
 		addChannelsToViewer( fileList, namingScheme, channelPatterns );
@@ -57,7 +58,6 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		addSiteAndWellNamesOverlay();
 
 		plateViewerUI.showUI();
-
 	}
 
 	private void addSiteAndWellNamesOverlay()
@@ -85,9 +85,9 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	}
 
 	public void addChannelsToViewer(
-			ArrayList< File > fileList,
+			List< File > fileList,
 			String namingScheme,
-			ArrayList< String > channelPatterns )
+			List< String > channelPatterns )
 	{
 		for ( String channelPattern : channelPatterns )
 		{

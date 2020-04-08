@@ -108,7 +108,11 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		final JButton button = new JButton( "Capture current view" );
 
 		button.addActionListener( e -> {
-			BdvViewCaptures.captureView( bdv.getBdvHandle(), 1.0, "pixel" );
+			BdvViewCaptures.captureView(
+					bdv.getBdvHandle(),
+					1.0,
+					"pixel",
+					true );
 		} );
 
 		horizontalLayoutPanel.add( button );

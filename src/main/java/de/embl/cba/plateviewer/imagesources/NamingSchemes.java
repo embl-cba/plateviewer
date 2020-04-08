@@ -9,5 +9,5 @@ public abstract class NamingSchemes
 	public static final String PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM = ".*--(.*)--(.*)--W([0-9]{4})--.*";
 	public static final String PATTERN_SCANR_WELL_SITE_CHANNEL = ".*--W([0-9]{5})--P([0-9]{5}).*--.*--(.*)\\..*";
 	public static final String PATTERN_SCANR_WELLNAME_WELLNUM = "(.*--W[0-9]{5})--.*\\..*";
-
+	public static final String PATTERN_CORONA = ".*h5$";
 }

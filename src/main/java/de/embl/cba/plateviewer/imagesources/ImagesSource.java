@@ -15,7 +15,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
@@ -38,18 +37,24 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private ArrayList< String > wellNames;
 	private CachedCellImg< T, ? > cachedCellImg;
 	private MultiPositionLoader loader;
+	private String hdf5DataSetName;
 	private String name;
 
 	private BdvSource bdvSource;
 	private BdvOverlaySource bdvOverlaySource;
 
-	public ImagesSource( ArrayList< File > files, String namingScheme, int numIoThreads )
+	public ImagesSource( ArrayList< File > files, String name, int numIoThreads )
 	{
-		this.name = namingScheme;
+		this( files, null, name, numIoThreads );
+	}
+
+	public ImagesSource( ArrayList< File > files, String hdf5DataSetName, String name, int numIoThreads )
+	{
+		this.hdf5DataSetName = hdf5DataSetName;
 
 		setImageProperties( files.get( 0 ) );
 
-		setImagesSourceAndWellNames( files, namingScheme );
+		setImagesSourceAndWellNames( files, name );
 
 		setMultiPositionLoader( numIoThreads );
 
@@ -60,14 +65,16 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	public ImagesSource(
 			CachedCellImg< T , ? > cachedCellImg,
-			String name, BdvSource bdvSource, BdvOverlaySource bdvOverlaySource )
+			String name,
+			BdvSource bdvSource,
+			BdvOverlaySource bdvOverlaySource )
 	{
 		this.cachedCellImg = cachedCellImg;
 		this.name = name;
+		this.hdf5DataSetName = null;
 		this.bdvSource = bdvSource;
 		this.bdvOverlaySource = bdvOverlaySource;
 	}
-
 
 	public void dispose()
 	{
@@ -182,6 +189,18 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private void setImageProperties( File file )
 	{
+		if ( file.getName().endsWith( ".h5" ) )
+		{
+			setImagePropertiesUsingJHdf5( file );
+		}
+		else
+		{
+			setImagePropertiesUsingIJOpenImage( file );
+		}
+	}
+
+	private void setImagePropertiesUsingIJOpenImage( File file )
+	{
 		final ImagePlus imagePlus = IJ.openImage( file.getAbsolutePath() );
 
 		setColor( imagePlus );
@@ -193,9 +212,13 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		setImageMinMax( imagePlus );
 	}
 
-	private void setColor( ImagePlus imagePlus )
+	private void setImagePropertiesUsingJHdf5( File file )
 	{
 
+	}
+
+	private void setColor( ImagePlus imagePlus )
+	{
 		final String title = imagePlus.getTitle().toLowerCase();
 
 		if ( title.contains( "gfp" ) )

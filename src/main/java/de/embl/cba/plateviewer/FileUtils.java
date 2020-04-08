@@ -42,9 +42,8 @@ public class FileUtils
 		}
 	}
 
-	public static ArrayList< File > filterFiles( ArrayList< File > files, String filterPattern )
+	public static ArrayList< File > filterFiles( List< File > files, String filterPattern )
 	{
-
 		final ArrayList< File > filteredFiles = new ArrayList<>( );
 
 		for ( File file : files )

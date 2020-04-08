@@ -132,7 +132,6 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 
 		for ( File file : files )
 		{
-
 			final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( file.getName() );
 
 			if ( matcher.matches() )
@@ -149,7 +148,6 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 		{
 			return sites.size();
 		}
-
 	}
 
 	private int getNumWells( ArrayList< File > files )

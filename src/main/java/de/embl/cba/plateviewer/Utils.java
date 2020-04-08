@@ -1,5 +1,7 @@
 package de.embl.cba.plateviewer;
 
+import ch.systemsx.cisd.hdf5.HDF5Factory;
+import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.imagesources.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
@@ -112,7 +114,7 @@ public class Utils
 		return center;
 	}
 
-	public static ArrayList< String > getChannelPatterns(
+	public static List< String > getChannelPatterns(
 			List< File > files, String namingScheme )
 	{
 		final Set< String > channelPatternSet = new HashSet<>( );
@@ -120,6 +122,12 @@ public class Utils
 		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
 		{
 			channelPatternSet.add( ".*" );
+		}
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA ) )
+		{
+			final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( files.get( 0 ) );
+			final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
+			return groupMembers;
 		}
 		else // multiple channels, figure out which ones...
 		{
@@ -154,16 +162,22 @@ public class Utils
 		return channelPatterns;
 	}
 
-
 	public static String getNamingScheme( File file )
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_MD_A01_SITE;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ).matcher( filePath ).matches() ) return NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
+		if ( Pattern.compile( NamingSchemes.PATTERN_CORONA ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_CORONA;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_MD_A01_SITE;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
 
 		return PATTERN_NO_MATCH;
 	}

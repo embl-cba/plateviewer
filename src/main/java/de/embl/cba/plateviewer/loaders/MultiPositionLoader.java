@@ -36,7 +36,6 @@ public class MultiPositionLoader implements CellLoader
 		return null;
 	}
 
-
 	public ImageSource getImageSource( int index )
 	{
 		return imageSources.get( index );
@@ -99,7 +98,6 @@ public class MultiPositionLoader implements CellLoader
 
 		return null;
 	}
-
 
 	private void loadImageIntoCell( SingleCellArrayImg cell, File file )
 	{

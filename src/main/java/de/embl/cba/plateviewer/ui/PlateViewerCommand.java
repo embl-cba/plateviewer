@@ -22,6 +22,5 @@ public class PlateViewerCommand implements Command
 	{
 		new PlateViewer( inputDirectory.toString(), filePattern, 1 );
 	}
-
 }
 

@@ -12,6 +12,7 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ExploreMultiResolutionMultiPositionSource
 {
@@ -28,7 +29,7 @@ public class ExploreMultiResolutionMultiPositionSource
 
 		final String namingScheme = PlateViewer.getNamingScheme( fileList );
 
-		final ArrayList< String > channelPatterns =
+		final List< String > channelPatterns =
 				Utils.getChannelPatterns( fileList, namingScheme );
 
 		final ArrayList< File > channelFiles = FileUtils.filterFiles(
