@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 public class ImageSourcesGeneratorCorona implements ImageSourcesGenerator
 {
 	final List< File > files;
+	private final String hdf5DataSetName;
 
 	int numSites, numWells;
 	int[] siteDimensions;
@@ -24,13 +25,14 @@ public class ImageSourcesGeneratorCorona implements ImageSourcesGenerator
 
 	final ArrayList< String > wellNames;
 
-	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
+	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_CORONA;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public ImageSourcesGeneratorCorona( List< File > files, int[] imageDimensions )
+	public ImageSourcesGeneratorCorona( List< File > files, String hdf5DataSetName, int[] imageDimensions )
 	{
 		this.files = files;
+		this.hdf5DataSetName = hdf5DataSetName;
 		this.imageSources = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
@@ -88,7 +90,8 @@ public class ImageSourcesGeneratorCorona implements ImageSourcesGenerator
 		{
 			final ImageSource imageSource = new ImageSource(
 					file,
-					getInterval( file, WELL_SITE_CHANNEL_PATTERN, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
+					hdf5DataSetName,
+					getInterval( file ),
 					file.getName(),
 					getWellName( file.getName() ) );
 
@@ -96,14 +99,12 @@ public class ImageSourcesGeneratorCorona implements ImageSourcesGenerator
 		}
 	}
 
-
 	private void configWells( List< File > files )
 	{
-		numWells = getNumWells( files );
+		int[] maximalWellPositionsInData = getMaximalWellPositionsInData( files );
 
-		wellDimensions = Utils.guessWellDimensions( numWells );
+		wellDimensions = Utils.guessWellDimensions( maximalWellPositionsInData );
 
-		Utils.log( "Distinct wells: " +  numWells );
 		Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
 		Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 	}
@@ -148,10 +149,9 @@ public class ImageSourcesGeneratorCorona implements ImageSourcesGenerator
 		}
 	}
 
-	private int getNumWells( List< File > files )
+	private int[] getMaximalWellPositionsInData( List< File > files )
 	{
-		Set< String > wells = new HashSet<>( );
-		int maxWellNum = 0;
+		int[] maximalWellPosition = new int[ 2 ];
 
 		for ( File file : files )
 		{
@@ -159,74 +159,51 @@ public class ImageSourcesGeneratorCorona implements ImageSourcesGenerator
 
 			matcher.matches();
 
-			wells.add( matcher.group( WELL_GROUP ) );
+			int[] wellPosition = Utils.getWellPositionFromA01( matcher.group( WELL_GROUP ) );
 
-			int wellNum = Integer.parseInt( matcher.group( WELL_GROUP ) );
-
-			if ( wellNum > maxWellNum )
+			for ( int d = 0; d < wellPosition.length; ++d )
 			{
-				maxWellNum = wellNum;
+				if ( wellPosition[ d ] > maximalWellPosition[ d ] )
+				{
+					maximalWellPosition[ d ] = wellPosition[ d ];
+				}
 			}
 		}
 
-
-		if ( maxWellNum > wells.size() )
-		{
-			return maxWellNum;
-		}
-		else
-		{
-			return wells.size();
-		}
-
+		return maximalWellPosition;
 	}
 
-	/**
-	 * Determines where the image will be displayed
-	 *
-	 * @param file
-	 * @param pattern
-	 * @param numWellColumns
-	 * @param numSiteColumns
-	 * @return
-	 */
-	private FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
+	private FinalInterval getInterval( File file )
 	{
 		String filePath = file.getAbsolutePath();
 
-		final Matcher matcher = Pattern.compile( pattern ).matcher( filePath );
+		final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( filePath );
 
 		if ( matcher.matches() )
 		{
-			int[] wellPosition = new int[ 2 ];
-			int[] sitePosition = new int[ 2 ];
+			int[] wellPosition = Utils.getWellPositionFromA01( matcher.group( WELL_GROUP ) );
+			int[] sitePosition = getSitePositionFromSiteIndex( matcher.group( SITE_GROUP ) );
 
-			int wellNum = Integer.parseInt( matcher.group( WELL_GROUP ) ) - 1;
-			int siteNum = Integer.parseInt( matcher.group( SITE_GROUP ) ) - 1;
-
-			wellPosition[ 1 ] = wellNum / numWellColumns;
-			wellPosition[ 0 ] = wellNum % numWellColumns;
-
-			sitePosition[ 0 ] = siteNum / numSiteColumns;
-
-			final int modulo = siteNum % numSiteColumns;
-
-			if ( sitePosition[ 0 ] % 2 == 0 )
-				sitePosition[ 1 ] = modulo;
-			else
-				sitePosition[ 1 ] = ( numSiteColumns - 1 ) - modulo;
-
-			final FinalInterval interval =
-					Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
+			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 
 			return interval;
+
 		}
 		else
 		{
-			return null;
+			throw new UnsupportedOperationException( "Could not match file name: " + file );
 		}
-
 	}
 
+	private int[] getSitePositionFromSiteIndex( String site )
+	{
+		int[] sitePosition = new int[ 2 ];
+		int siteIndex = Integer.parseInt( site );
+
+		sitePosition[ 0 ] = siteIndex % siteDimensions[ 1 ];
+		sitePosition[ 1 ] = siteIndex / siteDimensions[ 1 ];
+
+		return sitePosition;
+	}
 
 }

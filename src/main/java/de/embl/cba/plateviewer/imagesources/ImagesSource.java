@@ -32,9 +32,8 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 {
 	private long[] dimensions;
 	private int[] imageDimensions;
-	private double[] lutMinMax;
-	private int bitDepth;
-	private ARGBType argbType; // color
+	private double[] lutMinMax = new double[]{0, 255};
+	private ARGBType argbType;
 
 	private ArrayList< ImageSource > imageSources;
 
@@ -59,7 +58,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 		setImageProperties( files.get( 0 ) );
 
-		setImagesSourceAndWellNames( files, name );
+		setImagesSourceAndWellNames( files, hdf5DataSetName, name );
 
 		setMultiPositionLoader( numIoThreads );
 
@@ -88,11 +87,10 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		cachedCellImg = null;
 	}
 
-
-	public void setImagesSourceAndWellNames( List< File > files, String namingScheme )
+	public void setImagesSourceAndWellNames( List< File > files, String hdf5DataSetName, String namingScheme )
 	{
 		ImageSourcesGenerator imageSourcesGenerator =
-				getImageSourcesGenerator( files, namingScheme );
+				getImageSourcesGenerator( files, hdf5DataSetName, namingScheme );
 
 		imageSources = imageSourcesGenerator.getImageSources();
 
@@ -101,6 +99,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	public ImageSourcesGenerator getImageSourcesGenerator(
 			List< File > files,
+			String hdf5DataSetName,
 			String namingScheme )
 	{
 		ImageSourcesGenerator imageSourcesGenerator = null;
@@ -129,7 +128,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
+			imageSourcesGenerator = new ImageSourcesGeneratorCorona( files, hdf5DataSetName ,imageDimensions );
 		}
 		return imageSourcesGenerator;
 	}
@@ -138,7 +137,6 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		return wellNames;
 	}
-
 
 	public ARGBType getColor()
 	{
@@ -316,16 +314,16 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 		switch ( dataType )
 		{
-			case "INTEGER(1)":
+			case Utils.H5_UNSIGNED_BYTE:
 				nativeType = new UnsignedByteType();
 				break;
-			case "INTEGER(2)":
+			case Utils.H5_UNSIGNED_SHORT:
 				nativeType = new UnsignedShortType();
 				break;
-			case "INTEGER(4)":
+			case Utils.H5_UNSIGNED_INT:
 				nativeType = new UnsignedLongType();
 				break;
-			case "FLOAT(4)":
+			case Utils.H5_FLOAT:
 				nativeType = new FloatType();
 				break;
 			default:

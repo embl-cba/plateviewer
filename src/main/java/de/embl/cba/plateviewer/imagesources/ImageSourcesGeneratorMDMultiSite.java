@@ -24,8 +24,8 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 	final private ArrayList< String > wellNames;
 
 	final private String namingScheme;
-	public static final int NAMING_SCHEME_WELL_GROUP = 1;
-	public static final int NAMING_SCHEME_SITE_GROUP = 2;
+	public static final int WELL_GROUP = 1;
+	public static final int SITE_GROUP = 2;
 
 	public ImageSourcesGeneratorMDMultiSite( List< File > files,
 											 int[] imageDimensions,
@@ -39,7 +39,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 		setImageSources();
 
-		wellNames = Utils.getWellNames( files, this.namingScheme, NAMING_SCHEME_WELL_GROUP );
+		wellNames = Utils.getWellNames( files, this.namingScheme, WELL_GROUP );
 	}
 
 	public ArrayList< ImageSource > getImageSources()
@@ -102,7 +102,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 		if ( matcher.matches() )
 		{
-			final String well = matcher.group( NAMING_SCHEME_WELL_GROUP );
+			final String well = matcher.group( WELL_GROUP );
 			return well;
 		}
 		else
@@ -123,7 +123,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 			if ( matcher.matches() )
 			{
-				sites.add( matcher.group( NAMING_SCHEME_SITE_GROUP ) );
+				sites.add( matcher.group( SITE_GROUP ) );
 			}
 		}
 
@@ -138,7 +138,6 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 	}
 
-
 	private int[] getMaximalWellPositionsInData( List< File > files )
 	{
 		int[] maximalWellPosition = new int[ 2 ];
@@ -149,7 +148,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 			matcher.matches();
 
-			int[] wellPosition = getWellPositionFromA01( matcher.group( NAMING_SCHEME_WELL_GROUP ) );
+			int[] wellPosition = Utils.getWellPositionFromA01( matcher.group( WELL_GROUP ) );
 
 			for ( int d = 0; d < wellPosition.length; ++d )
 			{
@@ -161,9 +160,7 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 		}
 
 		return maximalWellPosition;
-
 	}
-
 
 	private FinalInterval getInterval( File file )
 	{
@@ -173,19 +170,17 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 		if ( matcher.matches() )
 		{
-			int[] wellPosition = getWellPositionFromA01( matcher.group( NAMING_SCHEME_WELL_GROUP ) );
-			int[] sitePosition = getSitePositionFromSiteIndex( matcher.group( NAMING_SCHEME_SITE_GROUP ) );
+			int[] wellPosition = Utils.getWellPositionFromA01( matcher.group( WELL_GROUP ) );
+			int[] sitePosition = getSitePositionFromSiteIndex( matcher.group( SITE_GROUP ) );
 
 			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 
 			return interval;
-
 		}
 		else
 		{
 			return null;
 		}
-
 	}
 
 	private int[] getSitePositionFromSiteIndex( String site )
@@ -198,14 +193,4 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 		return sitePosition;
 	}
-
-	private int[] getWellPositionFromA01( String well )
-	{
-		int[] wellPosition = new int[ 2 ];
-		wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
-		wellPosition[ 1 ] = Utils.CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
-		return wellPosition;
-	}
-
-
 }

@@ -26,7 +26,6 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 
 	final ArrayList< String > wellNames;
 
-
 	public ImageSourcesGeneratorMDSingleSite( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;

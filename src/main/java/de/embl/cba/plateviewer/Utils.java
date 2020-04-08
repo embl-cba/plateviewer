@@ -35,6 +35,12 @@ public class Utils
 	public static final String WELL_PLATE_96 = "96 well plate";
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	public static final String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	public static final String H5_UNSIGNED_BYTE = "INTEGER(1)";
+	public static final String H5_UNSIGNED_SHORT = "INTEGER(2)";
+	public static final String H5_UNSIGNED_INT = "INTEGER(4)";
+	public static final String H5_FLOAT = "FLOAT(4)";
+
 	public static void log( String msg )
 	{
 		IJ.log( msg );
@@ -324,5 +330,13 @@ public class Utils
 				ARGBType.red( color.get() ),
 				ARGBType.green( color.get() ),
 				ARGBType.blue( color.get() ));
+	}
+
+	public static int[] getWellPositionFromA01( String well )
+	{
+		int[] wellPosition = new int[ 2 ];
+		wellPosition[ 0 ] = Integer.parseInt( well.substring( 1, 3 ) ) - 1;
+		wellPosition[ 1 ] = CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
+		return wellPosition;
 	}
 }

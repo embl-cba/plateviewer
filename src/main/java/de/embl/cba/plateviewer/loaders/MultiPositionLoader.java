@@ -1,5 +1,8 @@
 package de.embl.cba.plateviewer.loaders;
 
+import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
+import ch.systemsx.cisd.hdf5.HDF5Factory;
+import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
 import ij.IJ;
@@ -9,6 +12,9 @@ import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.type.numeric.integer.UnsignedLongType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 
 import java.io.File;
@@ -52,9 +58,49 @@ public class MultiPositionLoader implements CellLoader
 		ImageSource imageSource = getImageSource( cell );
 
 		if ( imageSource != null )
-			loadImageIntoCell( cell, imageSource.getFile() );
+		{
+			if ( imageSource.getHdf5DataSetName() != null )
+			{
+				loadImageIntoCellUsingJHdf5( cell, imageSource.getFile(), imageSource.getHdf5DataSetName() );
+			}
+			else
+			{
+				loadImageIntoCellUsingIJOpenImage( cell, imageSource.getFile() );
+			}
+		}
 	}
 
+	private void loadImageIntoCellUsingJHdf5( SingleCellArrayImg cell, File file, String hdf5DataSetName )
+	{
+		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( file );
+		final HDF5DataSetInformation information = hdf5Reader.getDataSetInformation( hdf5DataSetName );
+		final String dataType = information.getTypeInformation().toString();
+
+		if ( dataType.equals( Utils.H5_UNSIGNED_BYTE ) )
+		{
+			final byte[] data = hdf5Reader.int8().readArray( hdf5DataSetName );
+			final byte[] celldata = ( byte[] ) cell.getStorageArray();
+			System.arraycopy( data, 0, celldata, 0, celldata.length );
+		}
+		else if ( dataType.equals( Utils.H5_UNSIGNED_SHORT ) )
+		{
+			final short[] data = hdf5Reader.int16().readArray( hdf5DataSetName );
+			final short[] celldata = ( short[] ) cell.getStorageArray();
+			System.arraycopy( data, 0, celldata, 0, celldata.length );
+		}
+		else if ( dataType.equals( Utils.H5_UNSIGNED_INT ) )
+		{
+			final int[] data = hdf5Reader.int32().readArray( hdf5DataSetName );
+			final int[] celldata = ( int[] ) cell.getStorageArray();
+			System.arraycopy( data, 0, celldata, 0, celldata.length );
+		}
+		else if ( dataType.equals( Utils.H5_FLOAT ) )
+		{
+			final float[] data = hdf5Reader.float32().readArray( hdf5DataSetName );
+			final float[] celldata = ( float[] ) cell.getStorageArray();
+			System.arraycopy( data, 0, celldata, 0, celldata.length );
+		}
+	}
 
 	public ImageSource getImageSource( SingleCellArrayImg cell )
 	{
@@ -99,11 +145,11 @@ public class MultiPositionLoader implements CellLoader
 		return null;
 	}
 
-	private void loadImageIntoCell( SingleCellArrayImg cell, File file )
+	private void loadImageIntoCellUsingIJOpenImage( SingleCellArrayImg< ? , ? > cell, File file )
 	{
 		Utils.debug( "Loading: " + file.getName() );
 
-		// TODO: check for the data type of the loaded cell (cell.getFirstElement())
+		// TODO: check for the data type of the cell (cell.getFirstElement())
 
 		final ImagePlus imp = IJ.openImage( file.getAbsolutePath() );
 
@@ -146,5 +192,4 @@ public class MultiPositionLoader implements CellLoader
 			System.arraycopy( impdata, 0, celldata, 0, celldata.length );
 		}
 	}
-
 }

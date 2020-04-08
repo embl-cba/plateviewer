@@ -31,7 +31,6 @@ import java.util.List;
 
 public class PlateViewer< T extends NativeType< T > & RealType< T > >
 {
-
 	private final ArrayList< ImagesSource > imagesSources;
 	private final int numIoThreads;
 	private final SharedQueue loadingQueue;
