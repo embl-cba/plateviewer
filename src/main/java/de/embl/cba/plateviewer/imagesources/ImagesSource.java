@@ -127,6 +127,10 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
 		}
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA ) )
+		{
+			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
+		}
 		return imageSourcesGenerator;
 	}
 

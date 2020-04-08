@@ -97,7 +97,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelPattern );
 
 			final ImagesSource imagesSource =
-					new ImagesSource( channelFiles, namingScheme, numIoThreads );
+					new ImagesSource( channelFiles, channelPattern, namingScheme, numIoThreads );
 
 			imagesSource.setName( channelPattern );
 

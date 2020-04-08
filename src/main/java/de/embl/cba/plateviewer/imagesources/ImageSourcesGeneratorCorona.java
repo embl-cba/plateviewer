@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
+public class ImageSourcesGeneratorCorona implements ImageSourcesGenerator
 {
 	final List< File > files;
 
@@ -28,7 +28,7 @@ public class ImageSourcesGeneratorScanR implements ImageSourcesGenerator
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public ImageSourcesGeneratorScanR( List< File > files, int[] imageDimensions )
+	public ImageSourcesGeneratorCorona( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
 		this.imageSources = new ArrayList<>();
