@@ -62,11 +62,11 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 
 		addHeader( " " ,this );
 
-		addNavigationMessages( this );
-
-		addSiteNavigationUI( this );
+		// addNavigationMessages( this );
 
 		addWellNavigationUI( this );
+
+		addSiteNavigationUI( this );
 
 		addHeader( " " ,this );
 
@@ -231,7 +231,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		}
 		imageNamesComboBox.addActionListener( this );
 
-		horizontalLayoutPanel.add( new JLabel( "Zoom to site: " ) );
+		horizontalLayoutPanel.add( new JLabel( "Zoom to image: " ) );
 		horizontalLayoutPanel.add( imageNamesComboBox );
 
 		panel.add( horizontalLayoutPanel );
@@ -316,7 +316,8 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 					getSourcesPanel().addSourceToPanel(
 							imageFilterSourceName,
 							bdvStackSource,
-							inputSource.getColor() );
+							inputSource.getColor(),
+							true );
 
 					if ( !settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 					{

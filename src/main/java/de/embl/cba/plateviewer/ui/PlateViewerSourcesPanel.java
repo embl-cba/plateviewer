@@ -56,9 +56,9 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
     public void addSourceToPanel(
             String sourceName,
             BdvStackSource< ? > bdvStackSource,
-            ARGBType argb )
+            ARGBType argb,
+            boolean initiallyVisible )
     {
-
         if( ! sourceNameToPanel.containsKey( sourceName ) )
         {
             JPanel panel = new JPanel();
@@ -91,7 +91,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             panel.add( brightnessButton );
 
             final JCheckBox visibilityCheckbox =
-                    createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
+                    createVisibilityCheckbox( buttonDimensions, bdvStackSource, initiallyVisible );
             panel.add( visibilityCheckbox );
 
 

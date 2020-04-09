@@ -287,7 +287,6 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 			return;
 		}
 
-
 		RandomAccessibleInterval volatileRai =
 				VolatileViews.wrapAsVolatile(
 					imagesSource.getCachedCellImg(),
@@ -311,12 +310,15 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 		bdvStackSource.setColor( imagesSource.getColor() );
 
+		bdvStackSource.setActive( imagesSource.isInitiallyVisible() );
+
 		imagesSource.setBdvSource( bdvStackSource );
 
 		plateViewerUI.getSourcesPanel().addSourceToPanel(
 				imagesSource.getName(),
 				bdvStackSource,
-				imagesSource.getColor() );
+				imagesSource.getColor(),
+				imagesSource.isInitiallyVisible() );
 
 		imagesSources.add( imagesSource );
 	}

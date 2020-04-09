@@ -35,6 +35,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	public static final String LUT_MIN_MAX = "ContrastLimits";
 	public static final String COLOR = "Color";
 	public static final String SKIP = "Skip";
+	public static final String VISIBLE = "Visible";
 
 	private long[] dimensions;
 	private int[] imageDimensions;
@@ -53,6 +54,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private BdvOverlaySource bdvOverlaySource;
 	private NativeType nativeType;
 	private Metadata.Type type;
+	private boolean isInitiallyVisible;
 
 	public ImagesSource( List< File > files, String name, int numIoThreads )
 	{
@@ -252,6 +254,8 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		final Color color = Utils.getColor( colorName );
 		argbType = Utils.getARGBType( color );
 
+		isInitiallyVisible = hdf5Reader.bool().getAttr( hdf5DataSetName, VISIBLE );
+
 		setLutMinMax( hdf5Reader );
 	}
 
@@ -285,6 +289,8 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		setLutColor( imagePlus );
 
 		setLutMinMax( imagePlus );
+
+		isInitiallyVisible = true;
 	}
 
 	private void setLutColor( ImagePlus imagePlus )
@@ -407,7 +413,12 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );
 	}
 
-//	public static int getNumSites( List< File > files )
+	public boolean isInitiallyVisible()
+	{
+		return isInitiallyVisible;
+	}
+
+	//	public static int getNumSites( List< File > files )
 //	{
 //		Set< String > sites = new HashSet<>( );
 //
