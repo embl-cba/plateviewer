@@ -46,10 +46,8 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 
 		g.setFont( new Font("TimesRoman", Font.PLAIN, fontSize ) );
 
-
 		int bdvWindowHeight = bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight();
 		int bdvWindowWidth = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth();
-
 
 		int distanceToWindowBottom = 2 * ( fontSize + 5 );
 

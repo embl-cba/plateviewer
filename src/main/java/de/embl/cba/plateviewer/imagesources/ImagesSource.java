@@ -5,7 +5,6 @@ import bdv.util.BdvSource;
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import ch.systemsx.cisd.hdf5.UnsignedIntUtils;
 import de.embl.cba.plateviewer.loaders.MultiPositionLoader;
 import de.embl.cba.plateviewer.Utils;
 import ij.IJ;
@@ -19,17 +18,20 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedLongType;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 
+import java.awt.*;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 
 public class ImagesSource < T extends RealType< T > & NativeType< T > >
 {
+	public static final String LUT_MIN_MAX = "lutMinMax";
 	private long[] dimensions;
 	private int[] imageDimensions;
 	private double[] lutMinMax = new double[]{0, 255};
@@ -126,9 +128,9 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		{
 			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorCorona( files, hdf5DataSetName ,imageDimensions );
+			imageSourcesGenerator = new ImageSourcesGeneratorCoronaHdf5( files, hdf5DataSetName ,imageDimensions );
 		}
 		return imageSourcesGenerator;
 	}
@@ -210,40 +212,51 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		final ImagePlus imagePlus = IJ.openImage( file.getAbsolutePath() );
 
-		setColor( imagePlus );
+		setLut( imagePlus );
 
 		setImageDataType( imagePlus );
 
 		setImageDimensions( imagePlus );
-
-		setImageMinMax( imagePlus );
 	}
 
 	private void setImagePropertiesUsingJHdf5( File file )
 	{
 		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( file );
 
-		argbType = new ARGBType( ARGBType.rgba( 0, 255, 0, 255 ) );
+		setLut( hdf5Reader );
 
 		setImageDataType( hdf5Reader );
 
 		setImageDimensions( hdf5Reader );
-
-		setImageMinMax( hdf5Reader );
 	}
 
-	private void setImageMinMax( IHDF5Reader hdf5Reader )
+	private void setLut( IHDF5Reader hdf5Reader )
 	{
-		if ( nativeType instanceof UnsignedByteType )
+		String colorName = hdf5Reader.string().getAttr( hdf5DataSetName, "color" );
+		if ( colorName.equals( "Glasbey" ) )
 		{
-			final byte[] bytes = hdf5Reader.int8().readArray( hdf5DataSetName );
-			lutMinMax[ 0 ] = 255;
-			for ( byte value : bytes )
-			{
-				final short uint8 = UnsignedIntUtils.toUint8( value );
-				if ( uint8 < lutMinMax[ 0 ] ) lutMinMax[ 0 ] = uint8;
-				if ( uint8 > lutMinMax[ 1 ] ) lutMinMax[ 1 ]  = uint8;
-			}
+			colorName = "Gray"; // TODO: Deal with this later
+		}
+		final Color color = Utils.getColor( colorName );
+		argbType = Utils.getARGBType( color );
+
+		setLutMinMax( hdf5Reader );
+	}
+
+	private void setLutMinMax( IHDF5Reader hdf5Reader )
+	{
+		if ( ! hdf5Reader.hasAttribute( hdf5DataSetName, LUT_MIN_MAX ) ) return;
+
+		try
+		{
+			final short[] lutMinMax = hdf5Reader.int16().getArrayAttr( hdf5DataSetName, LUT_MIN_MAX );
+			this.lutMinMax[ 0 ] = lutMinMax[ 0 ];
+			this.lutMinMax[ 1 ] = lutMinMax[ 1 ];
+		}
+		catch ( Exception e )
+		{
+			this.lutMinMax[ 0 ] = 0;
+			this.lutMinMax[ 1 ] = 1;
 		}
 	}
 
@@ -251,11 +264,18 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		final long[] dimensions = hdf5Reader.getDataSetInformation( hdf5DataSetName ).getDimensions();
 		imageDimensions = new int[ 2 ];
-		imageDimensions[ 0 ] = (int) dimensions[ 0 ];
-		imageDimensions[ 1 ] = (int) dimensions[ 1 ];
+		imageDimensions[ 0 ] = (int) dimensions[ 1 ]; // hdf5 is the other way around
+		imageDimensions[ 1 ] = (int) dimensions[ 0 ];
 	}
 
-	private void setColor( ImagePlus imagePlus )
+	private void setLut( ImagePlus imagePlus )
+	{
+		setLutColor( imagePlus );
+
+		setLutMinMax( imagePlus );
+	}
+
+	private void setLutColor( ImagePlus imagePlus )
 	{
 		final String title = imagePlus.getTitle().toLowerCase();
 
@@ -300,7 +320,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		}
 	}
 
-	private void setImageMinMax( ImagePlus imagePlus )
+	private void setLutMinMax( ImagePlus imagePlus )
 	{
 		lutMinMax = new double[ 2 ];
 		lutMinMax[ 0 ] = imagePlus.getProcessor().getMin();
@@ -321,16 +341,15 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 				nativeType = new UnsignedShortType();
 				break;
 			case Utils.H5_UNSIGNED_INT:
-				nativeType = new UnsignedLongType();
+				nativeType = new UnsignedIntType();
 				break;
 			case Utils.H5_FLOAT:
 				nativeType = new FloatType();
 				break;
 			default:
-				nativeType = null;
+				throw new UnsupportedOperationException( "Hdf5 datatype not supported: " + dataType );
 		}
 	}
-
 
 	private void setImageDataType( ImagePlus imagePlus )
 	{

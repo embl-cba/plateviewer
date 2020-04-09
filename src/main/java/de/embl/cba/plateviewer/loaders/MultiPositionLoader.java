@@ -100,6 +100,10 @@ public class MultiPositionLoader implements CellLoader
 			final float[] celldata = ( float[] ) cell.getStorageArray();
 			System.arraycopy( data, 0, celldata, 0, celldata.length );
 		}
+		else
+		{
+			throw new UnsupportedOperationException( "Hdf5 datatype not supported: " + dataType );
+		}
 	}
 
 	public ImageSource getImageSource( SingleCellArrayImg cell )
@@ -139,9 +143,7 @@ public class MultiPositionLoader implements CellLoader
 			}
 
 			if ( matches ) return imageSource;
-
 		}
-
 		return null;
 	}
 

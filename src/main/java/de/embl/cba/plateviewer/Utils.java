@@ -129,11 +129,28 @@ public class Utils
 		{
 			channelPatternSet.add( ".*" );
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
 		{
+			final ArrayList< String > channels = new ArrayList<>();
 			final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( files.get( 0 ) );
 			final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
-			return groupMembers;
+			for ( String groupMember : groupMembers )
+			{
+				if ( ! hdf5Reader.hasAttribute( groupMember, "skip" ) )
+				{
+					continue;
+				}
+
+				final boolean skip = hdf5Reader.bool().getAttr( groupMember, "skip" );
+
+				if ( skip )
+				{
+					continue;
+				}
+				channels.add( groupMember );
+			}
+
+			return channels;
 		}
 		else // multiple channels, figure out which ones...
 		{
@@ -172,8 +189,8 @@ public class Utils
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( NamingSchemes.PATTERN_CORONA ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_CORONA;
+		if ( Pattern.compile( NamingSchemes.PATTERN_CORONA_HDF5 ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_CORONA_HDF5;
 		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() )
 			return NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH;
 		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE ).matcher( filePath ).matches() )
@@ -339,4 +356,19 @@ public class Utils
 		wellPosition[ 1 ] = CAPITAL_ALPHABET.indexOf( well.substring( 0, 1 ) );
 		return wellPosition;
 	}
+
+	public static ARGBType getARGBType( Color color )
+	{
+		return new ARGBType( ARGBType.rgba( color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha() ) );
+	}
+	public static Color getColor( String name ) {
+		try {
+			return (Color)Color.class.getField(name.toUpperCase()).get(null);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+
 }

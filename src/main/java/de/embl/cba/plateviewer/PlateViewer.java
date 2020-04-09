@@ -107,7 +107,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	public List< File > getChannelFiles( List< File > fileList, String namingScheme, String channelPattern )
 	{
 		List< File > channelFiles;
-		if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
 		{
 			// each file contains all channels => we need all
 			channelFiles = fileList;
