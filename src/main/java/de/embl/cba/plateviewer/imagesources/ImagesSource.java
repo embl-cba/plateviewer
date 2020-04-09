@@ -5,6 +5,7 @@ import bdv.util.BdvSource;
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
+import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.loaders.MultiPositionLoader;
 import de.embl.cba.plateviewer.Utils;
 import ij.IJ;
@@ -31,7 +32,10 @@ import java.util.List;
 
 public class ImagesSource < T extends RealType< T > & NativeType< T > >
 {
-	public static final String LUT_MIN_MAX = "lutMinMax";
+	public static final String LUT_MIN_MAX = "ContrastLimits";
+	public static final String COLOR = "Color";
+	public static final String SKIP = "Skip";
+
 	private long[] dimensions;
 	private int[] imageDimensions;
 	private double[] lutMinMax = new double[]{0, 255};
@@ -48,6 +52,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private BdvSource bdvSource;
 	private BdvOverlaySource bdvOverlaySource;
 	private NativeType nativeType;
+	private Metadata.Type type;
 
 	public ImagesSource( List< File > files, String name, int numIoThreads )
 	{
@@ -232,11 +237,18 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private void setLut( IHDF5Reader hdf5Reader )
 	{
-		String colorName = hdf5Reader.string().getAttr( hdf5DataSetName, "color" );
+		String colorName = hdf5Reader.string().getAttr( hdf5DataSetName, COLOR );
+
 		if ( colorName.equals( "Glasbey" ) )
 		{
-			colorName = "Gray"; // TODO: Deal with this later
+			colorName = "Gray";
+			this.type = Metadata.Type.Segmentation;
 		}
+		else
+		{
+			this.type = Metadata.Type.Image;
+		}
+
 		final Color color = Utils.getColor( colorName );
 		argbType = Utils.getARGBType( color );
 
@@ -597,5 +609,10 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		}
 
 		return dimensions;
+	}
+
+	public Metadata.Type getType()
+	{
+		return this.type;
 	}
 }

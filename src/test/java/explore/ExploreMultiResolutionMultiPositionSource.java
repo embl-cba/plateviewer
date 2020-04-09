@@ -46,10 +46,5 @@ public class ExploreMultiResolutionMultiPositionSource
 		scaleToRai.put( 1.0, img );
 
 		final MultiResolutionSource source = new MultiResolutionSource( scaleToRai );
-
-
-
 	}
-
-
 }

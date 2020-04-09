@@ -5,6 +5,7 @@ import de.embl.cba.plateviewer.Utils;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.type.volatiles.VolatileUnsignedByteType;
 import net.imglib2.type.volatiles.VolatileUnsignedShortType;
 
@@ -54,7 +55,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
     public void addSourceToPanel(
             String sourceName,
-            BdvStackSource< R > bdvStackSource,
+            BdvStackSource< ? > bdvStackSource,
             ARGBType argb )
     {
 
@@ -74,27 +75,33 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
             int[] buttonDimensions = new int[]{ 50, 30 };
 
-            final R type = bdvStackSource.getSources().get( 0 ).getSpimSource().getType();
-
-
-            final JButton colorButton =
-                    createColorButton( panel, buttonDimensions, bdvStackSource );
-            JButton brightnessButton =
-                    getBrightnessButton( sourceName, bdvStackSource, buttonDimensions, type );
-            final JCheckBox visibilityCheckbox =
-                    createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
+            final Object type = bdvStackSource.getSources().get( 0 ).getSpimSource().getType();
 
             panel.add( jLabel );
-            panel.add( colorButton );
+
+            if ( ! ( type instanceof VolatileARGBType ) )
+            {
+                final JButton colorButton =
+                        createColorButton( panel, buttonDimensions, bdvStackSource );
+                panel.add( colorButton );
+            }
+
+            JButton brightnessButton =
+                    getBrightnessButton( sourceName, bdvStackSource, buttonDimensions, type );
             panel.add( brightnessButton );
+
+            final JCheckBox visibilityCheckbox =
+                    createVisibilityCheckbox( buttonDimensions, bdvStackSource, true );
             panel.add( visibilityCheckbox );
+
+
 
             add( panel );
             refreshUI();
         }
     }
 
-    public JButton getBrightnessButton( String sourceName, BdvStackSource< R > bdvStackSource, int[] buttonDimensions, R type )
+    public JButton getBrightnessButton( String sourceName, BdvStackSource< ? > bdvStackSource, int[] buttonDimensions, Object type )
     {
         JButton brightnessButton;
         if ( type instanceof VolatileUnsignedShortType )

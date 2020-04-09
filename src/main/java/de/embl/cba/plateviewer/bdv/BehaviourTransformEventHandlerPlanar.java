@@ -99,7 +99,7 @@ public class BehaviourTransformEventHandlerPlanar implements BehaviourTransformE
 
 		behaviours = new Behaviours( config, "bdv" );
 
-		behaviours.behaviour( new DragTranslate(), DRAG_TRANSLATE, "button1" );
+		behaviours.behaviour( new DragTranslate(), DRAG_TRANSLATE, "button1", "button3" );
 		behaviours.behaviour( new Zoom( speed[ 0 ] ), ZOOM_NORMAL, "meta scroll", "ctrl shift scroll" );
 		behaviours.behaviour( new ScrollTranslate(), SCROLL_TRANSLATE, "not mapped" );
 //		behaviours.behaviour( new DragRotate(), DRAG_ROTATE, "button1" );

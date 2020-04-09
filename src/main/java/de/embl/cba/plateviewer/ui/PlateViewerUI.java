@@ -62,6 +62,8 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 
 		addHeader( " " ,this );
 
+		addNavigationMessages( this );
+
 		addSiteNavigationUI( this );
 
 		addWellNavigationUI( this );
@@ -73,8 +75,6 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		addHeader( " " ,this );
 
 		addImageProcessingPanel( this );
-
-		
 
 		createAndShowUI( );
 
@@ -129,13 +129,13 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		addImageProcessingButton( panel );
 	}
 
-
 	private JPanel horizontalLayoutPanel()
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
 		panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 10, 10) );
 		panel.add( Box.createHorizontalGlue() );
+		panel.setAlignmentX( Component.LEFT_ALIGNMENT );
 		return panel;
 	}
 
@@ -206,6 +206,16 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		imagesSourcesComboBox.updateUI();
 	}
 
+	public void addNavigationMessages( JPanel panel )
+	{
+		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+		horizontalLayoutPanel.add( new JLabel( "Zoom in/ out: ARROW UP/ DOWN" ));
+		panel.add( horizontalLayoutPanel );
+
+		final JPanel horizontalLayoutPanel3 = horizontalLayoutPanel();
+		horizontalLayoutPanel3.add( new JLabel( "Translate: DRAG MOUSE with LEFT (or RIGHT) BUTTON PRESSED") );
+		panel.add( horizontalLayoutPanel3 );
+	}
 
 	public void addSiteNavigationUI( JPanel panel )
 	{
@@ -423,9 +433,11 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
 		getSourcesPanel().sourceNameToPanel.size();
+
 		int height = 0; // TODO: actually, I only want to set the width
-		this.setPreferredSize( new Dimension(700, 400) );
-		frame.setPreferredSize( new Dimension(700, 400) );
+		// TODO: this depends on the number of channels!
+//		this.setPreferredSize( new Dimension(700, 600) );
+//		frame.setPreferredSize( new Dimension(700, 600) );
 
 		//Create and set up the content pane.
 		setOpaque( true ); //content panes must be opaque

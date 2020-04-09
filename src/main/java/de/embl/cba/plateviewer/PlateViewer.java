@@ -3,7 +3,9 @@ package de.embl.cba.plateviewer;
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
+import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
@@ -11,8 +13,10 @@ import de.embl.cba.plateviewer.imagesources.ImagesSource;
 import de.embl.cba.plateviewer.imagesources.NamingSchemes;
 import de.embl.cba.plateviewer.ui.PlateViewerUI;
 import net.imglib2.FinalInterval;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.cache.img.SingleCellArrayImg;
+import net.imglib2.converter.Converters;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.LongArray;
@@ -20,6 +24,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -272,10 +277,9 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 		zoomToInterval( source.getLoader().getImageSource( 0 ).getInterval() );
 
 		bdvTmpSource.removeFromBdv();
-
 	}
 
-	public void addSource( ImagesSource imagesSource )
+	public void addSource( ImagesSource< T > imagesSource )
 	{
 		if ( bdv == null )
 		{
@@ -283,10 +287,22 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 			return;
 		}
 
-		final BdvStackSource bdvStackSource = BdvFunctions.show(
+
+		RandomAccessibleInterval volatileRai =
 				VolatileViews.wrapAsVolatile(
-						imagesSource.getCachedCellImg(),
-						loadingQueue ),
+					imagesSource.getCachedCellImg(),
+					loadingQueue );
+
+		if ( imagesSource.getType().equals( Metadata.Type.Segmentation ) )
+		{
+			volatileRai = Converters.convert(
+					volatileRai,
+					new RandomARGBConverter(),
+					new VolatileARGBType() );
+		}
+
+		final BdvStackSource bdvStackSource = BdvFunctions.show(
+				volatileRai,
 				imagesSource.getName(),
 				BdvOptions.options().addTo( bdv ) );
 
