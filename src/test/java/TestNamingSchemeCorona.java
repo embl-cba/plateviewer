@@ -14,7 +14,5 @@ public class TestNamingSchemeCorona
 //				".*.h5",
 //				4 );
 
-
-
 	}
 }

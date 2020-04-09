@@ -241,6 +241,9 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		String colorName = hdf5Reader.string().getAttr( hdf5DataSetName, COLOR );
 
+		if ( colorName.equals( "Gray" ) ) // TODO: Remove!
+			colorName = "White";
+
 		if ( colorName.equals( "Glasbey" ) )
 		{
 			colorName = "Gray";
