@@ -2,6 +2,14 @@
 
 # PlateViewer Fiji plugin
 
+## Installation
+
+- Please [install Fiji](fiji.sc)
+- Within Fiji, please [enable below Update Site](https://imagej.net/Following_an_update_site): 
+    - [X] EMBL-CBA
+- Restart Fiji
+- The plugin will appear under [ Plugins > Screening > PlateViewer... ]
+
 ## Citation
 
 This github repository can be cited (registered at [ZENODO](https://zenodo.org/)):
