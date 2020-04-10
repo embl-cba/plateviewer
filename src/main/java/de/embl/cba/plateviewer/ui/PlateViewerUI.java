@@ -4,6 +4,7 @@ import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
 import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
 import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.imagefilter.ImageFilter;
 import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
@@ -107,11 +108,12 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		final JButton button = new JButton( "Capture current view" );
 
 		button.addActionListener( e -> {
-			BdvViewCaptures.captureView(
-					bdv.getBdvHandle(),
-					1.0,
-					"pixel",
-					true ).rgbImage.show();
+			SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() ).show();
+//			BdvViewCaptures.captureView(
+//					bdv.getBdvHandle(),
+//					1.0,
+//					"pixel",
+//					true ).rgbImage.show();
 		} );
 
 		horizontalLayoutPanel.add( button );
