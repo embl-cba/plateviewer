@@ -1,9 +1,13 @@
 import de.embl.cba.plateviewer.PlateViewer;
+import net.imagej.ImageJ;
 
 public class TestNamingSchemeCorona
 {
 	public static void main( String[] args )
 	{
+		final ImageJ imageJ = new ImageJ();
+		imageJ.ui().showUI();
+
 		new PlateViewer(
 				TestNamingSchemeCorona.class.getResource( "CORONA" ).getFile(),
 				".*.h5",

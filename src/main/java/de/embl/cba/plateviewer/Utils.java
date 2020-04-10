@@ -37,9 +37,9 @@ public class Utils
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	public static final String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	public static final String H5_UNSIGNED_BYTE = "INTEGER(1)";
-	public static final String H5_UNSIGNED_SHORT = "INTEGER(2)";
-	public static final String H5_UNSIGNED_INT = "INTEGER(4)";
+	public static final String H5_BYTE = "INTEGER(1)";
+	public static final String H5_SHORT = "INTEGER(2)";
+	public static final String H5_INT = "INTEGER(4)";
 	public static final String H5_FLOAT = "FLOAT(4)";
 
 	public static void log( String msg )

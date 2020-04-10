@@ -352,24 +352,18 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	{
 		final HDF5DataSetInformation information = hdf5Reader.getDataSetInformation( hdf5DataSetName );
 		final String dataType = information.getTypeInformation().toString();
+		final boolean signed = information.isSigned();
 
-		switch ( dataType )
-		{
-			case Utils.H5_UNSIGNED_BYTE:
-				nativeType = new UnsignedByteType();
-				break;
-			case Utils.H5_UNSIGNED_SHORT:
-				nativeType = new UnsignedShortType();
-				break;
-			case Utils.H5_UNSIGNED_INT:
-				nativeType = new UnsignedIntType();
-				break;
-			case Utils.H5_FLOAT:
-				nativeType = new FloatType();
-				break;
-			default:
-				throw new UnsupportedOperationException( "Hdf5 datatype not supported: " + dataType );
-		}
+		if( dataType.equals( Utils.H5_BYTE ) && ! signed )
+			nativeType = new UnsignedByteType();
+		else if( dataType.equals( Utils.H5_SHORT ) && ! signed )
+			nativeType = new UnsignedShortType();
+		else if( dataType.equals( Utils.H5_INT ) && ! signed )
+			nativeType = new UnsignedIntType();
+		else if( dataType.equals( Utils.H5_FLOAT ) )
+			nativeType = new FloatType();
+		else
+			throw new UnsupportedOperationException( "Hdf5 datatype not supported: " + dataType );
 	}
 
 	private void setImageDataType( ImagePlus imagePlus )

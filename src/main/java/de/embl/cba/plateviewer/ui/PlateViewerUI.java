@@ -101,7 +101,6 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 
 	private void addViewCaptureUI( JPanel panel )
 	{
-
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 //		final JTextField numPixelsTextField = new JTextField( "1000" );
 
@@ -112,7 +111,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 					bdv.getBdvHandle(),
 					1.0,
 					"pixel",
-					true );
+					true ).rgbImage.show();
 		} );
 
 		horizontalLayoutPanel.add( button );
