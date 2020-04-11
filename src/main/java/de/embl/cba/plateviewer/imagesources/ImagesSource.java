@@ -6,7 +6,7 @@ import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.loaders.MultiPositionLoader;
+import de.embl.cba.plateviewer.cellloader.MultiPositionLoader;
 import de.embl.cba.plateviewer.Utils;
 import ij.IJ;
 import ij.ImagePlus;

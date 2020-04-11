@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.plateviewer.io;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.ui;
+package de.embl.cba.plateviewer.view.panel;
 
 import bdv.util.BdvStackSource;
 import de.embl.cba.plateviewer.Utils;
@@ -20,13 +20,13 @@ import static de.embl.cba.bdv.utils.BdvDialogs.*;
 
 public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R > > extends JPanel
 {
-    private final PlateViewerUI< R > plateViewerUI;
+    private final PlateViewerMainPanel< R > plateViewerMainPanel;
     public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
 
-    public PlateViewerSourcesPanel( PlateViewerUI< R > plateViewerUI )
+    public PlateViewerSourcesPanel( PlateViewerMainPanel< R > plateViewerMainPanel )
     {
-        this.plateViewerUI = plateViewerUI;
+        this.plateViewerMainPanel = plateViewerMainPanel;
 
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
@@ -94,8 +94,6 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
                     createVisibilityCheckbox( buttonDimensions, bdvStackSource, initiallyVisible );
             panel.add( visibilityCheckbox );
 
-
-
             add( panel );
             refreshUI();
         }
@@ -149,7 +147,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
     private void removeSource( String sourceName, BdvStackSource< R > source )
     {
         // remove from bdv
-        plateViewerUI.getBdv().getViewerPanel().removeSource(
+        plateViewerMainPanel.getBdv().getViewerPanel().removeSource(
                 source.getSources().get( 0 ).getSpimSource() );
 
         // remove from this panel
@@ -157,7 +155,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         sourceNameToPanel.remove( sourceName );
 
         // remove from source list
-        plateViewerUI.removeSource( sourceName );
+        plateViewerMainPanel.removeSource( sourceName );
 
         refreshUI();
     }

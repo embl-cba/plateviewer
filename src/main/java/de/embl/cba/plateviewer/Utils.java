@@ -41,6 +41,7 @@ public class Utils
 	public static final String H5_SHORT = "INTEGER(2)";
 	public static final String H5_INT = "INTEGER(4)";
 	public static final String H5_FLOAT = "FLOAT(4)";
+	public static final int bdvTextOverlayFontSize = 15;
 
 	public static void log( String msg )
 	{

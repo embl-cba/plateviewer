@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.loaders;
+package de.embl.cba.plateviewer.cellloader;
 
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;

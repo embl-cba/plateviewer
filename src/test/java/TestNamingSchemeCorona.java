@@ -1,4 +1,5 @@
 import de.embl.cba.plateviewer.table.*;
+import de.embl.cba.plateviewer.view.PlateViewerTableView;
 import net.imagej.ImageJ;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public class TestNamingSchemeCorona
 
 		final List< DefaultImageNameTableRow > imageNameTableRows = ImageNameTableRows.imageNameTableRowsFromFilePath( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() );
 
-		new PlateViewerTableRowsTableView( imageNameTableRows ).showTable();
+		new PlateViewerTableView( imageNameTableRows ).showTable();
 
 //		final JTable jTable = Tables.loadTable( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() );
 //

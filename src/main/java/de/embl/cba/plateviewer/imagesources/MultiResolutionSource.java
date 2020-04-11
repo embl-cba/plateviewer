@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.plateviewer.imagesources;
 
 import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Interpolation;

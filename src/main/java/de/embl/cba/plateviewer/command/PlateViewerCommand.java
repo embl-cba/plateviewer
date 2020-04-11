@@ -1,15 +1,12 @@
-package de.embl.cba.plateviewer.ui;
+package de.embl.cba.plateviewer.command;
 
-import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.table.DefaultImageNameTableRow;
-import de.embl.cba.plateviewer.table.JTableView;
-import de.embl.cba.plateviewer.table.PlateViewerTableRowsTableView;
-import de.embl.cba.tables.Tables;
+import de.embl.cba.plateviewer.view.PlateViewerTableView;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.List;
 
@@ -32,10 +29,10 @@ public class PlateViewerCommand implements Command
 		if ( imagesTableFile != null )
 		{
 			final List< DefaultImageNameTableRow > imageNameTableRows = imageNameTableRowsFromFilePath( imagesTableFile.getAbsolutePath() );
-			new PlateViewerTableRowsTableView< >( imageNameTableRows ).showTable();
+			new PlateViewerTableView< >( imageNameTableRows ).showTable();
 		}
 
-		new PlateViewer( imagesDirectory.toString(), filePattern, 1 );
+		new PlateViewerImageView( imagesDirectory.toString(), filePattern, 1 );
 	}
 }
 

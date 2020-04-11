@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.table;
+package de.embl.cba.plateviewer.view;
 
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.tablerow.TableRow;
@@ -7,13 +7,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
-public class PlateViewerTableRowsTableView< T extends TableRow > extends JPanel
+public class PlateViewerTableView< T extends TableRow > extends JPanel
 {
 	private JTable jTable;
 	private JScrollPane jScrollPane;
 	private JFrame jFrame;
 
-	public PlateViewerTableRowsTableView( List< T > tableRows )
+	public PlateViewerTableView( List< T > tableRows )
 	{
 		jTable = Tables.jTableFromTableRows( tableRows );
 	}

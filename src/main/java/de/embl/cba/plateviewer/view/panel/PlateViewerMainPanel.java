@@ -1,9 +1,8 @@
-package de.embl.cba.plateviewer.ui;
+package de.embl.cba.plateviewer.view.panel;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
-import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.imagefilter.ImageFilter;
 import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
@@ -23,7 +22,7 @@ import java.util.Collections;
 
 import static de.embl.cba.plateviewer.imagefilter.ImageFilterUI.getImageFilterSettingsFromUI;
 
-public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
+public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		extends JPanel implements ActionListener
 {
 	JFrame frame;
@@ -34,18 +33,18 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 	JComboBox imageFiltersComboBox;
 	JButton imageFiltersButton;
 
-	final PlateViewer plateViewer;
+	final PlateViewerImageView plateViewerImageView;
 	private final Bdv bdv;
 	private ArrayList< ImagesSource< R > > imagesSources;
 	private ImageFilterSettings previousImageFilterSettings;
 	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
 
-	public PlateViewerUI( PlateViewer plateViewer )
+	public PlateViewerMainPanel( PlateViewerImageView plateViewerImageView )
 	{
-		this.plateViewer = plateViewer;
+		this.plateViewerImageView = plateViewerImageView;
 
-		this.bdv = plateViewer.getBdv();
+		this.bdv = plateViewerImageView.getBdv();
 
 		sourcesPanel = new PlateViewerSourcesPanel< >( this );
 	}
@@ -92,7 +91,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 	{
 		this.imagesSources = new ArrayList<>(  );
 
-		final ArrayList< ImagesSource > imagesSources = plateViewer.getImagesSources();
+		final ArrayList< ImagesSource > imagesSources = plateViewerImageView.getImagesSources();
 
 		for( ImagesSource imagesSource : imagesSources )
 		{
@@ -224,7 +223,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 
 		imageNamesComboBox = new JComboBox( );
 
-		final ArrayList< String > siteNames = plateViewer.getSiteNames();
+		final ArrayList< String > siteNames = plateViewerImageView.getSiteNames();
 
 		for ( String siteName : siteNames )
 		{
@@ -244,7 +243,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 
 		wellNamesComboBox = new JComboBox();
 
-		final ArrayList< String > wellNames = plateViewer.getWellNames();
+		final ArrayList< String > wellNames = plateViewerImageView.getWellNames();
 
 		Collections.sort( wellNames );
 
@@ -271,7 +270,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 			{
 				e.printStackTrace();
 			}
-			plateViewer.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
+			plateViewerImageView.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
 		} )).start();
 	}
 
@@ -280,13 +279,13 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 	{
 		if ( a.getSource() == imageNamesComboBox )
 		{
-			plateViewer.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
+			plateViewerImageView.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
 			updateBdv( 1000 );
 		}
 
 		if ( a.getSource() == wellNamesComboBox )
 		{
-			plateViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
+			plateViewerImageView.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
 			updateBdv( 2000 );
 		}
 
@@ -358,7 +357,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
 		settings.inputCachedCellImg = inputSource.getCachedCellImg();
 		settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
-		settings.plateViewer = plateViewer;
+		settings.plateViewerImageView = plateViewerImageView;
 		return settings;
 	}
 
@@ -369,7 +368,7 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 				BdvFunctions.showOverlay(
 						bdvOverlay,
 						name +" - overlay",
-						BdvOptions.options().addTo( settings.plateViewer.getBdv() ) );
+						BdvOptions.options().addTo( settings.plateViewerImageView.getBdv() ) );
 
 		return bdvOverlaySource;
 	}
@@ -398,9 +397,9 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 	{
 
 		final BdvStackSource< Volatile< UnsignedByteType > > bdvStackSource = BdvFunctions.show(
-				VolatileViews.wrapAsVolatile( cachedCellImg, plateViewer.getLoadingQueue() ),
+				VolatileViews.wrapAsVolatile( cachedCellImg, plateViewerImageView.getLoadingQueue() ),
 				cachedFilterImgName,
-				BdvOptions.options().addTo( plateViewer.getBdv() ) );
+				BdvOptions.options().addTo( plateViewerImageView.getBdv() ) );
 
 		// TODO: set color
 //		bdvSource.setColor( settings.baseImagesSource.getColor() );

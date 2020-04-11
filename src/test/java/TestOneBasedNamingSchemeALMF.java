@@ -1,4 +1,4 @@
-import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import net.imagej.ImageJ;
 
 public class TestOneBasedNamingSchemeALMF
@@ -7,7 +7,7 @@ public class TestOneBasedNamingSchemeALMF
 	{
 		new ImageJ().ui().showUI();
 
-		new PlateViewer(
+		new PlateViewerImageView(
 				"src/test/resources/ALMF-EMBL-OneBased-P2-S16-C3-T1",
 				".*.tif",
 				1);

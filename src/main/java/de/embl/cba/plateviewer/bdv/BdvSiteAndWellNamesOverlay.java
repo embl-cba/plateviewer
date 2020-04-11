@@ -5,7 +5,7 @@ import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
-import de.embl.cba.plateviewer.loaders.MultiPositionLoader;
+import de.embl.cba.plateviewer.cellloader.MultiPositionLoader;
 import net.imglib2.RealPoint;
 
 import java.awt.event.MouseEvent;
@@ -13,7 +13,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.List;
 import java.awt.*;
 
-import static de.embl.cba.plateviewer.Constants.bdvTextOverlayFontSize;
+import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
 
 public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotionListener

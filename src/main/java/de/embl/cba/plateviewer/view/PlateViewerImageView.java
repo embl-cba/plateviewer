@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.plateviewer.view;
 
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
@@ -6,12 +6,14 @@ import bdv.util.volatiles.VolatileViews;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.plateviewer.io.FileUtils;
+import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
 import de.embl.cba.plateviewer.imagesources.NamingSchemes;
-import de.embl.cba.plateviewer.ui.PlateViewerUI;
+import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import net.imglib2.FinalInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
@@ -34,7 +36,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlateViewer< T extends NativeType< T > & RealType< T > >
+public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 {
 	private final ArrayList< ImagesSource > imagesSources;
 	private final int numIoThreads;
@@ -42,9 +44,9 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 	private int[] bdvWindowDimensions;
 
 	private Bdv bdv;
-	private PlateViewerUI plateViewerUI;
+	private PlateViewerMainPanel plateViewerMainPanel;
 
-	public PlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
+	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
 	{
 		this.imagesSources = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
@@ -62,7 +64,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 		addSiteAndWellNamesOverlay();
 
-		plateViewerUI.showUI();
+		plateViewerMainPanel.showUI();
 	}
 
 	private void addSiteAndWellNamesOverlay()
@@ -266,9 +268,9 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 		bdv = bdvTmpSource.getBdvHandle();
 
-		plateViewerUI = new PlateViewerUI( this );
+		plateViewerMainPanel = new PlateViewerMainPanel( this );
 
-		new BdvGrayValuesOverlay( bdv, Constants.bdvTextOverlayFontSize );
+		new BdvGrayValuesOverlay( bdv, Utils.bdvTextOverlayFontSize );
 
 		setBdvBehaviors();
 
@@ -314,7 +316,7 @@ public class PlateViewer< T extends NativeType< T > & RealType< T > >
 
 		imagesSource.setBdvSource( bdvStackSource );
 
-		plateViewerUI.getSourcesPanel().addSourceToPanel(
+		plateViewerMainPanel.getSourcesPanel().addSourceToPanel(
 				imagesSource.getName(),
 				bdvStackSource,
 				imagesSource.getColor(),

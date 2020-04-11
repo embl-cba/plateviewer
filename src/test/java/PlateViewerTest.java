@@ -1,4 +1,4 @@
-import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.view.PlateViewerImageView;
 
 public class PlateViewerTest
 {
@@ -9,7 +9,7 @@ public class PlateViewerTest
 //				".*.tif",
 //				1);
 
-		new PlateViewer(
+		new PlateViewerImageView(
 				"/Volumes/pepperkok/mkhan/FDAscreen/testplate04/20181203_175618_645/",
 				".*.tif",
 				1);

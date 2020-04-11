@@ -1,6 +1,6 @@
 package command;
 
-import de.embl.cba.plateviewer.ui.PlateViewerCommand;
+import de.embl.cba.plateviewer.command.PlateViewerCommand;
 import net.imagej.ImageJ;
 
 public class RunPlateViewerCommand
