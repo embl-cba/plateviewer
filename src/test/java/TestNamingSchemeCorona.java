@@ -1,10 +1,7 @@
-import de.embl.cba.plateviewer.PlateViewer;
-import de.embl.cba.plateviewer.table.JTableView;
-import de.embl.cba.tables.Tables;
-import de.embl.cba.tables.view.TableRowsTableView;
+import de.embl.cba.plateviewer.table.*;
 import net.imagej.ImageJ;
 
-import javax.swing.*;
+import java.util.List;
 
 public class TestNamingSchemeCorona
 {
@@ -13,9 +10,13 @@ public class TestNamingSchemeCorona
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final JTable jTable = Tables.loadTable( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() );
+		final List< DefaultImageNameTableRow > imageNameTableRows = ImageNameTableRows.imageNameTableRowsFromFilePath( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() );
 
-		new JTableView( jTable ).showTable();
+		new PlateViewerTableRowsTableView( imageNameTableRows ).showTable();
+
+//		final JTable jTable = Tables.loadTable( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() );
+//
+//		new JTableView( jTable ).showTable();
 
 //		new PlateViewer(
 //				TestNamingSchemeCorona.class.getResource( "CORONA" ).getFile(),
@@ -28,4 +29,5 @@ public class TestNamingSchemeCorona
 //				4 );
 
 	}
+
 }

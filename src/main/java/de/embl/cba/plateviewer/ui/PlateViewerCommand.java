@@ -1,7 +1,9 @@
 package de.embl.cba.plateviewer.ui;
 
 import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.table.DefaultImageNameTableRow;
 import de.embl.cba.plateviewer.table.JTableView;
+import de.embl.cba.plateviewer.table.PlateViewerTableRowsTableView;
 import de.embl.cba.tables.Tables;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -9,6 +11,9 @@ import org.scijava.plugin.Plugin;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.List;
+
+import static de.embl.cba.plateviewer.table.ImageNameTableRows.imageNameTableRowsFromFilePath;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Screening>PlateViewer..." )
 public class PlateViewerCommand implements Command
@@ -26,8 +31,8 @@ public class PlateViewerCommand implements Command
 	{
 		if ( imagesTableFile != null )
 		{
-			final JTable jTable = Tables.loadTable( imagesTableFile.getAbsolutePath() );
-			new JTableView( jTable ).showTable();
+			final List< DefaultImageNameTableRow > imageNameTableRows = imageNameTableRowsFromFilePath( imagesTableFile.getAbsolutePath() );
+			new PlateViewerTableRowsTableView< >( imageNameTableRows ).showTable();
 		}
 
 		new PlateViewer( imagesDirectory.toString(), filePattern, 1 );
