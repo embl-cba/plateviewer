@@ -54,7 +54,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		return bdv.getBdvHandle();
 	}
 
-	public void showUI()
+	private void createUI()
 	{
 		setImagesSources( );
 
@@ -75,8 +75,6 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		addHeader( " " ,this );
 
 		addImageProcessingPanel( this );
-
-		createAndShowUI( );
 
 		previousImageFilterSettings = new ImageFilterSettings( );
 	}
@@ -427,18 +425,24 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	 * this method should be invoked from the
 	 * event-dispatching thread.
 	 */
-	private void createAndShowUI( )
+	public void showUI( Component parentComponent )
 	{
+		createUI();
+
 		//Create and set up the window.
 		frame = new JFrame( "Plate viewer" );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
-		getSourcesPanel().sourceNameToPanel.size();
+		if ( parentComponent != null )
+		{
+			frame.setLocation(
+					parentComponent.getLocationOnScreen().x + parentComponent.getWidth(),
+					parentComponent.getLocationOnScreen().y
+			);
+		}
 
-		int height = 0; // TODO: actually, I only want to set the width
-		// TODO: this depends on the number of channels!
-//		this.setPreferredSize( new Dimension(700, 600) );
-//		frame.setPreferredSize( new Dimension(700, 600) );
+
+		getSourcesPanel().sourceNameToPanel.size();
 
 		//Create and set up the content pane.
 		setOpaque( true ); //content panes must be opaque

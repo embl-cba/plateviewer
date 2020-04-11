@@ -3,6 +3,7 @@ package de.embl.cba.plateviewer.view;
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
 import de.embl.cba.bdv.utils.sources.Metadata;
@@ -41,7 +42,6 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 	private final ArrayList< ImagesSource > imagesSources;
 	private final int numIoThreads;
 	private final SharedQueue loadingQueue;
-	private int[] bdvWindowDimensions;
 
 	private Bdv bdv;
 	private PlateViewerMainPanel plateViewerMainPanel;
@@ -51,7 +51,6 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 		this.imagesSources = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
 		this.loadingQueue = new SharedQueue( numIoThreads );
-		setBdvWindowDimensions();
 
 		final List< File > fileList = getFiles( inputDirectory, filterPattern );
 
@@ -64,7 +63,7 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 		addSiteAndWellNamesOverlay();
 
-		plateViewerMainPanel.showUI();
+		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
 	}
 
 	private void addSiteAndWellNamesOverlay()
@@ -137,14 +136,6 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 	{
 		return loadingQueue;
 	}
-
-	public void setBdvWindowDimensions()
-	{
-		bdvWindowDimensions = new int[ 2 ];
-		bdvWindowDimensions[ 0 ] = 800;
-		bdvWindowDimensions[ 1 ] = 800;
-	}
-
 
 	public void zoomToInterval( FinalInterval interval )
 	{
@@ -224,6 +215,7 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 	public AffineTransform3D getImageZoomTransform( FinalInterval interval )
 	{
+		int[] bdvWindowSize = getBdvWindowSize();
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
@@ -236,18 +228,26 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 		affineTransform3D.translate( shiftToImage );
 
-		affineTransform3D.scale(  1.05 * bdvWindowDimensions[ 0 ] / interval.dimension( 0 ) );
+		affineTransform3D.scale( 1.05 * bdvWindowSize[ 0 ] / interval.dimension( 0 ) );
 
 		double[] shiftToBdvWindowCenter = new double[ 3 ];
 
 		for( int d = 0; d < 2; ++d )
 		{
-			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
+			shiftToBdvWindowCenter[ d ] += bdvWindowSize[ d ] / 2.0;
 		}
 
 		affineTransform3D.translate( shiftToBdvWindowCenter );
 
 		return affineTransform3D;
+	}
+
+	private int[] getBdvWindowSize()
+	{
+		int[] bdvWindowDimensions = new int[2];
+		bdvWindowDimensions[ 0 ] = BdvUtils.getBdvWindowWidth( bdv );
+		bdvWindowDimensions[ 1 ] = BdvUtils.getBdvWindowHeight( bdv );
+		return bdvWindowDimensions;
 	}
 
 	private void initBdvAndPlateViewerUI( ImagesSource source )
@@ -260,8 +260,8 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 				"",
 				Bdv.options()
 						.is2D()
-						.preferredSize( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] )
-						.doubleBuffered( false )
+						//.preferredSize( bdvWindowDimensions[ 0 ], bdvWindowDimensions[ 1 ] )
+						//.doubleBuffered( false )
 						.transformEventHandlerFactory(
 								new BehaviourTransformEventHandlerPlanar
 										.BehaviourTransformEventHandlerPlanarFactory() ) );
