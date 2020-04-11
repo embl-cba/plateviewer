@@ -5,7 +5,6 @@ import net.imagej.ImageJ;
 
 public class RunPlateViewerCommand
 {
-
 	public static void main(final String... args)
 	{
 		final ImageJ ij = new ImageJ();
@@ -19,5 +18,4 @@ public class RunPlateViewerCommand
 		// /Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/Eugene
 		// /Volumes/cba/exchange/Andrea Callegari/non-renamed files/
 	}
-
 }

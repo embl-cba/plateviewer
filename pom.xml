@@ -8,7 +8,7 @@
 		<relativePath>../pom-embl-cba</relativePath>
 	</parent>
 	<artifactId>fiji-plugin-plateViewer</artifactId>
-	<version>0.2.23</version>
+	<version>0.3.0</version>
 	<name>Fiji Plugin PlateViewer</name>
 	<url>https://github.com/tischi/fiji-plugin-plateViewer</url>
 	<description>TODO</description>
@@ -66,6 +66,7 @@
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
+		<enforcer.skip>true</enforcer.skip>
 		<!-- BioFormats -->
 		<bioformats.version>6.1.0-m2</bioformats.version>
 	</properties>

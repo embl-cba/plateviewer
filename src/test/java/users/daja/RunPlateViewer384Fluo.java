@@ -15,7 +15,7 @@ public class RunPlateViewer384Fluo
 
 		final PlateViewerCommand command = new PlateViewerCommand();
 
-		command.inputDirectory = new File( "/Volumes/cuylen/01_Share/Filemaker/01_Experiments/0112/02_raw_data/renamed/Plate130918B_48h" );
+		command.imagesDirectory = new File( "/Volumes/cuylen/01_Share/Filemaker/01_Experiments/0112/02_raw_data/renamed/Plate130918B_48h" );
 		command.filePattern = ".*.tif";
 
 		command.run();

@@ -458,7 +458,4 @@ public class PlateViewerUI< R extends RealType< R > & NativeType< R > >
 		frame.repaint();
 		frame.pack();
 	}
-
-
-
 }
