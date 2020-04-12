@@ -14,7 +14,10 @@ import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.imagesources.ImageSource;
 import de.embl.cba.plateviewer.imagesources.ImagesSource;
 import de.embl.cba.plateviewer.imagesources.NamingSchemes;
+import de.embl.cba.plateviewer.table.ImageName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
+import de.embl.cba.tables.select.SelectionListener;
+import de.embl.cba.tables.select.SelectionModel;
 import net.imglib2.FinalInterval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
@@ -37,7 +40,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
+public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends ImageName >
 {
 	private final ArrayList< ImagesSource > imagesSources;
 	private final int numIoThreads;
@@ -45,6 +48,9 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 	private Bdv bdv;
 	private PlateViewerMainPanel plateViewerMainPanel;
+	private List< T > imageFileNames;
+	private SelectionModel< T > selectionModel;
+	private final String imageNamingScheme;
 
 	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -54,16 +60,21 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 		final List< File > fileList = getFiles( inputDirectory, filterPattern );
 
-		final String namingScheme = getNamingScheme( fileList );
+		imageNamingScheme = getImageNamingScheme( fileList );
 
 		final List< String > channelPatterns =
-				Utils.getChannelPatterns( fileList, namingScheme );
+				Utils.getChannelPatterns( fileList, imageNamingScheme );
 
-		addChannelsToViewer( fileList, namingScheme, channelPatterns );
+		addChannelsToViewer( fileList, imageNamingScheme, channelPatterns );
 
 		addSiteAndWellNamesOverlay();
 
 		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
+	}
+
+	public String getImageNamingScheme()
+	{
+		return imageNamingScheme;
 	}
 
 	private void addSiteAndWellNamesOverlay()
@@ -75,7 +86,7 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 				BdvOptions.options().addTo( bdv ) );
 	}
 
-	public static String getNamingScheme( List< File > fileList )
+	public static String getImageNamingScheme( List< File > fileList )
 	{
 		final String namingScheme = Utils.getNamingScheme( fileList.get( 0 ) );
 		Utils.log( "Detected naming scheme: " +  namingScheme );
@@ -101,8 +112,7 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelPattern );
 
-			final ImagesSource imagesSource =
-					new ImagesSource( channelFiles, channelPattern, namingScheme, numIoThreads );
+			final ImagesSource imagesSource = new ImagesSource( channelFiles, channelPattern, namingScheme, numIoThreads );
 
 			imagesSource.setName( channelPattern );
 
@@ -142,7 +152,6 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
 
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
-
 	}
 
 	public ArrayList< String > getSiteNames()
@@ -154,7 +163,7 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 		for ( ImageSource imageSource : imageSources )
 		{
-			imageNames.add( imageSource.getSiteName() );
+			imageNames.add( imageSource.getImageName() );
 		}
 
 		return imageNames;
@@ -191,16 +200,31 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 		zoomToInterval( union );
 	}
 
-	public void zoomToImage( String imageFileName )
+	public void zoomToImage( String imageName )
 	{
 		int sourceIndex = 0;
 
-		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageSource( imageFileName );
+		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageSource( imageName );
 
 		zoomToInterval( imageSource.getInterval() );
+
+		if ( selectionModel != null )
+			notifyImageSelectionModel( imageSource );
+
 	}
 
-	public boolean isImageExisting( final SingleCellArrayImg< T, ? > cell )
+	public void notifyImageSelectionModel( ImageSource imageSource )
+	{
+		final String selectedImageFileName = imageSource.getFile().getName();
+		for ( T fileName : imageFileNames )
+		{
+			final String imageFileName = fileName.getImageName();
+			if ( imageFileName.equals( selectedImageFileName ))
+				selectionModel.focus( fileName );
+		}
+	}
+
+	public boolean isImageExisting( final SingleCellArrayImg< R, ? > cell )
 	{
 		final ImageSource imageFile = imagesSources.get( 0 ).getLoader().getImageSource( cell );
 
@@ -281,7 +305,7 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 		bdvTmpSource.removeFromBdv();
 	}
 
-	public void addSource( ImagesSource< T > imagesSource )
+	public void addSource( ImagesSource< R > imagesSource )
 	{
 		if ( bdv == null )
 		{
@@ -347,7 +371,6 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 		{
 			Utils.log( imageSource.getFile().getName() );
 		}
-
 	}
 
 	private long[] getMouseCoordinates()
@@ -366,4 +389,32 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 		return cellPos;
 	}
 
+	public void installImageSelectionModel( List< T > imageFileNames, SelectionModel< T > selectionModel )
+	{
+		this.imageFileNames = imageFileNames;
+		this.selectionModel = selectionModel;
+		registerAsImageSelectionListener( selectionModel );
+	}
+
+	private void registerAsImageSelectionListener( SelectionModel< T > selectionModel )
+	{
+		selectionModel.listeners().add( new SelectionListener< T >()
+		{
+			@Override
+			public void selectionChanged()
+			{
+				//
+			}
+
+			@Override
+			public void focusEvent( T selection )
+			{
+				int sourceIndex = 0;
+
+				final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageSource( selection.getImageName() );
+
+				zoomToInterval( imageSource.getInterval() );
+			}
+		} );
+	}
 }

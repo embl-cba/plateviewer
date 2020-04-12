@@ -1,9 +1,8 @@
 package de.embl.cba.plateviewer.command;
 
-import bdv.viewer.ViewerPanel;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.table.DefaultImageNameTableRow;
-import de.embl.cba.plateviewer.view.PlateViewerTableView;
+import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
@@ -29,14 +28,21 @@ public class PlateViewerCommand implements Command
 
 	public void run()
 	{
-		final PlateViewerImageView imageView = new PlateViewerImageView( imagesDirectory.toString(), filePattern, 1 );
+		final PlateViewerImageView imagePlateView = new PlateViewerImageView( imagesDirectory.toString(), filePattern, 1 );
 
 		if ( imagesTableFile != null )
 		{
-			final List< DefaultImageNameTableRow > tableRows = imageNameTableRowsFromFilePath( imagesTableFile.getAbsolutePath() );
-			final TableRowsTableView< DefaultImageNameTableRow > tableView = new TableRowsTableView<>( tableRows );
-			final Component parentComponent = imageView.getBdv().getBdvHandle().getViewerPanel();
-			tableView.showTableAndMenu( parentComponent );
+			final DefaultSelectionModel< DefaultImageNameTableRow > selectionModel = new DefaultSelectionModel<>();
+
+			final List< DefaultImageNameTableRow > tableRows = imageNameTableRowsFromFilePath(
+					imagesTableFile.getAbsolutePath(),
+					imagePlateView.getImageNamingScheme() );
+
+			final TableRowsTableView< DefaultImageNameTableRow > imageTableView = new TableRowsTableView<>( tableRows, selectionModel );
+			final Component parentComponent = imagePlateView.getBdv().getBdvHandle().getViewerPanel();
+			imageTableView.showTableAndMenu( parentComponent );
+
+			imagePlateView.installImageSelectionModel( tableRows, selectionModel );
 		}
 	}
 }

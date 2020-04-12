@@ -25,7 +25,7 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 
 	final ArrayList< String > wellNames;
 
-	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_CORONA_HDF5;
+	static final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_CORONA_HDF5;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
@@ -66,7 +66,7 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 	}
 
 	// TODO: make static utility method
-	private String getWellName( String fileName )
+	private static String getWellName( String fileName )
 	{
 		final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( fileName );
 
@@ -92,14 +92,19 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 					file,
 					hdf5DataSetName,
 					getInterval( file ),
-					getWellName( file.getName() ) + "-" + getSiteName( file.getName() ),
+					createImageName( file.getName() ),
 					getWellName( file.getName() ) );
 
 			imageSources.add( imageSource );
 		}
 	}
 
-	private String getSiteName( String fileName )
+	public static String createImageName( String fileName )
+	{
+		return getWellName( fileName ) + "-" + getSiteName( fileName);
+	}
+
+	private static String getSiteName( String fileName )
 	{
 		final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( fileName );
 

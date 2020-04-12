@@ -92,7 +92,7 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 		if ( imageSource != null )
 		{
 			wellName = imageSource.getWellName();
-			siteName = imageSource.getSiteName();
+			siteName = imageSource.getImageName();
 		}
 		else
 		{

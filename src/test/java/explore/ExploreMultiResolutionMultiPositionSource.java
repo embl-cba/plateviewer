@@ -24,7 +24,7 @@ public class ExploreMultiResolutionMultiPositionSource
 				new File( inputDirectory ),
 				".*.tif" );
 
-		final String namingScheme = PlateViewerImageView.getNamingScheme( fileList );
+		final String namingScheme = PlateViewerImageView.getImageNamingScheme( fileList );
 
 		final List< String > channelPatterns =
 				Utils.getChannelPatterns( fileList, namingScheme );

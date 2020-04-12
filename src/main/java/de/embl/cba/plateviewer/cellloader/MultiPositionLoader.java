@@ -30,10 +30,10 @@ public class MultiPositionLoader implements CellLoader
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
-	public ImageSource getImageSource( String imageFileName )
+	public ImageSource getImageSource( String imageName )
 	{
 		for ( ImageSource imageSource : imageSources )
-			if ( imageSource.getFile().getName().equals( imageFileName ) )
+			if ( imageSource.getImageName().equals( imageName ) )
 				return imageSource;
 
 		return null;

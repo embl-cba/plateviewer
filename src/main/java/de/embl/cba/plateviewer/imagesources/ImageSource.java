@@ -29,7 +29,7 @@ public class ImageSource
 		this.wellName = wellName;
 	}
 
-	public String getSiteName()
+	public String getImageName()
 	{
 		return siteName;
 	}

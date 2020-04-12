@@ -7,20 +7,20 @@ import java.util.Set;
 public class DefaultImageNameTableRow implements ImageNameTableRow
 {
 	private final Map< String, List< String > > columns;
-	private final String imageNameColumnName;
+	private final String imageName;
 	private final int rowIndex;
 
-	public DefaultImageNameTableRow( Map< String, List< String > > columns, String imageNameColumnName, int rowIndex )
+	public DefaultImageNameTableRow( String imageName, Map< String, List< String > > columns, int rowIndex )
 	{
+		this.imageName = imageName;
 		this.columns = columns;
-		this.imageNameColumnName = imageNameColumnName;
 		this.rowIndex = rowIndex;
 	}
 
 	@Override
 	public String getImageName()
 	{
-		return columns.get( imageNameColumnName ).get( rowIndex );
+		return imageName;
 	}
 
 	@Override

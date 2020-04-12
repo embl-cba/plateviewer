@@ -276,6 +276,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		if ( a.getSource() == imageNamesComboBox )
 		{
 			plateViewerImageView.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
+
 			updateBdv( 1000 );
 		}
 

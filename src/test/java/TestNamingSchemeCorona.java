@@ -11,7 +11,7 @@ public class TestNamingSchemeCorona
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final List< DefaultImageNameTableRow > imageNameTableRows = ImageNameTableRows.imageNameTableRowsFromFilePath( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() );
+		final List< DefaultImageNameTableRow > imageNameTableRows = ImageNameTableRows.imageNameTableRowsFromFilePath( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile(), imageView.getImageNamingScheme() );
 
 		new PlateViewerTableView( imageNameTableRows ).showTable();
 
