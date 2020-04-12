@@ -9,29 +9,29 @@ public class ImageSource
 	private final File file;
 	private String hdf5DataSetName;
 	private final FinalInterval interval;
-	private final String positionName;
+	private final String siteName;
 	private final String wellName;
 
-	public ImageSource( File file, String hdf5DataSetName, FinalInterval interval, String positionName, String wellName )
+	public ImageSource( File file, String hdf5DataSetName, FinalInterval interval, String siteName, String wellName )
 	{
 		this.file = file;
 		this.hdf5DataSetName = hdf5DataSetName;
 		this.interval = interval;
-		this.positionName = positionName;
+		this.siteName = siteName;
 		this.wellName = wellName;
 	}
 
-	public ImageSource( File file, FinalInterval interval, String positionName, String wellName )
+	public ImageSource( File file, FinalInterval interval, String siteName, String wellName )
 	{
 		this.file = file;
 		this.interval = interval;
-		this.positionName = positionName;
+		this.siteName = siteName;
 		this.wellName = wellName;
 	}
 
 	public String getSiteName()
 	{
-		return positionName;
+		return siteName;
 	}
 
 	public String getWellName()

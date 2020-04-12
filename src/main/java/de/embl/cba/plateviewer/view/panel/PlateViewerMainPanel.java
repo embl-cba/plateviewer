@@ -39,7 +39,6 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	private ImageFilterSettings previousImageFilterSettings;
 	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
-
 	public PlateViewerMainPanel( PlateViewerImageView plateViewerImageView )
 	{
 		this.plateViewerImageView = plateViewerImageView;
@@ -149,7 +148,6 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		panel.add( horizontalLayoutPanel );
 	}
 
-
 	private void addImageProcessingComboBox( JPanel panel )
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
@@ -229,7 +227,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		}
 		imageNamesComboBox.addActionListener( this );
 
-		horizontalLayoutPanel.add( new JLabel( "Zoom to image: " ) );
+		horizontalLayoutPanel.add( new JLabel( "Zoom to site: " ) );
 		horizontalLayoutPanel.add( imageNamesComboBox );
 
 		panel.add( horizontalLayoutPanel );
@@ -436,7 +434,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		if ( parentComponent != null )
 		{
 			frame.setLocation(
-					parentComponent.getLocationOnScreen().x + parentComponent.getWidth(),
+					parentComponent.getLocationOnScreen().x + parentComponent.getWidth() + 10,
 					parentComponent.getLocationOnScreen().y
 			);
 		}

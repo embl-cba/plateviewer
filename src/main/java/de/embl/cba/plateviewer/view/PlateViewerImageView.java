@@ -154,7 +154,7 @@ public class PlateViewerImageView< T extends NativeType< T > & RealType< T > >
 
 		for ( ImageSource imageSource : imageSources )
 		{
-			imageNames.add( imageSource.getFile().getName() );
+			imageNames.add( imageSource.getSiteName() );
 		}
 
 		return imageNames;

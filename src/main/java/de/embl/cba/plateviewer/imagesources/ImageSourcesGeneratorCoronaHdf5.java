@@ -92,10 +92,25 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 					file,
 					hdf5DataSetName,
 					getInterval( file ),
-					file.getName(),
+					getWellName( file.getName() ) + "-" + getSiteName( file.getName() ),
 					getWellName( file.getName() ) );
 
 			imageSources.add( imageSource );
+		}
+	}
+
+	private String getSiteName( String fileName )
+	{
+		final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( fileName );
+
+		if ( matcher.matches() )
+		{
+			String siteName = matcher.group( 2 );
+			return siteName;
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "Could not match naming scheme pattern " + WELL_SITE_CHANNEL_PATTERN + " to file " + fileName );
 		}
 	}
 
