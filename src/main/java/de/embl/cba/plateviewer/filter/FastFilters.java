@@ -1,6 +1,5 @@
-package de.embl.cba.plateviewer.imagefilter;
+package de.embl.cba.plateviewer.filter;
 
-import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
 import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
 import ij.plugin.filter.RankFilters;

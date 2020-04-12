@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
 import de.embl.cba.plateviewer.Utils;
 import net.imglib2.FinalInterval;
@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
+public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerator
 {
 	final List< File > files;
 	private final String hdf5DataSetName;
@@ -21,7 +21,7 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 	int[] wellDimensions;
 	int[] imageDimensions;
 
-	final ArrayList< ImageSource > imageSources;
+	final ArrayList< ChannelSource > channelSources;
 
 	final ArrayList< String > wellNames;
 
@@ -29,11 +29,11 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public ImageSourcesGeneratorCoronaHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions )
+	public ChannelSourcesGeneratorCoronaHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions )
 	{
 		this.files = files;
 		this.hdf5DataSetName = hdf5DataSetName;
-		this.imageSources = new ArrayList<>();
+		this.channelSources = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
 		createImageSources();
@@ -42,9 +42,9 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 	}
 
 	@Override
-	public ArrayList< ImageSource > getImageSources()
+	public ArrayList< ChannelSource > getChannelSources()
 	{
-		return imageSources;
+		return channelSources;
 	}
 
 	@Override
@@ -88,18 +88,18 @@ public class ImageSourcesGeneratorCoronaHdf5 implements ImageSourcesGenerator
 
 		for ( File file : files )
 		{
-			final ImageSource imageSource = new ImageSource(
+			final ChannelSource channelSource = new ChannelSource(
 					file,
 					hdf5DataSetName,
 					getInterval( file ),
-					createImageName( file.getName() ),
+					createSiteName( file.getName() ),
 					getWellName( file.getName() ) );
 
-			imageSources.add( imageSource );
+			channelSources.add( channelSource );
 		}
 	}
 
-	public static String createImageName( String fileName )
+	public static String createSiteName( String fileName )
 	{
 		return getWellName( fileName ) + "-" + getSiteName( fileName);
 	}

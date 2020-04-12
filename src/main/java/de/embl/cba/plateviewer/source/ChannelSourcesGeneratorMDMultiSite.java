@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
 import de.embl.cba.plateviewer.Utils;
 import net.imglib2.FinalInterval;
@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
+public class ChannelSourcesGeneratorMDMultiSite implements ChannelSourcesGenerator
 {
 	final List< File > files;
 
@@ -20,31 +20,31 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 	int[] wellDimensions;
 	int[] imageDimensions;
 
-	final private ArrayList< ImageSource > imageSources;
+	final private ArrayList< ChannelSource > channelSources;
 	final private ArrayList< String > wellNames;
 
 	final private String namingScheme;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public ImageSourcesGeneratorMDMultiSite( List< File > files,
-											 int[] imageDimensions,
-											 String namingScheme )
+	public ChannelSourcesGeneratorMDMultiSite( List< File > files,
+											   int[] imageDimensions,
+											   String namingScheme )
 	{
 		this.files = files;
 		this.imageDimensions = imageDimensions;
 		this.namingScheme = namingScheme;
 
-		this.imageSources = new ArrayList<>();
+		this.channelSources = new ArrayList<>();
 
 		setImageSources();
 
 		wellNames = Utils.getWellNames( files, this.namingScheme, WELL_GROUP );
 	}
 
-	public ArrayList< ImageSource > getImageSources()
+	public ArrayList< ChannelSource > getChannelSources()
 	{
-		return imageSources;
+		return channelSources;
 	}
 
 	private void setImageSources()
@@ -54,13 +54,13 @@ public class ImageSourcesGeneratorMDMultiSite implements ImageSourcesGenerator
 
 		for ( File file : files )
 		{
-			final ImageSource imageSource = new ImageSource(
+			final ChannelSource channelSource = new ChannelSource(
 					file,
 					getInterval( file ),
 					getPositionName(file.getName() ),
 					getWellName(file.getName() ) );
 
-			imageSources.add( imageSource );
+			channelSources.add( channelSource );
 		}
 	}
 

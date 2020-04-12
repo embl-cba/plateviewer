@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
 import de.embl.cba.plateviewer.Utils;
 import net.imglib2.FinalInterval;
@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
+public class ChannelSourcesGeneratorMDSingleSite implements ChannelSourcesGenerator
 {
 	final List< File > files;
 
@@ -19,17 +19,17 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 	int[] maxSiteDimensionsInData;
 	int[] imageDimensions;
 
-	final ArrayList< ImageSource > imageSources;
+	final ArrayList< ChannelSource > channelSources;
 
 	final static String NAMING_SCHEME = NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
 	public static final int NAMING_SCHEME_WELL_GROUP = 1;
 
 	final ArrayList< String > wellNames;
 
-	public ImageSourcesGeneratorMDSingleSite( List< File > files, int[] imageDimensions )
+	public ChannelSourcesGeneratorMDSingleSite( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
-		this.imageSources = new ArrayList<>();
+		this.channelSources = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
 		this.maxWellDimensionsInData = new int[ 2 ];
@@ -40,9 +40,9 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 		wellNames = Utils.getWellNames( files, NAMING_SCHEME, NAMING_SCHEME_WELL_GROUP );
 	}
 
-	public ArrayList< ImageSource > getImageSources()
+	public ArrayList< ChannelSource > getChannelSources()
 	{
-		return imageSources;
+		return channelSources;
 	}
 
 	public ArrayList< String > getWellNames()
@@ -60,13 +60,13 @@ public class ImageSourcesGeneratorMDSingleSite implements ImageSourcesGenerator
 		for ( File file : files )
 		{
 
-			final ImageSource imageSource = new ImageSource(
+			final ChannelSource channelSource = new ChannelSource(
 					file,
 					getInterval( file ),
 					getPositionName(file.getName() ),
 					getWellName( file.getName() ));
 
-			imageSources.add( imageSource );
+			channelSources.add( channelSource );
 		}
 	}
 

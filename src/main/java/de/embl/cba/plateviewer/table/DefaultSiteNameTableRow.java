@@ -4,23 +4,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultImageNameTableRow implements ImageNameTableRow
+public class DefaultSiteNameTableRow implements SiteNameTableRow
 {
 	private final Map< String, List< String > > columns;
-	private final String imageName;
+	private final String siteName;
 	private final int rowIndex;
 
-	public DefaultImageNameTableRow( String imageName, Map< String, List< String > > columns, int rowIndex )
+	public DefaultSiteNameTableRow( String siteName, Map< String, List< String > > columns, int rowIndex )
 	{
-		this.imageName = imageName;
+		this.siteName = siteName;
 		this.columns = columns;
 		this.rowIndex = rowIndex;
 	}
 
 	@Override
-	public String getImageName()
+	public String getSiteName()
 	{
-		return imageName;
+		return siteName;
 	}
 
 	@Override

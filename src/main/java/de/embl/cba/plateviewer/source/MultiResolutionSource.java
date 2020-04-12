@@ -1,6 +1,5 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
-import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import mpicbg.spim.data.sequence.VoxelDimensions;

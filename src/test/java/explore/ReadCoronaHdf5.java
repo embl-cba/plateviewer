@@ -1,15 +1,11 @@
 package explore;
 
-import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.imagesources.NamingSchemes;
 import loci.formats.FormatException;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class ReadCoronaHdf5
 {

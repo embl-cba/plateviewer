@@ -11,9 +11,9 @@ import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
-import de.embl.cba.plateviewer.imagesources.ImageSource;
-import de.embl.cba.plateviewer.imagesources.ImagesSource;
-import de.embl.cba.plateviewer.imagesources.NamingSchemes;
+import de.embl.cba.plateviewer.source.ChannelSource;
+import de.embl.cba.plateviewer.source.ChannelSources;
+import de.embl.cba.plateviewer.source.NamingSchemes;
 import de.embl.cba.plateviewer.table.ImageName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.select.SelectionListener;
@@ -42,44 +42,47 @@ import java.util.List;
 
 public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends ImageName >
 {
-	private final ArrayList< ImagesSource > imagesSources;
-	private final int numIoThreads;
+	private final ArrayList< ChannelSources > channelSources;
+	private int numIoThreads;
 	private final SharedQueue loadingQueue;
 
 	private Bdv bdv;
 	private PlateViewerMainPanel plateViewerMainPanel;
 	private List< T > imageFileNames;
 	private SelectionModel< T > selectionModel;
-	private final String imageNamingScheme;
+	private final String fileNamingScheme;
 
 	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
 	{
-		this.imagesSources = new ArrayList<>();
+		this.channelSources = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
 		this.loadingQueue = new SharedQueue( numIoThreads );
 
 		final List< File > fileList = getFiles( inputDirectory, filterPattern );
 
-		imageNamingScheme = getImageNamingScheme( fileList );
+		fileNamingScheme = getImageNamingScheme( fileList );
+
+		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
+			this.numIoThreads = 1; // Hdf5 does not support multi-threading
 
 		final List< String > channelPatterns =
-				Utils.getChannelPatterns( fileList, imageNamingScheme );
+				Utils.getChannelPatterns( fileList, fileNamingScheme );
 
-		addChannelsToViewer( fileList, imageNamingScheme, channelPatterns );
+		addChannelsToViewer( fileList, fileNamingScheme, channelPatterns );
 
 		addSiteAndWellNamesOverlay();
 
 		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
 	}
 
-	public String getImageNamingScheme()
+	public String getFileNamingScheme()
 	{
-		return imageNamingScheme;
+		return fileNamingScheme;
 	}
 
 	private void addSiteAndWellNamesOverlay()
 	{
-		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay( bdv, imagesSources );
+		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay( bdv, channelSources );
 		BdvFunctions.showOverlay(
 				bdvOverlay,
 				"site and well names - overlay",
@@ -112,11 +115,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelPattern );
 
-			final ImagesSource imagesSource = new ImagesSource( channelFiles, channelPattern, namingScheme, numIoThreads );
+			final ChannelSources channelSources = new ChannelSources( channelFiles, channelPattern, namingScheme, numIoThreads );
 
-			imagesSource.setName( channelPattern );
+			channelSources.setName( channelPattern );
 
-			addSource( imagesSource );
+			addSource( channelSources );
 		}
 	}
 
@@ -156,14 +159,14 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public ArrayList< String > getSiteNames()
 	{
-		final ArrayList< ImageSource > imageSources =
-				imagesSources.get( 0 ).getLoader().getImageSources();
+		final ArrayList< ChannelSource > channelSources =
+				this.channelSources.get( 0 ).getLoader().getChannelSources();
 
 		final ArrayList< String > imageNames = new ArrayList<>(  );
 
-		for ( ImageSource imageSource : imageSources )
+		for ( ChannelSource channelSource : channelSources )
 		{
-			imageNames.add( imageSource.getImageName() );
+			imageNames.add( channelSource.getImageName() );
 		}
 
 		return imageNames;
@@ -171,28 +174,28 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public ArrayList< String > getWellNames()
 	{
-		return imagesSources.get( 0 ).getWellNames();
+		return channelSources.get( 0 ).getWellNames();
 	}
 
 	public void zoomToWell( String wellName )
 	{
 		int sourceIndex = 0; // channel 0
 
-		final ArrayList< ImageSource > imageSources = imagesSources.get( sourceIndex ).getLoader().getImageSources();
+		final ArrayList< ChannelSource > channelSources = this.channelSources.get( sourceIndex ).getLoader().getChannelSources();
 
 		FinalInterval union = null;
 
-		for ( ImageSource imageSource : imageSources )
+		for ( ChannelSource channelSource : channelSources )
 		{
-			if ( imageSource.getWellName().equals( wellName ) )
+			if ( channelSource.getWellName().equals( wellName ) )
 			{
 				if ( union == null )
 				{
-					union = new FinalInterval( imageSource.getInterval() );
+					union = new FinalInterval( channelSource.getInterval() );
 				}
 				else
 				{
-					union = Intervals.union( imageSource.getInterval(), union );
+					union = Intervals.union( channelSource.getInterval(), union );
 				}
 			}
 		}
@@ -200,25 +203,24 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		zoomToInterval( union );
 	}
 
-	public void zoomToImage( String imageName )
+	public void zoomToSite( String siteName )
 	{
 		int sourceIndex = 0;
 
-		final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageSource( imageName );
+		final ChannelSource channelSource = channelSources.get( sourceIndex ).getLoader().getChannelSource( siteName );
 
-		zoomToInterval( imageSource.getInterval() );
+		zoomToInterval( channelSource.getInterval() );
 
 		if ( selectionModel != null )
-			notifyImageSelectionModel( imageSource );
-
+			notifyImageSelectionModel( channelSource );
 	}
 
-	public void notifyImageSelectionModel( ImageSource imageSource )
+	public void notifyImageSelectionModel( ChannelSource channelSource )
 	{
-		final String selectedImageFileName = imageSource.getFile().getName();
+		final String selectedImageFileName = channelSource.getFile().getName();
 		for ( T fileName : imageFileNames )
 		{
-			final String imageFileName = fileName.getImageName();
+			final String imageFileName = fileName.getSiteName();
 			if ( imageFileName.equals( selectedImageFileName ))
 				selectionModel.focus( fileName );
 		}
@@ -226,15 +228,15 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public boolean isImageExisting( final SingleCellArrayImg< R, ? > cell )
 	{
-		final ImageSource imageFile = imagesSources.get( 0 ).getLoader().getImageSource( cell );
+		final ChannelSource imageFile = channelSources.get( 0 ).getLoader().getChannelSource( cell );
 
 		if ( imageFile != null ) return true;
 		else return false;
 	}
 
-	public ArrayList< ImagesSource > getImagesSources()
+	public ArrayList< ChannelSources > getChannelSources()
 	{
-		return imagesSources;
+		return channelSources;
 	}
 
 	public AffineTransform3D getImageZoomTransform( FinalInterval interval )
@@ -274,7 +276,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return bdvWindowDimensions;
 	}
 
-	private void initBdvAndPlateViewerUI( ImagesSource source )
+	private void initBdvAndPlateViewerUI( ChannelSources source )
 	{
 		final ArrayImg< BitType, LongArray > dummyImageForInitialisation
 				= ArrayImgs.bits( new long[]{ 100, 100 } );
@@ -300,25 +302,25 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		addSource( source );
 
-		zoomToInterval( source.getLoader().getImageSource( 0 ).getInterval() );
+		zoomToInterval( source.getLoader().getChannelSource( 0 ).getInterval() );
 
 		bdvTmpSource.removeFromBdv();
 	}
 
-	public void addSource( ImagesSource< R > imagesSource )
+	public void addSource( ChannelSources< R > channelSources )
 	{
 		if ( bdv == null )
 		{
-			initBdvAndPlateViewerUI( imagesSource );
+			initBdvAndPlateViewerUI( channelSources );
 			return;
 		}
 
 		RandomAccessibleInterval volatileRai =
 				VolatileViews.wrapAsVolatile(
-					imagesSource.getCachedCellImg(),
+					channelSources.getCachedCellImg(),
 					loadingQueue );
 
-		if ( imagesSource.getType().equals( Metadata.Type.Segmentation ) )
+		if ( channelSources.getType().equals( Metadata.Type.Segmentation ) )
 		{
 			volatileRai = Converters.convert(
 					volatileRai,
@@ -328,25 +330,25 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		final BdvStackSource bdvStackSource = BdvFunctions.show(
 				volatileRai,
-				imagesSource.getName(),
+				channelSources.getName(),
 				BdvOptions.options().addTo( bdv ) );
 
 		bdvStackSource.setDisplayRange(
-				imagesSource.getLutMinMax()[ 0 ], imagesSource.getLutMinMax()[ 1 ] );
+				channelSources.getLutMinMax()[ 0 ], channelSources.getLutMinMax()[ 1 ] );
 
-		bdvStackSource.setColor( imagesSource.getColor() );
+		bdvStackSource.setColor( channelSources.getColor() );
 
-		bdvStackSource.setActive( imagesSource.isInitiallyVisible() );
+		bdvStackSource.setActive( channelSources.isInitiallyVisible() );
 
-		imagesSource.setBdvSource( bdvStackSource );
+		channelSources.setBdvSource( bdvStackSource );
 
 		plateViewerMainPanel.getSourcesPanel().addSourceToPanel(
-				imagesSource.getName(),
+				channelSources.getName(),
 				bdvStackSource,
-				imagesSource.getColor(),
-				imagesSource.isInitiallyVisible() );
+				channelSources.getColor(),
+				channelSources.isInitiallyVisible() );
 
-		imagesSources.add( imagesSource );
+		this.channelSources.add( channelSources );
 	}
 
 
@@ -365,11 +367,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	{
 		final long[] coordinates = getMouseCoordinates();
 
-		final ImageSource imageSource = imagesSources.get( 0 ).getLoader().getImageSource( coordinates );
+		final ChannelSource channelSource = channelSources.get( 0 ).getLoader().getChannelSource( coordinates );
 
-		if ( imageSource != null )
+		if ( channelSource != null )
 		{
-			Utils.log( imageSource.getFile().getName() );
+			Utils.log( channelSource.getFile().getName() );
 		}
 	}
 
@@ -409,11 +411,15 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			@Override
 			public void focusEvent( T selection )
 			{
-				int sourceIndex = 0;
+				int sourceIndex = 0; // TODO: this is because the siteName is the same for all channelSources, so we just take the first one.
+				final ChannelSource channelSource = channelSources.get( sourceIndex ).getLoader().getChannelSource( selection.getSiteName() );
 
-				final ImageSource imageSource = imagesSources.get( sourceIndex ).getLoader().getImageSource( selection.getImageName() );
+				if ( channelSource == null )
+				{
+					throw new UnsupportedOperationException( "Could not find image sources for site " + selection.getSiteName() );
+				}
 
-				zoomToInterval( imageSource.getInterval() );
+				zoomToInterval( channelSource.getInterval() );
 			}
 		} );
 	}

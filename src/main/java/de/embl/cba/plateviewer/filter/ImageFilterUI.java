@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagefilter;
+package de.embl.cba.plateviewer.filter;
 
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;

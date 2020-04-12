@@ -1,8 +1,7 @@
-import de.embl.cba.plateviewer.table.*;
-import de.embl.cba.plateviewer.view.PlateViewerTableView;
+import de.embl.cba.plateviewer.PlateViewer;
 import net.imagej.ImageJ;
 
-import java.util.List;
+import java.io.File;
 
 public class TestNamingSchemeCorona
 {
@@ -11,22 +10,16 @@ public class TestNamingSchemeCorona
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		final List< DefaultImageNameTableRow > imageNameTableRows = ImageNameTableRows.imageNameTableRowsFromFilePath( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile(), imageView.getImageNamingScheme() );
-
-		new PlateViewerTableView( imageNameTableRows ).showTable();
-
-//		final JTable jTable = Tables.loadTable( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() );
-//
-//		new JTableView( jTable ).showTable();
-
-//		new PlateViewer(
-//				TestNamingSchemeCorona.class.getResource( "CORONA" ).getFile(),
-//				".*.h5",
-//				4 );
+		new PlateViewer(
+				new File( TestNamingSchemeCorona.class.getResource( "CORONA" ).getFile() ),
+				".*.h5",
+				new File( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() ),
+				1);
 
 //		new PlateViewer(
 //				"/Volumes/kreshuk/pape/Work/data/covid-antibodies/data-processed/20200405_test_images/",
 //				".*.h5",
+//       		...
 //				4 );
 
 	}

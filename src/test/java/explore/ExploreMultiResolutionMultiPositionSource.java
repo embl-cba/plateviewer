@@ -1,10 +1,10 @@
 package explore;
 
 import de.embl.cba.plateviewer.io.FileUtils;
-import de.embl.cba.plateviewer.imagesources.MultiResolutionSource;
+import de.embl.cba.plateviewer.source.MultiResolutionSource;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.imagesources.ImagesSource;
+import de.embl.cba.plateviewer.source.ChannelSources;
 import net.imglib2.RandomAccessibleInterval;
 
 import java.io.File;
@@ -33,10 +33,10 @@ public class ExploreMultiResolutionMultiPositionSource
 				fileList,
 				channelPatterns.get( 0 ) );
 
-		final ImagesSource imagesSource =
-				new ImagesSource( channelFiles, namingScheme, 1 );
+		final ChannelSources channelSources =
+				new ChannelSources( channelFiles, namingScheme, 1 );
 
-		final RandomAccessibleInterval img = imagesSource.getCachedCellImg();
+		final RandomAccessibleInterval img = channelSources.getCachedCellImg();
 
 		final HashMap< Double, RandomAccessibleInterval > scaleToRai = new HashMap<>();
 

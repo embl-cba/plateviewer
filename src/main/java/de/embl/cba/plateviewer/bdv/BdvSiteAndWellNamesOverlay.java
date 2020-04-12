@@ -3,8 +3,8 @@ package de.embl.cba.plateviewer.bdv;
 
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.imagesources.ImageSource;
-import de.embl.cba.plateviewer.imagesources.ImagesSource;
+import de.embl.cba.plateviewer.source.ChannelSource;
+import de.embl.cba.plateviewer.source.ChannelSources;
 import de.embl.cba.plateviewer.cellloader.MultiPositionLoader;
 import net.imglib2.RealPoint;
 
@@ -24,11 +24,11 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 	private String wellName;
 	private String siteName;
 
-	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< ImagesSource > imagesSources )
+	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< ChannelSources > channelSources )
 	{
 		super();
 		this.bdv = bdv;
-		this.multiPositionLoader = imagesSources.get( 0 ).getLoader();
+		this.multiPositionLoader = channelSources.get( 0 ).getLoader();
 		this.numDimensions = 2;
 
 		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );
@@ -88,11 +88,11 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 
 		final long[] coordinate2D = getCoordinate2D( globalMouseCoordinates );
 
-		final ImageSource imageSource = multiPositionLoader.getImageSource( coordinate2D );
-		if ( imageSource != null )
+		final ChannelSource channelSource = multiPositionLoader.getChannelSource( coordinate2D );
+		if ( channelSource != null )
 		{
-			wellName = imageSource.getWellName();
-			siteName = imageSource.getImageName();
+			wellName = channelSource.getWellName();
+			siteName = channelSource.getImageName();
 		}
 		else
 		{

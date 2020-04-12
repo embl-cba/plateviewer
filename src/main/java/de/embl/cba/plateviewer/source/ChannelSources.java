@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class ImagesSource < T extends RealType< T > & NativeType< T > >
+public class ChannelSources< T extends RealType< T > & NativeType< T > >
 {
 	public static final String LUT_MIN_MAX = "ContrastLimits";
 	public static final String COLOR = "Color";
@@ -42,7 +42,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private double[] lutMinMax = new double[]{0, 255};
 	private ARGBType argbType;
 
-	private ArrayList< ImageSource > imageSources;
+	private ArrayList< ChannelSource > channelSources;
 
 	private ArrayList< String > wellNames;
 	private CachedCellImg< T, ? > cachedCellImg;
@@ -56,12 +56,12 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 	private Metadata.Type type;
 	private boolean isInitiallyVisible;
 
-	public ImagesSource( List< File > files, String name, int numIoThreads )
+	public ChannelSources( List< File > files, String name, int numIoThreads )
 	{
 		this( files, null, name, numIoThreads );
 	}
 
-	public ImagesSource( List< File > files, String hdf5DataSetName, String name, int numIoThreads )
+	public ChannelSources( List< File > files, String hdf5DataSetName, String name, int numIoThreads )
 	{
 		this.hdf5DataSetName = hdf5DataSetName;
 
@@ -76,7 +76,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 		createCachedCellImg();
 	}
 
-	public ImagesSource(
+	public ChannelSources(
 			CachedCellImg< T , ? > cachedCellImg,
 			String name,
 			BdvSource bdvSource,
@@ -98,48 +98,48 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	public void setImagesSourceAndWellNames( List< File > files, String hdf5DataSetName, String namingScheme )
 	{
-		ImageSourcesGenerator imageSourcesGenerator =
+		ChannelSourcesGenerator channelSourcesGenerator =
 				getImageSourcesGenerator( files, hdf5DataSetName, namingScheme );
 
-		imageSources = imageSourcesGenerator.getImageSources();
+		channelSources = channelSourcesGenerator.getChannelSources();
 
-		wellNames = imageSourcesGenerator.getWellNames();
+		wellNames = channelSourcesGenerator.getWellNames();
 	}
 
-	public ImageSourcesGenerator getImageSourcesGenerator(
+	public ChannelSourcesGenerator getImageSourcesGenerator(
 			List< File > files,
 			String hdf5DataSetName,
 			String namingScheme )
 	{
-		ImageSourcesGenerator imageSourcesGenerator = null;
+		ChannelSourcesGenerator channelSourcesGenerator = null;
 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite(
+			channelSourcesGenerator = new ChannelSourcesGeneratorMDMultiSite(
 					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH  );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDMultiSite(
+			channelSourcesGenerator = new ChannelSourcesGeneratorMDMultiSite(
 					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorScanR( files, imageDimensions );
+			channelSourcesGenerator = new ChannelSourcesGeneratorScanR( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorALMFScreening( files, imageDimensions );
+			channelSourcesGenerator = new ChannelSourcesGeneratorALMFScreening( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorMDSingleSite( files, imageDimensions );
+			channelSourcesGenerator = new ChannelSourcesGeneratorMDSingleSite( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
 		{
-			imageSourcesGenerator = new ImageSourcesGeneratorCoronaHdf5( files, hdf5DataSetName ,imageDimensions );
+			channelSourcesGenerator = new ChannelSourcesGeneratorCoronaHdf5( files, hdf5DataSetName ,imageDimensions );
 		}
-		return imageSourcesGenerator;
+		return channelSourcesGenerator;
 	}
 
 	public ArrayList< String > getWellNames()
@@ -174,12 +174,12 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	public void setCachedCellImgDimensions()
 	{
-		final ArrayList< ImageSource > imageSources = loader.getImageSources();
+		final ArrayList< ChannelSource > channelSources = loader.getChannelSources();
 
-		FinalInterval union = new FinalInterval( imageSources.get( 0 ).getInterval() );
+		FinalInterval union = new FinalInterval( channelSources.get( 0 ).getInterval() );
 
-		for ( ImageSource imageSource : imageSources )
-			union = Intervals.union( imageSource.getInterval(), union );
+		for ( ChannelSource channelSource : channelSources )
+			union = Intervals.union( channelSource.getInterval(), union );
 
 		dimensions = new long[ 2 ];
 
@@ -190,7 +190,7 @@ public class ImagesSource < T extends RealType< T > & NativeType< T > >
 
 	private void setMultiPositionLoader( int numIoThreads )
 	{
-		loader = new MultiPositionLoader( imageSources, numIoThreads );
+		loader = new MultiPositionLoader( channelSources, numIoThreads );
 	}
 
 	public double[] getLutMinMax()

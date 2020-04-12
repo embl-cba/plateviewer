@@ -1,10 +1,10 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
 import net.imglib2.FinalInterval;
 
 import java.io.File;
 
-public class ImageSource
+public class ChannelSource
 {
 	private final File file;
 	private String hdf5DataSetName;
@@ -12,7 +12,7 @@ public class ImageSource
 	private final String siteName;
 	private final String wellName;
 
-	public ImageSource( File file, String hdf5DataSetName, FinalInterval interval, String siteName, String wellName )
+	public ChannelSource( File file, String hdf5DataSetName, FinalInterval interval, String siteName, String wellName )
 	{
 		this.file = file;
 		this.hdf5DataSetName = hdf5DataSetName;
@@ -21,7 +21,7 @@ public class ImageSource
 		this.wellName = wellName;
 	}
 
-	public ImageSource( File file, FinalInterval interval, String siteName, String wellName )
+	public ChannelSource( File file, FinalInterval interval, String siteName, String wellName )
 	{
 		this.file = file;
 		this.interval = interval;

@@ -1,16 +1,18 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
 import de.embl.cba.plateviewer.Utils;
 import net.imglib2.FinalInterval;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
+public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 {
-
 	final List< File > files;
 
 	int numSites, numWells;
@@ -18,19 +20,18 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 	int[] wellDimensions;
 	int[] imageDimensions;
 
-	final ArrayList< ImageSource > imageSources;
+	final ArrayList< ChannelSource > channelSources;
 
 	final ArrayList< String > wellNames;
 
-	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
+	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
-	private boolean zeroBasedSites;
 
-	public ImageSourcesGeneratorALMFScreening( List< File > files, int[] imageDimensions )
+	public ChannelSourcesGeneratorScanR( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
-		this.imageSources = new ArrayList<>();
+		this.channelSources = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
 		createImageSources();
@@ -39,9 +40,9 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 	}
 
 	@Override
-	public ArrayList< ImageSource > getImageSources()
+	public ArrayList< ChannelSource > getChannelSources()
 	{
-		return imageSources;
+		return channelSources;
 	}
 
 	@Override
@@ -65,13 +66,11 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	private static String getWellName( String fileName )
 	{
-		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM ).matcher( fileName );
+		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_SCANR_WELLNAME_WELLNUM ).matcher( fileName );
 
 		if ( matcher.matches() )
 		{
 			String wellName = matcher.group( 1 );
-			wellName += "--" + matcher.group( 2 );
-			wellName += "--W" + matcher.group( 3 );
 			return wellName;
 		}
 		else
@@ -87,17 +86,13 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 		for ( File file : files )
 		{
-			final ImageSource imageSource = new ImageSource(
+			final ChannelSource channelSource = new ChannelSource(
 					file,
-					getInterval(
-							file,
-							WELL_SITE_CHANNEL_PATTERN,
-							wellDimensions[ 0 ],
-							siteDimensions[ 0 ] ),
+					getInterval( file, WELL_SITE_CHANNEL_PATTERN, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
 					file.getName(),
 					getWellName( file.getName() ) );
 
-			imageSources.add( imageSource );
+			channelSources.add( channelSource );
 		}
 	}
 
@@ -115,21 +110,9 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	private void configSites( List< File > files )
 	{
-		final Set< Integer > sites = getSitesSet( files );
-
-		if ( sites.size() == 0 )
-			numSites = 1;
-		else
-			numSites = sites.size();
-
-		for ( Integer site : sites )
-			if ( site == 0 )
-			{
-				zeroBasedSites = true;
-				break;
-			}
-
+		numSites = getNumSites( files );
 		siteDimensions = new int[ 2 ];
+
 		for ( int d = 0; d < siteDimensions.length; ++d )
 		{
 			siteDimensions[ d ] = ( int ) Math.ceil( Math.sqrt( numSites ) );
@@ -137,26 +120,32 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 		}
 
 		Utils.log( "Distinct sites: " +  numSites );
-		Utils.log( "Sites are zero based: " +  zeroBasedSites );
 		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
-
 	}
 
-	private Set< Integer > getSitesSet( List< File > files )
+	private int getNumSites( List< File > files )
 	{
-		Set< Integer > sites = new HashSet<>( );
+		Set< String > sites = new HashSet<>( );
 
 		for ( File file : files )
 		{
-			final Matcher matcher =
-					Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( file.getName() );
 
 			if ( matcher.matches() )
-				sites.add( Integer.parseInt( matcher.group( SITE_GROUP ) ) );
+			{
+				sites.add( matcher.group( SITE_GROUP ) );
+			}
 		}
 
-		return sites;
+		if ( sites.size() == 0 )
+		{
+			return 1;
+		}
+		else
+		{
+			return sites.size();
+		}
 	}
 
 	private int getNumWells( List< File > files )
@@ -192,11 +181,16 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 
 	}
 
-	private FinalInterval getInterval(
-			File file,
-			String pattern,
-			int numWellColumns,
-			int numSiteColumns )
+	/**
+	 * Determines where the image will be displayed
+	 *
+	 * @param file
+	 * @param pattern
+	 * @param numWellColumns
+	 * @param numSiteColumns
+	 * @return
+	 */
+	private FinalInterval getInterval( File file, String pattern, int numWellColumns, int numSiteColumns )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -208,22 +202,22 @@ public class ImageSourcesGeneratorALMFScreening implements ImageSourcesGenerator
 			int[] sitePosition = new int[ 2 ];
 
 			int wellNum = Integer.parseInt( matcher.group( WELL_GROUP ) ) - 1;
-
-			int siteNum = Integer.parseInt( matcher.group( SITE_GROUP ) );
-			if ( ! zeroBasedSites ) siteNum -= 1;
+			int siteNum = Integer.parseInt( matcher.group( SITE_GROUP ) ) - 1;
 
 			wellPosition[ 1 ] = wellNum / numWellColumns;
 			wellPosition[ 0 ] = wellNum % numWellColumns;
 
-			sitePosition[ 1 ] = siteNum / numSiteColumns;
-			sitePosition[ 0 ] = siteNum % numSiteColumns;
+			sitePosition[ 0 ] = siteNum / numSiteColumns;
+
+			final int modulo = siteNum % numSiteColumns;
+
+			if ( sitePosition[ 0 ] % 2 == 0 )
+				sitePosition[ 1 ] = modulo;
+			else
+				sitePosition[ 1 ] = ( numSiteColumns - 1 ) - modulo;
 
 			final FinalInterval interval =
-					Utils.createInterval(
-							wellPosition,
-							sitePosition,
-							siteDimensions,
-							imageDimensions );
+					Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 
 			return interval;
 		}

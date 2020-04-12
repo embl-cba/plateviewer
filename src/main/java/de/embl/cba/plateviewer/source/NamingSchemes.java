@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagesources;
+package de.embl.cba.plateviewer.source;
 
 public abstract class NamingSchemes
 {

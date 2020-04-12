@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagefilter;
+package de.embl.cba.plateviewer.filter;
 
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.cellloader.ImageFilterLoader;

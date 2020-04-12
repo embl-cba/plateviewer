@@ -4,7 +4,7 @@ import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.imagesources.ImageSource;
+import de.embl.cba.plateviewer.source.ChannelSource;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ColorProcessor;
@@ -22,47 +22,47 @@ import java.util.concurrent.Executors;
 public class MultiPositionLoader implements CellLoader
 {
 	private final ExecutorService executorService;
-	private final ArrayList< ImageSource > imageSources;
+	private final ArrayList< ChannelSource > channelSources;
 
-	public MultiPositionLoader( ArrayList< ImageSource > imageSources, int numIoThreads )
+	public MultiPositionLoader( ArrayList< ChannelSource > channelSources, int numIoThreads )
 	{
-		this.imageSources = imageSources;
+		this.channelSources = channelSources;
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
-	public ImageSource getImageSource( String imageName )
+	public ChannelSource getChannelSource( String imageName )
 	{
-		for ( ImageSource imageSource : imageSources )
-			if ( imageSource.getImageName().equals( imageName ) )
-				return imageSource;
+		for ( ChannelSource channelSource : channelSources )
+			if ( channelSource.getImageName().equals( imageName ) )
+				return channelSource;
 
 		return null;
 	}
 
-	public ImageSource getImageSource( int index )
+	public ChannelSource getChannelSource( int index )
 	{
-		return imageSources.get( index );
+		return channelSources.get( index );
 	}
 
-	public ArrayList< ImageSource > getImageSources()
+	public ArrayList< ChannelSource > getChannelSources()
 	{
-		return imageSources;
+		return channelSources;
 	}
 
 	@Override
 	public synchronized void load( final SingleCellArrayImg cell )
 	{
-		ImageSource imageSource = getImageSource( cell );
+		ChannelSource channelSource = getChannelSource( cell );
 
-		if ( imageSource != null )
+		if ( channelSource != null )
 		{
-			if ( imageSource.getHdf5DataSetName() != null )
+			if ( channelSource.getHdf5DataSetName() != null )
 			{
-				loadImageIntoCellUsingJHdf5( cell, imageSource.getFile(), imageSource.getHdf5DataSetName() );
+				loadImageIntoCellUsingJHdf5( cell, channelSource.getFile(), channelSource.getHdf5DataSetName() );
 			}
 			else
 			{
-				loadImageIntoCellUsingIJOpenImage( cell, imageSource.getFile() );
+				loadImageIntoCellUsingIJOpenImage( cell, channelSource.getFile() );
 			}
 		}
 	}
@@ -104,28 +104,28 @@ public class MultiPositionLoader implements CellLoader
 		}
 	}
 
-	public ImageSource getImageSource( SingleCellArrayImg cell )
+	public ChannelSource getChannelSource( SingleCellArrayImg cell )
 	{
 		Interval requestedInterval = Intervals.largestContainedInterval( cell );
 
-		for ( ImageSource imageSource : imageSources )
+		for ( ChannelSource channelSource : channelSources )
 		{
-			FinalInterval imageInterval = imageSource.getInterval();
+			FinalInterval imageInterval = channelSource.getInterval();
 
 			if ( Utils.areIntersecting( requestedInterval, imageInterval ) )
-				return imageSource;
+				return channelSource;
 		}
 
 		return null;
 	}
 
-	public ImageSource getImageSource( long[] coordinates )
+	public ChannelSource getChannelSource( long[] coordinates )
 	{
 		boolean matches = false;
 
-		for ( ImageSource imageSource : imageSources )
+		for ( ChannelSource channelSource : channelSources )
 		{
-			FinalInterval interval = imageSource.getInterval();
+			FinalInterval interval = channelSource.getInterval();
 
 			for ( int d = 0; d < interval.numDimensions(); ++d )
 			{
@@ -140,7 +140,7 @@ public class MultiPositionLoader implements CellLoader
 				}
 			}
 
-			if ( matches ) return imageSource;
+			if ( matches ) return channelSource;
 		}
 		return null;
 	}

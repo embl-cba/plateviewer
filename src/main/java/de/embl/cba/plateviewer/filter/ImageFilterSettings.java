@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.imagefilter;
+package de.embl.cba.plateviewer.filter;
 
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import net.imglib2.cache.img.CachedCellImg;

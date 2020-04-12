@@ -1,59 +1,66 @@
 package de.embl.cba.plateviewer.table;
 
-import de.embl.cba.plateviewer.imagesources.ImageSourcesGeneratorCoronaHdf5;
-import de.embl.cba.plateviewer.imagesources.NamingSchemes;
+import de.embl.cba.plateviewer.source.ChannelSourcesGeneratorCoronaHdf5;
+import de.embl.cba.plateviewer.source.NamingSchemes;
 import de.embl.cba.tables.TableColumns;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class ImageNameTableRows
 {
-	public static List< DefaultImageNameTableRow > imageNameTableRowsFromColumns(
+	public static List< DefaultSiteNameTableRow > createSiteNameTableRowsFromColumns(
 			final Map< String, List< String > > columns,
-			final String imageFileNameColumnName,
-			String imageNamingScheme )
+			final String siteNameColumnName )
 	{
-		final List< DefaultImageNameTableRow > imageNameTableRows = new ArrayList<>();
+		final List< DefaultSiteNameTableRow > siteNameTableRows = new ArrayList<>();
 
 		final int numRows = columns.values().iterator().next().size();
 
 		for ( int row = 0; row < numRows; row++ )
 		{
-			String imageName = getImageName( columns, imageFileNameColumnName, imageNamingScheme, row );
-
-			final DefaultImageNameTableRow imageNameTableRow
-					= new DefaultImageNameTableRow(
-							imageName,
-							columns,
-							row );
-
-			imageNameTableRows.add( imageNameTableRow );
+			siteNameTableRows.add(
+					new DefaultSiteNameTableRow(
+						columns.get( siteNameColumnName ).get( row ),
+						columns,
+						row )
+			);
 		}
 
-		return imageNameTableRows;
+		return siteNameTableRows;
 	}
 
-	public static String getImageName( Map< String, List< String > > columns, String imageFileNameColumnName, String imageNamingScheme, int row )
-	{
-		final String imageFileName = columns.get( imageFileNameColumnName ).get( row );
-
-		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
-		{
-			return ImageSourcesGeneratorCoronaHdf5.createImageName( imageFileName );
-		}
-		else
-		{
-			return imageFileName;
-		}
-	}
-
-	public static List< DefaultImageNameTableRow > imageNameTableRowsFromFilePath( String filePath, String imageNamingScheme )
+	public static List< DefaultSiteNameTableRow > createSiteNameTableRowsFromFilePath( String filePath, String imageNamingScheme )
 	{
 		final Map< String, List< String > > columnNameToColumn = TableColumns.stringColumnsFromTableFile( filePath );
 
-		return imageNameTableRowsFromColumns( columnNameToColumn, "image", imageNamingScheme );
+		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
+		{
+			addSiteNameColumn( columnNameToColumn );
+			return createSiteNameTableRowsFromColumns( columnNameToColumn, "site-name" );
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "Appending a table for naming scheme " + imageNamingScheme + " is not yet supported.");
+		}
+	}
+
+	public static String addSiteNameColumn( Map< String, List< String > > columnNameToColumn )
+	{
+		final int numRows = columnNameToColumn.values().iterator().next().size();
+
+		final List< String > siteNameColumn = new ArrayList<>();
+
+		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
+		{
+			final String imageFileName = columnNameToColumn.get( "image" ).get( rowIndex ) + ".h5";
+			final String siteName = ChannelSourcesGeneratorCoronaHdf5.createSiteName( imageFileName );
+			siteNameColumn.add( siteName );
+		}
+
+		columnNameToColumn.put( "site-name", siteNameColumn );
+
+		return "site-name";
 	}
 }

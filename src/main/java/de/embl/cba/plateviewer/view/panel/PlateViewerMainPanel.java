@@ -4,9 +4,9 @@ import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
-import de.embl.cba.plateviewer.imagefilter.ImageFilter;
-import de.embl.cba.plateviewer.imagefilter.ImageFilterSettings;
-import de.embl.cba.plateviewer.imagesources.ImagesSource;
+import de.embl.cba.plateviewer.filter.ImageFilter;
+import de.embl.cba.plateviewer.filter.ImageFilterSettings;
+import de.embl.cba.plateviewer.source.ChannelSources;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -20,13 +20,13 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static de.embl.cba.plateviewer.imagefilter.ImageFilterUI.getImageFilterSettingsFromUI;
+import static de.embl.cba.plateviewer.filter.ImageFilterUI.getImageFilterSettingsFromUI;
 
 public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		extends JPanel implements ActionListener
 {
 	JFrame frame;
-	JComboBox imageNamesComboBox;
+	JComboBox siteNamesComboBox;
 	JComboBox wellNamesComboBox;
 
 	JComboBox imagesSourcesComboBox;
@@ -35,7 +35,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	final PlateViewerImageView plateViewerImageView;
 	private final Bdv bdv;
-	private ArrayList< ImagesSource< R > > imagesSources;
+	private ArrayList< ChannelSources< R > > channelSources;
 	private ImageFilterSettings previousImageFilterSettings;
 	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
@@ -86,13 +86,13 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	private void setImagesSources( )
 	{
-		this.imagesSources = new ArrayList<>(  );
+		this.channelSources = new ArrayList<>(  );
 
-		final ArrayList< ImagesSource > imagesSources = plateViewerImageView.getImagesSources();
+		final ArrayList< ChannelSources > channelSources = plateViewerImageView.getChannelSources();
 
-		for( ImagesSource imagesSource : imagesSources )
+		for( ChannelSources channelSource : channelSources )
 		{
-			this.imagesSources.add( imagesSource );
+			this.channelSources.add( channelSource );
 		}
 	}
 
@@ -194,7 +194,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		imagesSourcesComboBox.removeAllItems();
 
-		for( ImagesSource source : imagesSources )
+		for( ChannelSources source : channelSources )
 		{
 			imagesSourcesComboBox.addItem( source.getName() );
 		}
@@ -217,18 +217,18 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		imageNamesComboBox = new JComboBox( );
+		siteNamesComboBox = new JComboBox( );
 
 		final ArrayList< String > siteNames = plateViewerImageView.getSiteNames();
 
 		for ( String siteName : siteNames )
 		{
-			imageNamesComboBox.addItem( siteName );
+			siteNamesComboBox.addItem( siteName );
 		}
-		imageNamesComboBox.addActionListener( this );
+		siteNamesComboBox.addActionListener( this );
 
 		horizontalLayoutPanel.add( new JLabel( "Zoom to site: " ) );
-		horizontalLayoutPanel.add( imageNamesComboBox );
+		horizontalLayoutPanel.add( siteNamesComboBox );
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -273,9 +273,9 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	@Override
 	public void actionPerformed( ActionEvent a )
 	{
-		if ( a.getSource() == imageNamesComboBox )
+		if ( a.getSource() == siteNamesComboBox )
 		{
-			plateViewerImageView.zoomToImage( ( String ) imageNamesComboBox.getSelectedItem() );
+			plateViewerImageView.zoomToSite( ( String ) siteNamesComboBox.getSelectedItem() );
 
 			updateBdv( 1000 );
 		}
@@ -292,8 +292,8 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			{
 				new Thread( () ->
 				{
-					final ImagesSource inputSource =
-							imagesSources.get( imagesSourcesComboBox.getSelectedIndex() );
+					final ChannelSources inputSource =
+							channelSources.get( imagesSourcesComboBox.getSelectedIndex() );
 
 					ImageFilterSettings settings = configureImageFilterSettings( inputSource );
 					settings = getImageFilterSettingsFromUI( settings );
@@ -330,10 +330,10 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 									imageFilter.getBdvOverlay(), imageFilterSourceName );
 					}
 
-					final ImagesSource filteredImagesSource = new ImagesSource( filterImg,
+					final ChannelSources filteredChannelSources = new ChannelSources( filterImg,
 							imageFilterSourceName, bdvStackSource, bdvOverlaySource );
 
-					imagesSources.add( filteredImagesSource );
+					channelSources.add( filteredChannelSources );
 
 					previousImageFilterSettings = new ImageFilterSettings( settings );
 
@@ -348,7 +348,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	}
 
-	public ImageFilterSettings configureImageFilterSettings( ImagesSource inputSource )
+	public ImageFilterSettings configureImageFilterSettings( ChannelSources inputSource )
 	{
 		ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
 		settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
@@ -372,12 +372,12 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	public void removeSource( String name )
 	{
-		for ( ImagesSource source : imagesSources )
+		for ( ChannelSources source : channelSources )
 		{
 			if ( source.getName().equals( name ) )
 			{
 				source.dispose();
-				imagesSources.remove( source );
+				channelSources.remove( source );
 				source = null;
 				System.gc();
 				break;
@@ -405,9 +405,9 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	}
 
-	public static void setLut( BdvSource bdvSource, ImagesSource imagesSource, String filterType )
+	public static void setLut( BdvSource bdvSource, ChannelSources channelSources, String filterType )
 	{
-		final double[] lutMinMax = imagesSource.getLutMinMax();
+		final double[] lutMinMax = channelSources.getLutMinMax();
 
 		if ( filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{
