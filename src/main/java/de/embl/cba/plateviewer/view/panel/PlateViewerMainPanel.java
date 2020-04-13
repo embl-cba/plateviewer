@@ -6,7 +6,7 @@ import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;
-import de.embl.cba.plateviewer.source.ChannelSources;
+import de.embl.cba.plateviewer.source.MultiSiteChannelSource;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -35,7 +35,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	final PlateViewerImageView plateViewerImageView;
 	private final Bdv bdv;
-	private ArrayList< ChannelSources< R > > channelSources;
+	private ArrayList< MultiSiteChannelSource< R > > multiSiteChannelSources;
 	private ImageFilterSettings previousImageFilterSettings;
 	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
@@ -86,13 +86,13 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	private void setImagesSources( )
 	{
-		this.channelSources = new ArrayList<>(  );
+		this.multiSiteChannelSources = new ArrayList<>(  );
 
-		final ArrayList< ChannelSources > channelSources = plateViewerImageView.getChannelSources();
+		final ArrayList< MultiSiteChannelSource > multiSiteChannelSources = plateViewerImageView.getMultiSiteChannelSources();
 
-		for( ChannelSources channelSource : channelSources )
+		for( MultiSiteChannelSource channelSource : multiSiteChannelSources )
 		{
-			this.channelSources.add( channelSource );
+			this.multiSiteChannelSources.add( channelSource );
 		}
 	}
 
@@ -194,7 +194,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		imagesSourcesComboBox.removeAllItems();
 
-		for( ChannelSources source : channelSources )
+		for( MultiSiteChannelSource source : multiSiteChannelSources )
 		{
 			imagesSourcesComboBox.addItem( source.getName() );
 		}
@@ -292,8 +292,8 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			{
 				new Thread( () ->
 				{
-					final ChannelSources inputSource =
-							channelSources.get( imagesSourcesComboBox.getSelectedIndex() );
+					final MultiSiteChannelSource inputSource =
+							multiSiteChannelSources.get( imagesSourcesComboBox.getSelectedIndex() );
 
 					ImageFilterSettings settings = configureImageFilterSettings( inputSource );
 					settings = getImageFilterSettingsFromUI( settings );
@@ -330,10 +330,10 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 									imageFilter.getBdvOverlay(), imageFilterSourceName );
 					}
 
-					final ChannelSources filteredChannelSources = new ChannelSources( filterImg,
+					final MultiSiteChannelSource filteredMultiSiteChannelSource = new MultiSiteChannelSource( filterImg,
 							imageFilterSourceName, bdvStackSource, bdvOverlaySource );
 
-					channelSources.add( filteredChannelSources );
+					multiSiteChannelSources.add( filteredMultiSiteChannelSource );
 
 					previousImageFilterSettings = new ImageFilterSettings( settings );
 
@@ -348,7 +348,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	}
 
-	public ImageFilterSettings configureImageFilterSettings( ChannelSources inputSource )
+	public ImageFilterSettings configureImageFilterSettings( MultiSiteChannelSource inputSource )
 	{
 		ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
 		settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
@@ -372,12 +372,12 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	public void removeSource( String name )
 	{
-		for ( ChannelSources source : channelSources )
+		for ( MultiSiteChannelSource source : multiSiteChannelSources )
 		{
 			if ( source.getName().equals( name ) )
 			{
 				source.dispose();
-				channelSources.remove( source );
+				multiSiteChannelSources.remove( source );
 				source = null;
 				System.gc();
 				break;
@@ -405,9 +405,9 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	}
 
-	public static void setLut( BdvSource bdvSource, ChannelSources channelSources, String filterType )
+	public static void setLut( BdvSource bdvSource, MultiSiteChannelSource multiSiteChannelSource, String filterType )
 	{
-		final double[] lutMinMax = channelSources.getLutMinMax();
+		final double[] lutMinMax = multiSiteChannelSource.getLutMinMax();
 
 		if ( filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{

@@ -17,9 +17,9 @@ public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerato
 	private final String hdf5DataSetName;
 
 	int numSites, numWells;
-	int[] siteDimensions;
-	int[] wellDimensions;
-	int[] imageDimensions;
+	int[] siteDimensions; // for example, 2x2 sites
+	int[] wellDimensions; // for example, 10x4 wells
+	int[] imageDimensions; // for example, 1000x1000 pixels
 
 	final ArrayList< ChannelSource > channelSources;
 
@@ -207,7 +207,6 @@ public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerato
 			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 
 			return interval;
-
 		}
 		else
 		{
