@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.table;
 
-import de.embl.cba.plateviewer.source.ChannelSourcesGeneratorCoronaHdf5;
+import de.embl.cba.plateviewer.source.MultiWellChannelFilesProviderCoronaHdf5;
 import de.embl.cba.plateviewer.source.NamingSchemes;
 import de.embl.cba.tables.TableColumns;
 
@@ -55,7 +55,7 @@ public class ImageNameTableRows
 		for ( int rowIndex = 0; rowIndex < numRows; rowIndex++ )
 		{
 			final String imageFileName = columnNameToColumn.get( "image" ).get( rowIndex ) + ".h5";
-			final String siteName = ChannelSourcesGeneratorCoronaHdf5.createSiteName( imageFileName );
+			final String siteName = MultiWellChannelFilesProviderCoronaHdf5.createSiteName( imageFileName );
 			siteNameColumn.add( siteName );
 		}
 

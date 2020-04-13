@@ -30,24 +30,28 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
+public class MultiWellChannelCachedCellImgProvider< T extends RealType< T > & NativeType< T > >
 {
 	public static final String LUT_MIN_MAX = "ContrastLimits";
 	public static final String COLOR = "Color";
 	public static final String SKIP = "Skip";
 	public static final String VISIBLE = "Visible";
 
-	private long[] dimensions;
+	private long[] plateDimensions;
 	private int[] imageDimensions;
 	private double[] lutMinMax = new double[]{0, 255};
 	private ARGBType argbType;
 
-	private ArrayList< ChannelSource > channelSources;
+	private ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
 	private ArrayList< String > wellNames;
 	private CachedCellImg< T, ? > cachedCellImg;
 	private MultiPositionLoader loader;
-	private String hdf5DataSetName;
+	private final List< File > files;
+	private final int numIoThreads;
+	private final String namingScheme;
+	private String channelName;
+	private final String resolutionLevel;
 	private String name;
 
 	private BdvSource bdvSource;
@@ -56,35 +60,48 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 	private Metadata.Type type;
 	private boolean isInitiallyVisible;
 
-	public MultiSiteChannelSource( List< File > files, String name, int numIoThreads )
+	public MultiWellChannelCachedCellImgProvider( List< File > files, String namingScheme, int numIoThreads )
 	{
-		this( files, null, name, numIoThreads );
+		this( files, namingScheme, numIoThreads, null, null );
 	}
 
-	public MultiSiteChannelSource( List< File > files, String hdf5DataSetName, String name, int numIoThreads )
+	public MultiWellChannelCachedCellImgProvider( List< File > files, String namingScheme, int numIoThreads, String channelName )
 	{
-		this.hdf5DataSetName = hdf5DataSetName;
-
-		setImageProperties( files.get( 0 ) );
-
-		setImagesSourceAndWellNames( files, hdf5DataSetName, name );
-
-		setMultiPositionLoader( numIoThreads );
-
-		setCachedCellImgDimensions();
-
-		createCachedCellImg();
+		this( files, namingScheme, numIoThreads, channelName, null );
 	}
 
-	public MultiSiteChannelSource(
+	public MultiWellChannelCachedCellImgProvider( List< File > files, String namingScheme, int numIoThreads, String channelName, String resolutionLevel )
+	{
+		this.files = files;
+		this.namingScheme = namingScheme;
+		this.channelName = channelName;
+		this.resolutionLevel = resolutionLevel;
+		this.numIoThreads = numIoThreads;
+
+		setImageProperties( files.get( 0 ), namingScheme );
+
+		setChannelSourcesAndWellNames( files, channelName, namingScheme );
+
+		setMultiPositionLoader( numIoThreads, singleSiteChannelFiles );
+
+		setCachedCellImgDimensions( singleSiteChannelFiles );
+
+		setCachedCellImg();
+	}
+
+	public MultiWellChannelCachedCellImgProvider(
 			CachedCellImg< T , ? > cachedCellImg,
 			String name,
 			BdvSource bdvSource,
 			BdvOverlaySource bdvOverlaySource )
 	{
+		this.files = null;
+		this.resolutionLevel = null;
+		this.namingScheme = null;
+		this.numIoThreads = 1; // TODO: what to put here?
 		this.cachedCellImg = cachedCellImg;
 		this.name = name;
-		this.hdf5DataSetName = null;
+		this.channelName = null;
 		this.bdvSource = bdvSource;
 		this.bdvOverlaySource = bdvOverlaySource;
 	}
@@ -96,50 +113,50 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 		cachedCellImg = null;
 	}
 
-	public void setImagesSourceAndWellNames( List< File > files, String hdf5DataSetName, String namingScheme )
+	public void setChannelSourcesAndWellNames( List< File > files, String hdf5DataSetName, String namingScheme )
 	{
-		ChannelSourcesGenerator channelSourcesGenerator =
-				getImageSourcesGenerator( files, hdf5DataSetName, namingScheme );
+		MultiWellChannelFilesProvider multiWellChannelFilesProvider =
+				getMultiSiteChannelSourceGenerator( files, hdf5DataSetName, namingScheme );
 
-		channelSources = channelSourcesGenerator.getChannelSources();
+		singleSiteChannelFiles = multiWellChannelFilesProvider.getSingleSiteChannelFiles();
 
-		wellNames = channelSourcesGenerator.getWellNames();
+		wellNames = multiWellChannelFilesProvider.getWellNames();
 	}
 
-	public ChannelSourcesGenerator getImageSourcesGenerator(
+	public MultiWellChannelFilesProvider getMultiSiteChannelSourceGenerator(
 			List< File > files,
 			String hdf5DataSetName,
 			String namingScheme )
 	{
-		ChannelSourcesGenerator channelSourcesGenerator = null;
+		MultiWellChannelFilesProvider multiWellChannelFilesProvider = null;
 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 		{
-			channelSourcesGenerator = new ChannelSourcesGeneratorMDMultiSite(
+			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevMultiSite(
 					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH  );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
 		{
-			channelSourcesGenerator = new ChannelSourcesGeneratorMDMultiSite(
+			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevMultiSite(
 					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
 		{
-			channelSourcesGenerator = new ChannelSourcesGeneratorScanR( files, imageDimensions );
+			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderScanR( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
 		{
-			channelSourcesGenerator = new ChannelSourcesGeneratorALMFScreening( files, imageDimensions );
+			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderALMFScreening( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
 		{
-			channelSourcesGenerator = new ChannelSourcesGeneratorMDSingleSite( files, imageDimensions );
+			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevSingleSite( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
 		{
-			channelSourcesGenerator = new ChannelSourcesGeneratorCoronaHdf5( files, hdf5DataSetName, imageDimensions );
+			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderCoronaHdf5( files, hdf5DataSetName, imageDimensions );
 		}
-		return channelSourcesGenerator;
+		return multiWellChannelFilesProvider;
 	}
 
 	public ArrayList< String > getWellNames()
@@ -162,34 +179,27 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 		this.bdvSource = bdvSource;
 	}
 
-	public String getName()
+	public String getChannelName()
 	{
-		return name;
+		return channelName;
 	}
 
-	public void setName( String name )
+	public void setCachedCellImgDimensions( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles )
 	{
-		this.name = name;
-	}
+		FinalInterval union = new FinalInterval( singleSiteChannelFiles.get( 0 ).getInterval() );
 
-	public void setCachedCellImgDimensions()
-	{
-		final ArrayList< ChannelSource > channelSources = loader.getChannelSources();
+		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
+			union = Intervals.union( singleSiteChannelFile.getInterval(), union );
 
-		FinalInterval union = new FinalInterval( channelSources.get( 0 ).getInterval() );
-
-		for ( ChannelSource channelSource : channelSources )
-			union = Intervals.union( channelSource.getInterval(), union );
-
-		dimensions = new long[ 2 ];
+		plateDimensions = new long[ 2 ];
 
 		for ( int d = 0; d < 2; ++d )
-			dimensions[ d ] = union.max( d ) + 1;
+			plateDimensions[ d ] = union.max( d ) + 1;
 	}
 
-	private void setMultiPositionLoader( int numIoThreads )
+	private void setMultiPositionLoader( int numIoThreads, ArrayList< SingleSiteChannelFile > singleSiteChannelFiles )
 	{
-		loader = new MultiPositionLoader( channelSources, numIoThreads );
+		loader = new MultiPositionLoader( singleSiteChannelFiles, numIoThreads );
 	}
 
 	public double[] getLutMinMax()
@@ -202,9 +212,9 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 		return loader;
 	}
 
-	private void setImageProperties( File file )
+	private void setImageProperties( File file, String namingScheme )
 	{
-		if ( file.getName().endsWith( ".h5" ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
 		{
 			setImagePropertiesUsingJHdf5( file );
 		}
@@ -238,7 +248,7 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 
 	private void setLut( IHDF5Reader hdf5Reader )
 	{
-		String colorName = hdf5Reader.string().getAttr( hdf5DataSetName, COLOR );
+		String colorName = hdf5Reader.string().getAttr( channelName, COLOR );
 
 		if ( colorName.equals( "Gray" ) ) // TODO: Remove!
 			colorName = "White";
@@ -256,18 +266,18 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 		final Color color = Utils.getColor( colorName );
 		argbType = Utils.getARGBType( color );
 
-		isInitiallyVisible = hdf5Reader.bool().getAttr( hdf5DataSetName, VISIBLE );
+		isInitiallyVisible = hdf5Reader.bool().getAttr( channelName, VISIBLE );
 
 		setLutMinMax( hdf5Reader );
 	}
 
 	private void setLutMinMax( IHDF5Reader hdf5Reader )
 	{
-		if ( ! hdf5Reader.hasAttribute( hdf5DataSetName, LUT_MIN_MAX ) ) return;
+		if ( ! hdf5Reader.hasAttribute( channelName, LUT_MIN_MAX ) ) return;
 
 		try
 		{
-			final short[] lutMinMax = hdf5Reader.int16().getArrayAttr( hdf5DataSetName, LUT_MIN_MAX );
+			final short[] lutMinMax = hdf5Reader.int16().getArrayAttr( channelName, LUT_MIN_MAX );
 			this.lutMinMax[ 0 ] = lutMinMax[ 0 ];
 			this.lutMinMax[ 1 ] = lutMinMax[ 1 ];
 		}
@@ -280,9 +290,9 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 
 	private void setImageDimensions( IHDF5Reader hdf5Reader )
 	{
-		final long[] dimensions = hdf5Reader.getDataSetInformation( hdf5DataSetName ).getDimensions();
+		final long[] dimensions = hdf5Reader.getDataSetInformation( channelName ).getDimensions();
 		imageDimensions = new int[ 2 ];
-		imageDimensions[ 0 ] = (int) dimensions[ 1 ]; // hdf5 is the other way around
+		imageDimensions[ 0 ] = (int) dimensions[ 1 ]; // in hdf5 it is y,x
 		imageDimensions[ 1 ] = (int) dimensions[ 0 ];
 	}
 
@@ -349,7 +359,7 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 
 	private void setImageDataType( IHDF5Reader hdf5Reader )
 	{
-		final HDF5DataSetInformation information = hdf5Reader.getDataSetInformation( hdf5DataSetName );
+		final HDF5DataSetInformation information = hdf5Reader.getDataSetInformation( channelName );
 		final String dataType = information.getTypeInformation().toString();
 		final boolean signed = information.isSigned();
 
@@ -400,10 +410,10 @@ public class MultiSiteChannelSource< T extends RealType< T > & NativeType< T > >
 		return cachedCellImg;
 	}
 
-	private void createCachedCellImg()
+	private void setCachedCellImg()
 	{
 		cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
-				dimensions,
+				plateDimensions,
 				nativeType,
 				loader,
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( imageDimensions ) );

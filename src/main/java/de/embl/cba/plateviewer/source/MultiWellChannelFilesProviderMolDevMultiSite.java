@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChannelSourcesGeneratorMDMultiSite implements ChannelSourcesGenerator
+public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellChannelFilesProvider
 {
 	final List< File > files;
 
@@ -20,31 +20,31 @@ public class ChannelSourcesGeneratorMDMultiSite implements ChannelSourcesGenerat
 	int[] wellDimensions;
 	int[] imageDimensions;
 
-	final private ArrayList< ChannelSource > channelSources;
+	final private ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 	final private ArrayList< String > wellNames;
 
 	final private String namingScheme;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public ChannelSourcesGeneratorMDMultiSite( List< File > files,
-											   int[] imageDimensions,
-											   String namingScheme )
+	public MultiWellChannelFilesProviderMolDevMultiSite( List< File > files,
+														 int[] imageDimensions,
+														 String namingScheme )
 	{
 		this.files = files;
 		this.imageDimensions = imageDimensions;
 		this.namingScheme = namingScheme;
 
-		this.channelSources = new ArrayList<>();
+		this.singleSiteChannelFiles = new ArrayList<>();
 
 		setImageSources();
 
 		wellNames = Utils.getWellNames( files, this.namingScheme, WELL_GROUP );
 	}
 
-	public ArrayList< ChannelSource > getChannelSources()
+	public ArrayList< SingleSiteChannelFile > getSingleSiteChannelFiles()
 	{
-		return channelSources;
+		return singleSiteChannelFiles;
 	}
 
 	private void setImageSources()
@@ -54,13 +54,13 @@ public class ChannelSourcesGeneratorMDMultiSite implements ChannelSourcesGenerat
 
 		for ( File file : files )
 		{
-			final ChannelSource channelSource = new ChannelSource(
+			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
 					file,
 					getInterval( file ),
 					getPositionName(file.getName() ),
 					getWellName(file.getName() ) );
 
-			channelSources.add( channelSource );
+			singleSiteChannelFiles.add( singleSiteChannelFile );
 		}
 	}
 

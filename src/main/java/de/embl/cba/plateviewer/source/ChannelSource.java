@@ -1,66 +1,69 @@
 package de.embl.cba.plateviewer.source;
 
-import net.imglib2.FinalInterval;
+import bdv.viewer.Interpolation;
+import bdv.viewer.Source;
+import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealRandomAccessible;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.RealType;
 
-import java.io.File;
+import java.util.HashMap;
 
-public class ChannelSource
+public class ChannelSource< R extends RealType< R > > implements Source< R >
 {
-	private final File file;
-	private String hdf5DataSetName;
-	private final FinalInterval interval;
-	private final String siteName;
-	private final String wellName;
+	private final HashMap< Double, RandomAccessibleInterval< R > > scaleToRai;
 
-	public ChannelSource( File file, String hdf5DataSetName, FinalInterval interval, String siteName, String wellName )
+	public ChannelSource( HashMap< Double, RandomAccessibleInterval< R > > scaleToRai )
 	{
-		this.file = file;
-		this.hdf5DataSetName = hdf5DataSetName;
-		this.interval = interval;
-		this.siteName = siteName;
-		this.wellName = wellName;
+		this.scaleToRai = scaleToRai;
 	}
 
-	public ChannelSource( File file, FinalInterval interval, String siteName, String wellName )
+	@Override
+	public boolean isPresent( int t )
 	{
-		this.file = file;
-		this.interval = interval;
-		this.siteName = siteName;
-		this.wellName = wellName;
+		return false;
 	}
 
-	public String getImageName()
+	@Override
+	public RandomAccessibleInterval< R > getSource( int t, int level )
 	{
-		return siteName;
+		return null;
 	}
 
-	public String getWellName()
+	@Override
+	public RealRandomAccessible< R > getInterpolatedSource( int t, int level, Interpolation method )
 	{
-		return wellName;
+		return null;
 	}
 
-	public long[] getDimensions()
+	@Override
+	public void getSourceTransform( int t, int level, AffineTransform3D transform )
 	{
-		int n = interval.numDimensions();
-		final long[] dimensions = new long[ n ];
 
-		interval.dimensions( dimensions );
-
-		return dimensions;
 	}
 
-	public File getFile()
+	@Override
+	public R getType()
 	{
-		return file;
+		return null;
 	}
 
-	public FinalInterval getInterval()
+	@Override
+	public String getName()
 	{
-		return interval;
+		return null;
 	}
 
-	public String getHdf5DataSetName()
+	@Override
+	public VoxelDimensions getVoxelDimensions()
 	{
-		return hdf5DataSetName;
+		return null;
+	}
+
+	@Override
+	public int getNumMipmapLevels()
+	{
+		return 0;
 	}
 }

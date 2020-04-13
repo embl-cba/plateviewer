@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChannelSourcesGeneratorMDSingleSite implements ChannelSourcesGenerator
+public class MultiWellChannelFilesProviderMolDevSingleSite implements MultiWellChannelFilesProvider
 {
 	final List< File > files;
 
@@ -19,17 +19,17 @@ public class ChannelSourcesGeneratorMDSingleSite implements ChannelSourcesGenera
 	int[] maxSiteDimensionsInData;
 	int[] imageDimensions;
 
-	final ArrayList< ChannelSource > channelSources;
+	final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
 	final static String NAMING_SCHEME = NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
 	public static final int NAMING_SCHEME_WELL_GROUP = 1;
 
 	final ArrayList< String > wellNames;
 
-	public ChannelSourcesGeneratorMDSingleSite( List< File > files, int[] imageDimensions )
+	public MultiWellChannelFilesProviderMolDevSingleSite( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
-		this.channelSources = new ArrayList<>();
+		this.singleSiteChannelFiles = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
 		this.maxWellDimensionsInData = new int[ 2 ];
@@ -40,16 +40,15 @@ public class ChannelSourcesGeneratorMDSingleSite implements ChannelSourcesGenera
 		wellNames = Utils.getWellNames( files, NAMING_SCHEME, NAMING_SCHEME_WELL_GROUP );
 	}
 
-	public ArrayList< ChannelSource > getChannelSources()
+	public ArrayList< SingleSiteChannelFile > getSingleSiteChannelFiles()
 	{
-		return channelSources;
+		return singleSiteChannelFiles;
 	}
 
 	public ArrayList< String > getWellNames()
 	{
 		return wellNames;
 	}
-
 
 	private void createImageFileList()
 	{
@@ -60,13 +59,13 @@ public class ChannelSourcesGeneratorMDSingleSite implements ChannelSourcesGenera
 		for ( File file : files )
 		{
 
-			final ChannelSource channelSource = new ChannelSource(
+			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
 					file,
 					getInterval( file ),
 					getPositionName(file.getName() ),
 					getWellName( file.getName() ));
 
-			channelSources.add( channelSource );
+			singleSiteChannelFiles.add( singleSiteChannelFile );
 		}
 	}
 
@@ -136,7 +135,6 @@ public class ChannelSourcesGeneratorMDSingleSite implements ChannelSourcesGenera
 		return maximalWellPosition;
 
 	}
-
 
 	private FinalInterval getInterval( File file )
 	{

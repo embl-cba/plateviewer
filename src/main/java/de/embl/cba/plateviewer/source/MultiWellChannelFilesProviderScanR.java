@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
+public class MultiWellChannelFilesProviderScanR implements MultiWellChannelFilesProvider
 {
 	final List< File > files;
 
@@ -20,7 +20,7 @@ public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 	int[] wellDimensions;
 	int[] imageDimensions;
 
-	final ArrayList< ChannelSource > channelSources;
+	final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
 	final ArrayList< String > wellNames;
 
@@ -28,21 +28,21 @@ public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public ChannelSourcesGeneratorScanR( List< File > files, int[] imageDimensions )
+	public MultiWellChannelFilesProviderScanR( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
-		this.channelSources = new ArrayList<>();
+		this.singleSiteChannelFiles = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
-		createImageSources();
+		createChannelSources();
 
 		this.wellNames = getWellNames( files );
 	}
 
 	@Override
-	public ArrayList< ChannelSource > getChannelSources()
+	public ArrayList< SingleSiteChannelFile > getSingleSiteChannelFiles()
 	{
-		return channelSources;
+		return singleSiteChannelFiles;
 	}
 
 	@Override
@@ -61,7 +61,6 @@ public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 		}
 
 		return new ArrayList<>( wellNameSet );
-
 	}
 
 	private static String getWellName( String fileName )
@@ -79,23 +78,22 @@ public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 		}
 	}
 
-	private void createImageSources()
+	private void createChannelSources()
 	{
 		configWells( files );
 		configSites( files );
 
 		for ( File file : files )
 		{
-			final ChannelSource channelSource = new ChannelSource(
+			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
 					file,
 					getInterval( file, WELL_SITE_CHANNEL_PATTERN, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
 					file.getName(),
 					getWellName( file.getName() ) );
 
-			channelSources.add( channelSource );
+			singleSiteChannelFiles.add( singleSiteChannelFile );
 		}
 	}
-
 
 	private void configWells( List< File > files )
 	{
@@ -169,7 +167,6 @@ public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 			}
 		}
 
-
 		if ( maxWellNum > wells.size() )
 		{
 			return maxWellNum;
@@ -178,7 +175,6 @@ public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 		{
 			return wells.size();
 		}
-
 	}
 
 	/**
@@ -225,8 +221,5 @@ public class ChannelSourcesGeneratorScanR implements ChannelSourcesGenerator
 		{
 			return null;
 		}
-
 	}
-
-
 }

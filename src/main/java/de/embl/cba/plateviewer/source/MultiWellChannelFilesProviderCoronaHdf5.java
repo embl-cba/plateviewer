@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerator
+public class MultiWellChannelFilesProviderCoronaHdf5 implements MultiWellChannelFilesProvider
 {
 	final List< File > files;
 	private final String hdf5DataSetName;
@@ -21,7 +21,7 @@ public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerato
 	int[] wellDimensions; // for example, 10x4 wells
 	int[] imageDimensions; // for example, 1000x1000 pixels
 
-	final ArrayList< ChannelSource > channelSources;
+	final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
 	final ArrayList< String > wellNames;
 
@@ -29,11 +29,11 @@ public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerato
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public ChannelSourcesGeneratorCoronaHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions )
+	public MultiWellChannelFilesProviderCoronaHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions )
 	{
 		this.files = files;
 		this.hdf5DataSetName = hdf5DataSetName;
-		this.channelSources = new ArrayList<>();
+		this.singleSiteChannelFiles = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
 		createImageSources();
@@ -42,9 +42,9 @@ public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerato
 	}
 
 	@Override
-	public ArrayList< ChannelSource > getChannelSources()
+	public ArrayList< SingleSiteChannelFile > getSingleSiteChannelFiles()
 	{
-		return channelSources;
+		return singleSiteChannelFiles;
 	}
 
 	@Override
@@ -88,14 +88,14 @@ public class ChannelSourcesGeneratorCoronaHdf5 implements ChannelSourcesGenerato
 
 		for ( File file : files )
 		{
-			final ChannelSource channelSource = new ChannelSource(
+			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
 					file,
 					hdf5DataSetName,
 					getInterval( file ),
 					createSiteName( file.getName() ),
 					getWellName( file.getName() ) );
 
-			channelSources.add( channelSource );
+			singleSiteChannelFiles.add( singleSiteChannelFile );
 		}
 	}
 

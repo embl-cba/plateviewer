@@ -5,7 +5,7 @@ import bdv.util.*;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
 import de.embl.cba.plateviewer.bdv.TextOverlay;
-import de.embl.cba.plateviewer.source.MultiSiteChannelSource;
+import de.embl.cba.plateviewer.source.MultiWellChannelCachedCellImgProvider;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -22,7 +22,7 @@ import java.awt.*;
 
 public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T > > implements CellLoader< UnsignedByteType >
 {
-	final MultiSiteChannelSource multiSiteChannelSource;
+	final MultiWellChannelCachedCellImgProvider multiWellChannelCachedCellImgProvider;
 	final RandomAccessibleInterval< T > input;
 	final double realThreshold;
 	final Bdv bdv;
@@ -33,13 +33,13 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 	public static final UnsignedByteType ZERO = new UnsignedByteType( 0 );
 
 	public SimpleSegmentationLoader(
-			MultiSiteChannelSource multiSiteChannelSource,
+			MultiWellChannelCachedCellImgProvider multiWellChannelCachedCellImgProvider,
 			RandomAccessibleInterval< T > input,
 			final double realThreshold,
 			long minSize,
 			final Bdv bdv )
 	{
-		this.multiSiteChannelSource = multiSiteChannelSource;
+		this.multiWellChannelCachedCellImgProvider = multiWellChannelCachedCellImgProvider;
 		this.input = input;
 		this.realThreshold = realThreshold;
 		this.bdv = bdv;
@@ -57,7 +57,7 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 	@Override
 	public void load( final SingleCellArrayImg< UnsignedByteType, ? > cell ) throws Exception
 	{
-		if ( multiSiteChannelSource.getLoader().getChannelSource( cell ) == null ) return;
+		if ( multiWellChannelCachedCellImgProvider.getLoader().getChannelSource( cell ) == null ) return;
 
 		thresholdImageSourceAndPutResultIntoCell( cell );
 

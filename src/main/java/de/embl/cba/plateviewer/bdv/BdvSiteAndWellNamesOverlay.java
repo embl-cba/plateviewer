@@ -3,8 +3,8 @@ package de.embl.cba.plateviewer.bdv;
 
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.source.ChannelSource;
-import de.embl.cba.plateviewer.source.MultiSiteChannelSource;
+import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
+import de.embl.cba.plateviewer.source.MultiWellChannelCachedCellImgProvider;
 import de.embl.cba.plateviewer.cellloader.MultiPositionLoader;
 import net.imglib2.RealPoint;
 
@@ -24,11 +24,11 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 	private String wellName;
 	private String siteName;
 
-	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< MultiSiteChannelSource > multiSiteChannelSources )
+	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< MultiWellChannelCachedCellImgProvider > multiWellChannelCachedCellImgProviders )
 	{
 		super();
 		this.bdv = bdv;
-		this.multiPositionLoader = multiSiteChannelSources.get( 0 ).getLoader();
+		this.multiPositionLoader = multiWellChannelCachedCellImgProviders.get( 0 ).getLoader();
 		this.numDimensions = 2;
 
 		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );
@@ -88,11 +88,11 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 
 		final long[] coordinate2D = getCoordinate2D( globalMouseCoordinates );
 
-		final ChannelSource channelSource = multiPositionLoader.getChannelSource( coordinate2D );
-		if ( channelSource != null )
+		final SingleSiteChannelFile singleSiteChannelFile = multiPositionLoader.getChannelSource( coordinate2D );
+		if ( singleSiteChannelFile != null )
 		{
-			wellName = channelSource.getWellName();
-			siteName = channelSource.getImageName();
+			wellName = singleSiteChannelFile.getWellName();
+			siteName = singleSiteChannelFile.getImageName();
 		}
 		else
 		{

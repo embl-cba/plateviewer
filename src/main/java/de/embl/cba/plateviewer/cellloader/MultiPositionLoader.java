@@ -4,7 +4,7 @@ import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.source.ChannelSource;
+import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ColorProcessor;
@@ -22,47 +22,47 @@ import java.util.concurrent.Executors;
 public class MultiPositionLoader implements CellLoader
 {
 	private final ExecutorService executorService;
-	private final ArrayList< ChannelSource > channelSources;
+	private final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
-	public MultiPositionLoader( ArrayList< ChannelSource > channelSources, int numIoThreads )
+	public MultiPositionLoader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles, int numIoThreads )
 	{
-		this.channelSources = channelSources;
+		this.singleSiteChannelFiles = singleSiteChannelFiles;
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
-	public ChannelSource getChannelSource( String imageName )
+	public SingleSiteChannelFile getChannelSource( String imageName )
 	{
-		for ( ChannelSource channelSource : channelSources )
-			if ( channelSource.getImageName().equals( imageName ) )
-				return channelSource;
+		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
+			if ( singleSiteChannelFile.getImageName().equals( imageName ) )
+				return singleSiteChannelFile;
 
 		return null;
 	}
 
-	public ChannelSource getChannelSource( int index )
+	public SingleSiteChannelFile getChannelSource( int index )
 	{
-		return channelSources.get( index );
+		return singleSiteChannelFiles.get( index );
 	}
 
-	public ArrayList< ChannelSource > getChannelSources()
+	public ArrayList< SingleSiteChannelFile > getSingleSiteChannelFiles()
 	{
-		return channelSources;
+		return singleSiteChannelFiles;
 	}
 
 	@Override
 	public synchronized void load( final SingleCellArrayImg cell )
 	{
-		ChannelSource channelSource = getChannelSource( cell );
+		SingleSiteChannelFile singleSiteChannelFile = getChannelSource( cell );
 
-		if ( channelSource != null )
+		if ( singleSiteChannelFile != null )
 		{
-			if ( channelSource.getHdf5DataSetName() != null )
+			if ( singleSiteChannelFile.getHdf5DataSetName() != null )
 			{
-				loadImageIntoCellUsingJHdf5( cell, channelSource.getFile(), channelSource.getHdf5DataSetName() );
+				loadImageIntoCellUsingJHdf5( cell, singleSiteChannelFile.getFile(), singleSiteChannelFile.getHdf5DataSetName() );
 			}
 			else
 			{
-				loadImageIntoCellUsingIJOpenImage( cell, channelSource.getFile() );
+				loadImageIntoCellUsingIJOpenImage( cell, singleSiteChannelFile.getFile() );
 			}
 		}
 	}
@@ -104,28 +104,28 @@ public class MultiPositionLoader implements CellLoader
 		}
 	}
 
-	public ChannelSource getChannelSource( SingleCellArrayImg cell )
+	public SingleSiteChannelFile getChannelSource( SingleCellArrayImg cell )
 	{
 		Interval requestedInterval = Intervals.largestContainedInterval( cell );
 
-		for ( ChannelSource channelSource : channelSources )
+		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
 		{
-			FinalInterval imageInterval = channelSource.getInterval();
+			FinalInterval imageInterval = singleSiteChannelFile.getInterval();
 
 			if ( Utils.areIntersecting( requestedInterval, imageInterval ) )
-				return channelSource;
+				return singleSiteChannelFile;
 		}
 
 		return null;
 	}
 
-	public ChannelSource getChannelSource( long[] coordinates )
+	public SingleSiteChannelFile getChannelSource( long[] coordinates )
 	{
 		boolean matches = false;
 
-		for ( ChannelSource channelSource : channelSources )
+		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
 		{
-			FinalInterval interval = channelSource.getInterval();
+			FinalInterval interval = singleSiteChannelFile.getInterval();
 
 			for ( int d = 0; d < interval.numDimensions(); ++d )
 			{
@@ -140,7 +140,7 @@ public class MultiPositionLoader implements CellLoader
 				}
 			}
 
-			if ( matches ) return channelSource;
+			if ( matches ) return singleSiteChannelFile;
 		}
 		return null;
 	}

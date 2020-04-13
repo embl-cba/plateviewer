@@ -1,10 +1,10 @@
 package explore;
 
 import de.embl.cba.plateviewer.io.FileUtils;
-import de.embl.cba.plateviewer.source.MultiResolutionChannelSource;
+import de.embl.cba.plateviewer.source.ChannelSource;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.source.MultiSiteChannelSource;
+import de.embl.cba.plateviewer.source.MultiWellChannelCachedCellImgProvider;
 import net.imglib2.RandomAccessibleInterval;
 
 import java.io.File;
@@ -32,15 +32,15 @@ public class ExploreMultiResolutionMultiPositionSource
 				fileList,
 				channelPatterns.get( 0 ) );
 
-		final MultiSiteChannelSource multiSiteChannelSource =
-				new MultiSiteChannelSource( channelFiles, namingScheme, 1 );
+		final MultiWellChannelCachedCellImgProvider multiWellChannelCachedCellImgProvider =
+				new MultiWellChannelCachedCellImgProvider( channelFiles, namingScheme, 1 );
 
-		final RandomAccessibleInterval img = multiSiteChannelSource.getCachedCellImg();
+		final RandomAccessibleInterval img = multiWellChannelCachedCellImgProvider.getCachedCellImg();
 
 		final HashMap< Double, RandomAccessibleInterval > scaleToRai = new HashMap<>();
 
 		scaleToRai.put( 1.0, img );
 
-		final MultiResolutionChannelSource source = new MultiResolutionChannelSource( scaleToRai );
+		final ChannelSource source = new ChannelSource( scaleToRai );
 	}
 }
