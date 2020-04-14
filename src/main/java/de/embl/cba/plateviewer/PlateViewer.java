@@ -28,7 +28,7 @@ public class PlateViewer
 			final TableRowsTableView< DefaultSiteNameTableRow > imageTableView = new TableRowsTableView<>( tableRows, selectionModel );
 			final Component parentComponent = imagePlateView.getBdv().getBdvHandle().getViewerPanel();
 			imageTableView.showTableAndMenu( parentComponent );
-
+			imageTableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
 			imagePlateView.installImageSelectionModel( tableRows, selectionModel );
 		}
 	}

@@ -33,7 +33,7 @@ public class MultiPositionLoader implements CellLoader
 	public SingleSiteChannelFile getChannelSource( String imageName )
 	{
 		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
-			if ( singleSiteChannelFile.getImageName().equals( imageName ) )
+			if ( singleSiteChannelFile.getSiteName().equals( imageName ) )
 				return singleSiteChannelFile;
 
 		return null;

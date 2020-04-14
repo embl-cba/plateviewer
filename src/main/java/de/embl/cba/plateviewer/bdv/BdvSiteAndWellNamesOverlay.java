@@ -52,13 +52,13 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 		int distanceToWindowBottom = 2 * ( fontSize + 5 );
 
 		g.drawString( wellName,
-				bdvWindowWidth / 3,
+				bdvWindowWidth / 5,
 				bdvWindowHeight - distanceToWindowBottom  );
 
 		distanceToWindowBottom = 1 * ( fontSize + 5 );
 
 		g.drawString( siteName,
-				bdvWindowWidth / 3,
+				bdvWindowWidth / 5,
 				bdvWindowHeight - distanceToWindowBottom );
 	}
 
@@ -91,8 +91,8 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 		final SingleSiteChannelFile singleSiteChannelFile = multiPositionLoader.getChannelSource( coordinate2D );
 		if ( singleSiteChannelFile != null )
 		{
-			wellName = singleSiteChannelFile.getWellName();
-			siteName = singleSiteChannelFile.getImageName();
+			wellName = singleSiteChannelFile.getWellName() + " " + singleSiteChannelFile.getWellInformation();
+			siteName = singleSiteChannelFile.getSiteName() + " " + singleSiteChannelFile.getWellInformation();
 		}
 		else
 		{

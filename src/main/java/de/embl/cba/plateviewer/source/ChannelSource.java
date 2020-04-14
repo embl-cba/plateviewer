@@ -22,7 +22,7 @@ public class ChannelSource< R extends RealType< R > > implements Source< R >
 	@Override
 	public boolean isPresent( int t )
 	{
-		return false;
+		return t == 0;
 	}
 
 	@Override

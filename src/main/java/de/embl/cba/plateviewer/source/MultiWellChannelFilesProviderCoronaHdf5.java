@@ -1,5 +1,7 @@
 package de.embl.cba.plateviewer.source;
 
+import ch.systemsx.cisd.hdf5.HDF5Factory;
+import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.Utils;
 import net.imglib2.FinalInterval;
 
@@ -95,8 +97,24 @@ public class MultiWellChannelFilesProviderCoronaHdf5 implements MultiWellChannel
 					createSiteName( file.getName() ),
 					getWellName( file.getName() ) );
 
+			singleSiteChannelFile.setSiteInformation( readSiteInformation( file ) );
+			singleSiteChannelFile.setWellInformation( readWellInformation( file ) );
 			singleSiteChannelFiles.add( singleSiteChannelFile );
 		}
+	}
+
+	private String readSiteInformation( File file )
+	{
+		final IHDF5Reader reader = HDF5Factory.openForReading( file );
+		final String information = reader.string().getAttr( "/", "ImageInformation" );
+		return information;
+	}
+
+	private String readWellInformation( File file )
+	{
+		final IHDF5Reader reader = HDF5Factory.openForReading( file );
+		final String information = reader.string().getAttr( "/", "WellInformation" );
+		return information;
 	}
 
 	public static String createSiteName( String fileName )

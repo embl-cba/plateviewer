@@ -204,7 +204,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
 		{
-			imageNames.add( singleSiteChannelFile.getImageName() );
+			imageNames.add( singleSiteChannelFile.getSiteName() );
 		}
 
 		return imageNames;

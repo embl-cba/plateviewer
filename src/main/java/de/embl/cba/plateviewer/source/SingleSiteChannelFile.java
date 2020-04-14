@@ -11,6 +11,8 @@ public class SingleSiteChannelFile
 	private final FinalInterval interval;
 	private final String siteName;
 	private final String wellName;
+	private String siteInformation = "";
+	private String wellInformation = "";
 
 	public SingleSiteChannelFile( File file, String hdf5DataSetName, FinalInterval interval, String siteName, String wellName )
 	{
@@ -29,24 +31,34 @@ public class SingleSiteChannelFile
 		this.wellName = wellName;
 	}
 
-	public String getImageName()
+	public String getSiteName()
 	{
 		return siteName;
+	}
+
+	public String getSiteInformation()
+	{
+		return siteInformation;
+	}
+
+	public void setSiteInformation( String siteInformation )
+	{
+		this.siteInformation = siteInformation;
+	}
+
+	public String getWellInformation()
+	{
+		return wellInformation;
+	}
+
+	public void setWellInformation( String wellInformation )
+	{
+		this.wellInformation = wellInformation;
 	}
 
 	public String getWellName()
 	{
 		return wellName;
-	}
-
-	public long[] getDimensions()
-	{
-		int n = interval.numDimensions();
-		final long[] dimensions = new long[ n ];
-
-		interval.dimensions( dimensions );
-
-		return dimensions;
 	}
 
 	public File getFile()

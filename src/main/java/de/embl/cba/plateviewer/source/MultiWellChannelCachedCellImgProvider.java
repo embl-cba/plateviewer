@@ -235,6 +235,7 @@ public class MultiWellChannelCachedCellImgProvider< T extends RealType< T > & Na
 		setImageDimensions( imagePlus );
 	}
 
+	// TODO: this stuff should be in an own Corona class!
 	private void setImagePropertiesUsingJHdf5( File file )
 	{
 		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( file );
