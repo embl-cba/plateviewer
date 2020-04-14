@@ -19,24 +19,24 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MultiPositionLoader implements CellLoader
+public abstract class MultiSiteLoader implements CellLoader
 {
-	private final ExecutorService executorService;
-	private final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
+	protected final ExecutorService executorService;
+	protected final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
-	public MultiPositionLoader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles, int numIoThreads )
+	public MultiSiteLoader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles, int numIoThreads )
 	{
 		this.singleSiteChannelFiles = singleSiteChannelFiles;
 		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
-	public SingleSiteChannelFile getChannelSource( String imageName )
+	public SingleSiteChannelFile getChannelSource( String siteName )
 	{
 		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
-			if ( singleSiteChannelFile.getSiteName().equals( imageName ) )
+			if ( singleSiteChannelFile.getSiteName().equals( siteName ) )
 				return singleSiteChannelFile;
 
-		return null;
+		throw new UnsupportedOperationException( "Could not find image " + siteName );
 	}
 
 	public SingleSiteChannelFile getChannelSource( int index )
@@ -49,23 +49,7 @@ public class MultiPositionLoader implements CellLoader
 		return singleSiteChannelFiles;
 	}
 
-	@Override
-	public synchronized void load( final SingleCellArrayImg cell )
-	{
-		SingleSiteChannelFile singleSiteChannelFile = getChannelSource( cell );
 
-		if ( singleSiteChannelFile != null )
-		{
-			if ( singleSiteChannelFile.getHdf5DataSetName() != null )
-			{
-				loadImageIntoCellUsingJHdf5( cell, singleSiteChannelFile.getFile(), singleSiteChannelFile.getHdf5DataSetName() );
-			}
-			else
-			{
-				loadImageIntoCellUsingIJOpenImage( cell, singleSiteChannelFile.getFile() );
-			}
-		}
-	}
 
 	private void loadImageIntoCellUsingJHdf5( SingleCellArrayImg cell, File file, String hdf5DataSetName )
 	{

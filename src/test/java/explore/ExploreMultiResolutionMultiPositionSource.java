@@ -4,7 +4,7 @@ import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.source.ChannelSource;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.source.MultiWellChannelCachedCellImgProvider;
+import de.embl.cba.plateviewer.source.MultiWellCachedCellImage;
 import net.imglib2.RandomAccessibleInterval;
 
 import java.io.File;
@@ -17,7 +17,6 @@ public class ExploreMultiResolutionMultiPositionSource
 	{
 		final String inputDirectory = ExploreMultiResolutionMultiPositionSource.class.getResource(
 				"../ALMF-EMBL-ZeroBased-P2-S4-C2-T1" ).getFile();
-
 
 		final List< File > fileList = FileUtils.getFileList(
 				new File( inputDirectory ),
@@ -32,10 +31,10 @@ public class ExploreMultiResolutionMultiPositionSource
 				fileList,
 				channelPatterns.get( 0 ) );
 
-		final MultiWellChannelCachedCellImgProvider multiWellChannelCachedCellImgProvider =
-				new MultiWellChannelCachedCellImgProvider( channelFiles, namingScheme, 1 );
+		final MultiWellCachedCellImage multiWellCachedCellImage =
+				new MultiWellCachedCellImage( channelFiles, namingScheme, 1 );
 
-		final RandomAccessibleInterval img = multiWellChannelCachedCellImgProvider.getCachedCellImg();
+		final RandomAccessibleInterval img = multiWellCachedCellImage.getCachedCellImg();
 
 		final HashMap< Double, RandomAccessibleInterval > scaleToRai = new HashMap<>();
 

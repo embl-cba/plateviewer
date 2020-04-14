@@ -6,7 +6,7 @@ import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.cellloader.MultiPositionLoader;
+import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
 import de.embl.cba.plateviewer.Utils;
 import ij.IJ;
 import ij.ImagePlus;
@@ -30,80 +30,43 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class MultiWellChannelCachedCellImgProvider< T extends RealType< T > & NativeType< T > >
+public abstract class MultiWellCachedCellImage< T extends RealType< T > & NativeType< T > >
 {
 	public static final String LUT_MIN_MAX = "ContrastLimits";
 	public static final String COLOR = "Color";
 	public static final String SKIP = "Skip";
 	public static final String VISIBLE = "Visible";
 
-	private long[] plateDimensions;
-	private int[] imageDimensions;
-	private double[] lutMinMax = new double[]{0, 255};
-	private ARGBType argbType;
+	protected long[] plateDimensions;
+	protected int[] imageDimensions;
+	protected double[] lutMinMax = new double[]{0, 255};
+	protected ARGBType argbType;
 
-	private ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
+	protected ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
-	private ArrayList< String > wellNames;
-	private CachedCellImg< T, ? > cachedCellImg;
-	private MultiPositionLoader loader;
-	private final List< File > files;
-	private final int numIoThreads;
-	private final String namingScheme;
-	private String channelName;
-	private final String resolutionLevel;
-	private String name;
+	protected ArrayList< String > wellNames;
+	protected CachedCellImg< T, ? > cachedCellImg;
+	protected MultiSiteLoader loader;
+	protected final List< File > files;
+	protected final int numIoThreads;
+	protected final String namingScheme;
+	protected String channelName;
+	protected final int resolutionLevel;
+	protected String name;
 
-	private BdvSource bdvSource;
-	private BdvOverlaySource bdvOverlaySource;
-	private NativeType nativeType;
-	private Metadata.Type type;
-	private boolean isInitiallyVisible;
+	protected BdvSource bdvSource;
+	protected BdvOverlaySource bdvOverlaySource;
+	protected NativeType nativeType;
+	protected Metadata.Type type;
+	protected boolean isInitiallyVisible;
+	protected MultiWellChannelFilesProvider multiWellChannelFilesProvider;
 
-	public MultiWellChannelCachedCellImgProvider( List< File > files, String namingScheme, int numIoThreads )
-	{
-		this( files, namingScheme, numIoThreads, null, null );
-	}
-
-	public MultiWellChannelCachedCellImgProvider( List< File > files, String namingScheme, int numIoThreads, String channelName )
-	{
-		this( files, namingScheme, numIoThreads, channelName, null );
-	}
-
-	public MultiWellChannelCachedCellImgProvider( List< File > files, String namingScheme, int numIoThreads, String channelName, String resolutionLevel )
+	public MultiWellCachedCellImage( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
 	{
 		this.files = files;
 		this.namingScheme = namingScheme;
-		this.channelName = channelName;
 		this.resolutionLevel = resolutionLevel;
 		this.numIoThreads = numIoThreads;
-
-		setImageProperties( files.get( 0 ), namingScheme );
-
-		setChannelSourcesAndWellNames( files, channelName, namingScheme );
-
-		setMultiPositionLoader( numIoThreads, singleSiteChannelFiles );
-
-		setCachedCellImgDimensions( singleSiteChannelFiles );
-
-		setCachedCellImg();
-	}
-
-	public MultiWellChannelCachedCellImgProvider(
-			CachedCellImg< T , ? > cachedCellImg,
-			String name,
-			BdvSource bdvSource,
-			BdvOverlaySource bdvOverlaySource )
-	{
-		this.files = null;
-		this.resolutionLevel = null;
-		this.namingScheme = null;
-		this.numIoThreads = 1; // TODO: what to put here?
-		this.cachedCellImg = cachedCellImg;
-		this.name = name;
-		this.channelName = null;
-		this.bdvSource = bdvSource;
-		this.bdvOverlaySource = bdvOverlaySource;
 	}
 
 	public void dispose()
@@ -113,50 +76,11 @@ public class MultiWellChannelCachedCellImgProvider< T extends RealType< T > & Na
 		cachedCellImg = null;
 	}
 
-	public void setChannelSourcesAndWellNames( List< File > files, String hdf5DataSetName, String namingScheme )
+	protected void setSingleSiteChannelFiles( List< File > files, String hdf5DataSetName, String namingScheme )
 	{
-		MultiWellChannelFilesProvider multiWellChannelFilesProvider =
-				getMultiSiteChannelSourceGenerator( files, hdf5DataSetName, namingScheme );
+		multiWellChannelFilesProvider = MultiWellChannelFilesProviderFactory.getMultiWellChannelFilesProvider( files, hdf5DataSetName, namingScheme, imageDimensions );
 
 		singleSiteChannelFiles = multiWellChannelFilesProvider.getSingleSiteChannelFiles();
-
-		wellNames = multiWellChannelFilesProvider.getWellNames();
-	}
-
-	public MultiWellChannelFilesProvider getMultiSiteChannelSourceGenerator(
-			List< File > files,
-			String hdf5DataSetName,
-			String namingScheme )
-	{
-		MultiWellChannelFilesProvider multiWellChannelFilesProvider = null;
-
-		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
-		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevMultiSite(
-					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH  );
-		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
-		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevMultiSite(
-					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
-		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
-		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderScanR( files, imageDimensions );
-		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
-		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderALMFScreening( files, imageDimensions );
-		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
-		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevSingleSite( files, imageDimensions );
-		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
-		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderCoronaHdf5( files, hdf5DataSetName, imageDimensions );
-		}
-		return multiWellChannelFilesProvider;
 	}
 
 	public ArrayList< String > getWellNames()
@@ -197,31 +121,14 @@ public class MultiWellChannelCachedCellImgProvider< T extends RealType< T > & Na
 			plateDimensions[ d ] = union.max( d ) + 1;
 	}
 
-	private void setMultiPositionLoader( int numIoThreads, ArrayList< SingleSiteChannelFile > singleSiteChannelFiles )
-	{
-		loader = new MultiPositionLoader( singleSiteChannelFiles, numIoThreads );
-	}
-
 	public double[] getLutMinMax()
 	{
 		return lutMinMax;
 	}
 
-	public MultiPositionLoader getLoader()
+	public MultiSiteLoader getLoader()
 	{
 		return loader;
-	}
-
-	private void setImageProperties( File file, String namingScheme )
-	{
-		if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
-		{
-			setImagePropertiesUsingJHdf5( file );
-		}
-		else
-		{
-			setImagePropertiesUsingIJOpenImage( file );
-		}
 	}
 
 	private void setImagePropertiesUsingIJOpenImage( File file )
@@ -411,8 +318,10 @@ public class MultiWellChannelCachedCellImgProvider< T extends RealType< T > & Na
 		return cachedCellImg;
 	}
 
-	private void setCachedCellImg()
+	protected void setCachedCellImg()
 	{
+		setCachedCellImgDimensions( singleSiteChannelFiles );
+
 		cachedCellImg = new ReadOnlyCachedCellImgFactory().create(
 				plateDimensions,
 				nativeType,

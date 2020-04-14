@@ -4,8 +4,8 @@ package de.embl.cba.plateviewer.bdv;
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
-import de.embl.cba.plateviewer.source.MultiWellChannelCachedCellImgProvider;
-import de.embl.cba.plateviewer.cellloader.MultiPositionLoader;
+import de.embl.cba.plateviewer.source.MultiWellCachedCellImage;
+import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
 import net.imglib2.RealPoint;
 
 import java.awt.event.MouseEvent;
@@ -20,15 +20,15 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 {
 	final int numDimensions;
 	final Bdv bdv;
-	final MultiPositionLoader multiPositionLoader;
+	final MultiSiteLoader multiSiteLoader;
 	private String wellName;
 	private String siteName;
 
-	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< MultiWellChannelCachedCellImgProvider > multiWellChannelCachedCellImgProviders )
+	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< MultiWellCachedCellImage > multiWellCachedCellImages )
 	{
 		super();
 		this.bdv = bdv;
-		this.multiPositionLoader = multiWellChannelCachedCellImgProviders.get( 0 ).getLoader();
+		this.multiSiteLoader = multiWellCachedCellImages.get( 0 ).getLoader();
 		this.numDimensions = 2;
 
 		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );
@@ -88,7 +88,7 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 
 		final long[] coordinate2D = getCoordinate2D( globalMouseCoordinates );
 
-		final SingleSiteChannelFile singleSiteChannelFile = multiPositionLoader.getChannelSource( coordinate2D );
+		final SingleSiteChannelFile singleSiteChannelFile = multiSiteLoader.getChannelSource( coordinate2D );
 		if ( singleSiteChannelFile != null )
 		{
 			wellName = singleSiteChannelFile.getWellName() + " " + singleSiteChannelFile.getWellInformation();
