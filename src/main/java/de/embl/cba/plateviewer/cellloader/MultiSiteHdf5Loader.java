@@ -4,20 +4,11 @@ import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.process.ColorProcessor;
-import net.imglib2.FinalInterval;
-import net.imglib2.Interval;
-import net.imglib2.cache.img.CellLoader;
+import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import net.imglib2.cache.img.SingleCellArrayImg;
-import net.imglib2.util.Intervals;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MultiSiteHdf5Loader extends MultiSiteLoader
 {

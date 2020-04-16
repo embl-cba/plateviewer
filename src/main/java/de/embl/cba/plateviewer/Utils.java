@@ -2,8 +2,8 @@ package de.embl.cba.plateviewer;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellHdf5CachedCellImage;
-import de.embl.cba.plateviewer.source.NamingSchemes;
+import de.embl.cba.plateviewer.image.img.MultiWellHdf5CachedCellImg;
+import de.embl.cba.plateviewer.image.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
@@ -138,12 +138,12 @@ public class Utils
 			final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
 			for ( String groupMember : groupMembers )
 			{
-				if ( ! hdf5Reader.hasAttribute( groupMember, MultiWellHdf5CachedCellImage.SKIP ) )
+				if ( ! hdf5Reader.hasAttribute( groupMember, MultiWellHdf5CachedCellImg.SKIP ) )
 				{
 					continue;
 				}
 
-				final boolean skip = hdf5Reader.bool().getAttr( groupMember, MultiWellHdf5CachedCellImage.SKIP );
+				final boolean skip = hdf5Reader.bool().getAttr( groupMember, MultiWellHdf5CachedCellImg.SKIP );
 
 				if ( skip )
 				{

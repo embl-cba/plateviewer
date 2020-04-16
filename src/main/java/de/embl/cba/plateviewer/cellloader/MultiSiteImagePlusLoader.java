@@ -1,7 +1,7 @@
 package de.embl.cba.plateviewer.cellloader;
 
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
+import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ColorProcessor;

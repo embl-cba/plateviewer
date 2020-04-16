@@ -3,8 +3,8 @@ package de.embl.cba.plateviewer.bdv;
 
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
-import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellCachedCellImage;
+import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
+import de.embl.cba.plateviewer.image.img.MultiWellCachedCellImg;
 import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
 import net.imglib2.RealPoint;
 
@@ -24,11 +24,11 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 	private String wellName;
 	private String siteName;
 
-	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< MultiWellCachedCellImage > multiWellCachedCellImages )
+	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< MultiWellCachedCellImg > multiWellCachedCellImgs )
 	{
 		super();
 		this.bdv = bdv;
-		this.multiSiteLoader = multiWellCachedCellImages.get( 0 ).getLoader();
+		this.multiSiteLoader = multiWellCachedCellImgs.get( 0 ).getLoader();
 		this.numDimensions = 2;
 
 		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );

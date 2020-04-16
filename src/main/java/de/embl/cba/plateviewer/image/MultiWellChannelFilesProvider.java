@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.source;
+package de.embl.cba.plateviewer.image;
 
 import java.util.ArrayList;
 

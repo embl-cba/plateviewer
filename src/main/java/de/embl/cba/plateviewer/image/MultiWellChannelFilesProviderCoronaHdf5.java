@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.source;
+package de.embl.cba.plateviewer.image;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;

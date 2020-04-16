@@ -1,7 +1,7 @@
 package de.embl.cba.plateviewer.table;
 
-import de.embl.cba.plateviewer.source.MultiWellChannelFilesProviderCoronaHdf5;
-import de.embl.cba.plateviewer.source.NamingSchemes;
+import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderCoronaHdf5;
+import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.tables.TableColumns;
 
 import java.util.ArrayList;

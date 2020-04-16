@@ -1,18 +1,11 @@
-package de.embl.cba.plateviewer.source.cachedcellimg;
+package de.embl.cba.plateviewer.image.img;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
-import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
-import ch.systemsx.cisd.hdf5.HDF5Factory;
-import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
-import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.source.MultiWellChannelFilesProvider;
-import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.process.LUT;
+import de.embl.cba.plateviewer.image.MultiWellChannelFilesProvider;
+import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import net.imglib2.FinalInterval;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
@@ -20,19 +13,13 @@ import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Intervals;
 
-import java.awt.*;
-import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public abstract class MultiWellCachedCellImage< T extends RealType< T > & NativeType< T > >
+public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeType< T > >
 {
 	protected long[] plateDimensions;
 	protected int[] imageDimensions;
@@ -53,11 +40,11 @@ public abstract class MultiWellCachedCellImage< T extends RealType< T > & Native
 	protected BdvSource bdvSource;
 	protected BdvOverlaySource bdvOverlaySource;
 	protected NativeType nativeType;
-	protected Metadata.Type type;
+	protected Metadata.Type type = Metadata.Type.Image;
 	protected boolean isInitiallyVisible;
 	protected MultiWellChannelFilesProvider multiWellChannelFilesProvider;
 
-	public MultiWellCachedCellImage( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
+	public MultiWellCachedCellImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
 	{
 		this.files = files;
 		this.namingScheme = namingScheme;

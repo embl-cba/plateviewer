@@ -2,12 +2,12 @@ package de.embl.cba.plateviewer.view.panel;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellFilteredCachedCellImage;
+import de.embl.cba.plateviewer.image.img.MultiWellFilteredCachedCellImg;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;
-import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellCachedCellImage;
+import de.embl.cba.plateviewer.image.img.MultiWellCachedCellImg;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -36,7 +36,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	final PlateViewerImageView plateViewerImageView;
 	private final Bdv bdv;
-	private ArrayList< MultiWellCachedCellImage< R > > multiWellCachedCellImages;
+	private ArrayList< MultiWellCachedCellImg< R > > multiWellCachedCellImgs;
 	private ImageFilterSettings previousImageFilterSettings;
 	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
@@ -87,13 +87,13 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	private void setImagesSources( )
 	{
-		this.multiWellCachedCellImages = new ArrayList<>(  );
+		this.multiWellCachedCellImgs = new ArrayList<>(  );
 
-		final ArrayList< MultiWellCachedCellImage > multiWellCachedCellImages = plateViewerImageView.getMultiWellCachedCellImages();
+		final ArrayList< MultiWellCachedCellImg > multiWellCachedCellImgs = plateViewerImageView.getMultiWellCachedCellImgs();
 
-		for( MultiWellCachedCellImage channelSource : multiWellCachedCellImages )
+		for( MultiWellCachedCellImg channelSource : multiWellCachedCellImgs )
 		{
-			this.multiWellCachedCellImages.add( channelSource );
+			this.multiWellCachedCellImgs.add( channelSource );
 		}
 	}
 
@@ -180,7 +180,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 
-		horizontalLayoutPanel.add( new JLabel( "Processing source:" ) );
+		horizontalLayoutPanel.add( new JLabel( "Processing image:" ) );
 
 		imagesSourcesComboBox = new JComboBox();
 
@@ -195,7 +195,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		imagesSourcesComboBox.removeAllItems();
 
-		for( MultiWellCachedCellImage source : multiWellCachedCellImages )
+		for( MultiWellCachedCellImg source : multiWellCachedCellImgs )
 		{
 			imagesSourcesComboBox.addItem( source.getChannelName() );
 		}
@@ -293,8 +293,8 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			{
 				new Thread( () ->
 				{
-					final MultiWellCachedCellImage inputSource =
-							multiWellCachedCellImages.get( imagesSourcesComboBox.getSelectedIndex() );
+					final MultiWellCachedCellImg inputSource =
+							multiWellCachedCellImgs.get( imagesSourcesComboBox.getSelectedIndex() );
 
 					ImageFilterSettings settings = configureImageFilterSettings( inputSource );
 					settings = getImageFilterSettingsFromUI( settings );
@@ -331,14 +331,14 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 									imageFilter.getBdvOverlay(), imageFilterSourceName );
 					}
 
-					final MultiWellCachedCellImage filteredMultiWellCachedCellImage =
-							new MultiWellFilteredCachedCellImage(
+					final MultiWellCachedCellImg filteredMultiWellCachedCellImg =
+							new MultiWellFilteredCachedCellImg(
 									filterImg,
 									imageFilterSourceName,
 									bdvStackSource,
 									bdvOverlaySource );
 
-					multiWellCachedCellImages.add( filteredMultiWellCachedCellImage );
+					multiWellCachedCellImgs.add( filteredMultiWellCachedCellImg );
 
 					previousImageFilterSettings = new ImageFilterSettings( settings );
 
@@ -353,7 +353,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	}
 
-	public ImageFilterSettings configureImageFilterSettings( MultiWellCachedCellImage inputSource )
+	public ImageFilterSettings configureImageFilterSettings( MultiWellCachedCellImg inputSource )
 	{
 		ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
 		settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
@@ -377,12 +377,12 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	public void removeSource( String name )
 	{
-		for ( MultiWellCachedCellImage source : multiWellCachedCellImages )
+		for ( MultiWellCachedCellImg source : multiWellCachedCellImgs )
 		{
 			if ( source.getChannelName().equals( name ) )
 			{
 				source.dispose();
-				multiWellCachedCellImages.remove( source );
+				multiWellCachedCellImgs.remove( source );
 				source = null;
 				System.gc();
 				break;
@@ -410,9 +410,9 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	}
 
-	public static void setLut( BdvSource bdvSource, MultiWellCachedCellImage multiWellCachedCellImage, String filterType )
+	public static void setLut( BdvSource bdvSource, MultiWellCachedCellImg multiWellCachedCellImg, String filterType )
 	{
-		final double[] lutMinMax = multiWellCachedCellImage.getLutMinMax();
+		final double[] lutMinMax = multiWellCachedCellImg.getLutMinMax();
 
 		if ( filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{

@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.source.cachedcellimg;
+package de.embl.cba.plateviewer.image.img;
 
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
@@ -6,7 +6,7 @@ import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.cellloader.MultiSiteHdf5Loader;
-import de.embl.cba.plateviewer.source.MultiWellChannelFilesProviderCoronaHdf5;
+import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderCoronaHdf5;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
@@ -18,7 +18,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 
-public class MultiWellHdf5CachedCellImage< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImage< T >
+public class MultiWellHdf5CachedCellImg< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImg< T >
 {
 	public static final String LUT_MIN_MAX = "ContrastLimits";
 	public static final String COLOR = "Color";
@@ -28,7 +28,7 @@ public class MultiWellHdf5CachedCellImage< T extends RealType< T > & NativeType<
 
 	private final String hdf5DataSetName;
 
-	public MultiWellHdf5CachedCellImage( List< File > files, String namingScheme, String channelName, int resolutionLevel )
+	public MultiWellHdf5CachedCellImg( List< File > files, String namingScheme, String channelName, int resolutionLevel )
 	{
 		super( files, namingScheme, 1, resolutionLevel );
 

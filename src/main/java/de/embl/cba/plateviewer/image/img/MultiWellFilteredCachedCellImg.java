@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.source.cachedcellimg;
+package de.embl.cba.plateviewer.image.img;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
@@ -6,9 +6,9 @@ import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-public class MultiWellFilteredCachedCellImage< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImage< T >
+public class MultiWellFilteredCachedCellImg< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImg< T >
 {
-	public MultiWellFilteredCachedCellImage(
+	public MultiWellFilteredCachedCellImg(
 			CachedCellImg< T , ? > cachedCellImg,
 			String channelName,
 			BdvSource bdvSource,

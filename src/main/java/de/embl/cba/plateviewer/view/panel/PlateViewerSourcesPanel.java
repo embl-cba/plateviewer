@@ -154,7 +154,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         remove( sourceNameToPanel.get( sourceName ) );
         sourceNameToPanel.remove( sourceName );
 
-        // remove from source list
+        // remove from image list
         plateViewerMainPanel.removeSource( sourceName );
 
         refreshUI();

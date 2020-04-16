@@ -1,7 +1,7 @@
-package de.embl.cba.plateviewer.source.cachedcellimg;
+package de.embl.cba.plateviewer.image.img;
 
 import de.embl.cba.plateviewer.cellloader.MultiSiteImagePlusLoader;
-import de.embl.cba.plateviewer.source.MultiWellChannelFilesProviderFactory;
+import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderFactory;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.LUT;
@@ -16,9 +16,9 @@ import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.List;
 
-public class MultiWellImagePlusCachedCellImage< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImage< T >
+public class MultiWellImagePlusCachedCellImg< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImg< T >
 {
-	public MultiWellImagePlusCachedCellImage( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
+	public MultiWellImagePlusCachedCellImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
 	{
 		super( files, namingScheme, numIoThreads, resolutionLevel );
 
