@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class MultiSiteHdf5Loader extends MultiSiteLoader
+public class MultiSiteHdf5Loader extends MultiSiteLoader
 {
 	public MultiSiteHdf5Loader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles, int numIoThreads )
 	{

@@ -11,10 +11,9 @@ import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
-import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
-import de.embl.cba.plateviewer.source.ChannelSource;
-import de.embl.cba.plateviewer.source.MultiWellCachedCellImage;
-import de.embl.cba.plateviewer.source.NamingSchemes;
+import de.embl.cba.plateviewer.source.*;
+import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellCachedCellImage;
+import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellImagePlusCachedCellImage;
 import de.embl.cba.plateviewer.table.ImageName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
@@ -40,7 +39,6 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends ImageName >
@@ -125,60 +123,26 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			Utils.log( "Adding channel: " + channelName );
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );
 
-
-			final MultiWellCachedCellImage multiWellCachedCellImage =
-					new MultiWellCachedCellImage(
-							channelFiles,
-							namingScheme,
-							numIoThreads,
-							channelName );
-
-			ChannelSource< R > channelSource = createMultiResolutionChannelSource(
-					namingScheme,
-					channelName,
-					channelFiles,
-					multiWellCachedCellImage );
-
-			addSourceToBdvAndPanel( multiWellCachedCellImage, channelSource );
-
-		}
-	}
-
-	public ChannelSource< R > createMultiResolutionChannelSource( String namingScheme, String channelPattern, List< File > channelFiles, MultiWellCachedCellImage multiWellCachedCellImage )
-	{
-		final int numResolutionLevels = getNumResolutionLevels( channelFiles.get( 0 ), channelPattern );
-
-		if ( numResolutionLevels > 1 )
-		{
-			return createChannelSource( namingScheme, channelPattern, channelFiles, multiWellCachedCellImage, numResolutionLevels );
-		}
-		else
-		{
-			return null;
-		}
-	}
-
-	public ChannelSource< R > createChannelSource( String namingScheme, String channelName, List< File > channelFiles, MultiWellCachedCellImage highestResolutionImgProvider, int numResolutionLevels )
-	{
-		final HashMap< Integer, RandomAccessibleInterval< R > > scaleToRai = new HashMap<>();
-		scaleToRai.put( 0, highestResolutionImgProvider.getCachedCellImg() );
-
-		for ( int resolutionLevel = 1; resolutionLevel < numResolutionLevels; resolutionLevel++ )
-		{
-			final MultiWellCachedCellImage multiWellCachedCellImage =
-					new MultiWellCachedCellImage(
-						channelFiles,
+			if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
+			{
+				final MultiResolutionHdf5ChannelSourceCreator sourceCreator = new MultiResolutionHdf5ChannelSourceCreator(
 						namingScheme,
-						numIoThreads,
 						channelName,
-						resolutionLevel );
+						channelFiles );
+				sourceCreator.create();
+			}
+			else
+			{
+				final MultiWellCachedCellImage multiWellCachedCellImage =
+						new MultiWellImagePlusCachedCellImage(
+								channelFiles,
+								namingScheme,
+								numIoThreads,
+								0 );
 
-			scaleToRai.put( resolutionLevel, multiWellCachedCellImage.getCachedCellImg() );
+				addSourceToBdvAndPanel( multiWellCachedCellImage, null );
+			}
 		}
-
-		final ChannelSource< R > channelSource = new ChannelSource<>( scaleToRai );
-
-		return channelSource;
 	}
 
 	public List< File > getChannelFiles ( List < File > fileList, String namingScheme, String channelPattern )
@@ -364,18 +328,12 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		bdvTmpSource.removeFromBdv();
 	}
 
-	public void addSourceToBdvAndPanel
-	( MultiWellCachedCellImage< R > multiWellCachedCellImage, ChannelSource< R > channelSource )
+	public void addSourceToBdvAndPanel( MultiWellCachedCellImage< R > multiWellCachedCellImage, ChannelSource< R > channelSource )
 	{
 		if ( bdv == null )
 		{
 			initBdvAndPlateViewerUI( multiWellCachedCellImage, channelSource );
 			return;
-		}
-
-		if ( channelSource != null )
-		{
-			// Show this instead of the single resolution one
 		}
 
 		RandomAccessibleInterval volatileRai =
@@ -391,10 +349,20 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 					new VolatileARGBType() );
 		}
 
-		final BdvStackSource bdvStackSource = BdvFunctions.show(
-				volatileRai,
-				multiWellCachedCellImage.getChannelName(),
-				BdvOptions.options().addTo( bdv ) );
+		BdvStackSource bdvStackSource;
+		if ( channelSource != null )
+		{
+			bdvStackSource = BdvFunctions.show(
+					channelSource,
+					BdvOptions.options().addTo( bdv ) );
+		}
+		else
+		{
+			bdvStackSource = BdvFunctions.show(
+					volatileRai,
+					multiWellCachedCellImage.getChannelName(),
+					BdvOptions.options().addTo( bdv ) );
+		}
 
 		multiWellCachedCellImage.setBdvSource( bdvStackSource );
 		multiWellCachedCellImages.add( multiWellCachedCellImage );
@@ -485,11 +453,6 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 				zoomToInterval( singleSiteChannelFile.getInterval() );
 			}
 		} );
-	}
-
-	private int getNumResolutionLevels ( File file, String channelPattern )
-	{
-		return 4;
 	}
 
 }

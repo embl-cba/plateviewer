@@ -17,9 +17,9 @@ public class TestNamingSchemeCorona
 //				1);
 
 		new PlateViewer(
-				new File("/Users/tischer/Desktop/test1"),
+				new File("/Users/tischer/Desktop/test3"),
 				".*.h5",
-				new File("/Users/tischer/Desktop/table.csv"),
+				null, // TODO
 				4 );
 
 	}

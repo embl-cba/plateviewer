@@ -1,41 +1,23 @@
-package de.embl.cba.plateviewer.source;
+package de.embl.cba.plateviewer.source.cachedcellimg;
 
-import bdv.util.BdvOverlaySource;
-import bdv.util.BdvSource;
-import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
-import ch.systemsx.cisd.hdf5.HDF5Factory;
-import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.cellloader.MultiSiteImagePlusLoader;
-import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
+import de.embl.cba.plateviewer.source.MultiWellChannelFilesProviderFactory;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.LUT;
-import net.imglib2.cache.img.CachedCellImg;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 
-import java.awt.*;
 import java.awt.image.IndexColorModel;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
-public abstract class MultiWellImagePlusCachedCellImage< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImage< T >
+public class MultiWellImagePlusCachedCellImage< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImage< T >
 {
-	public static final String LUT_MIN_MAX = "ContrastLimits";
-	public static final String COLOR = "Color";
-	public static final String SKIP = "Skip";
-	public static final String VISIBLE = "Visible";
-
 	public MultiWellImagePlusCachedCellImage( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
 	{
 		super( files, namingScheme, numIoThreads, resolutionLevel );

@@ -4,7 +4,7 @@ package de.embl.cba.plateviewer.bdv;
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.source.SingleSiteChannelFile;
-import de.embl.cba.plateviewer.source.MultiWellCachedCellImage;
+import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellCachedCellImage;
 import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
 import net.imglib2.RealPoint;
 

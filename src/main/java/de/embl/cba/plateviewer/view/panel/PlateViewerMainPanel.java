@@ -2,11 +2,12 @@ package de.embl.cba.plateviewer.view.panel;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellFilteredCachedCellImage;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;
-import de.embl.cba.plateviewer.source.MultiWellCachedCellImage;
+import de.embl.cba.plateviewer.source.cachedcellimg.MultiWellCachedCellImage;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -330,8 +331,12 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 									imageFilter.getBdvOverlay(), imageFilterSourceName );
 					}
 
-					final MultiWellCachedCellImage filteredMultiWellCachedCellImage = new MultiWellCachedCellImage( filterImg,
-							imageFilterSourceName, bdvStackSource, bdvOverlaySource );
+					final MultiWellCachedCellImage filteredMultiWellCachedCellImage =
+							new MultiWellFilteredCachedCellImage(
+									filterImg,
+									imageFilterSourceName,
+									bdvStackSource,
+									bdvOverlaySource );
 
 					multiWellCachedCellImages.add( filteredMultiWellCachedCellImage );
 
