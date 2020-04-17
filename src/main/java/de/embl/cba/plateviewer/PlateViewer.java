@@ -6,6 +6,7 @@ import de.embl.cba.plateviewer.image.table.TableImage;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
@@ -35,7 +36,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		}
 	}
 
-	public void showTable( File imagesTableFile, PlateViewerImageView plateViewerImageView )
+	public void showTable( File imagesTableFile, PlateViewerImageView imageView )
 	{
 		final DefaultSelectionModel< DefaultSiteNameTableRow > selectionModel = new DefaultSelectionModel<>();
 
@@ -47,20 +48,22 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		final List< DefaultSiteNameTableRow > tableRows = createSiteNameTableRowsFromFilePath(
 				imagesTableFile.getAbsolutePath(),
-				plateViewerImageView.getFileNamingScheme() );
+				imageView.getFileNamingScheme() );
 
-		final TableRowsTableView< DefaultSiteNameTableRow > imageTableView =
+		final TableRowsTableView< DefaultSiteNameTableRow > tableView =
 				new TableRowsTableView<>( tableRows, selectionModel, selectionColoringModel );
 
-		final Component parentComponent = plateViewerImageView.getBdv().getBdvHandle().getViewerPanel();
-		imageTableView.showTableAndMenu( parentComponent );
-		imageTableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
-		plateViewerImageView.installImageSelectionModel( tableRows, selectionModel );
+		final Component parentComponent = imageView.getBdv().getBdvHandle().getViewerPanel();
+		tableView.showTableAndMenu( parentComponent );
+		tableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
+		imageView.installImageSelectionModel( tableRows, selectionModel );
+		imageView.registerAsColoringListener( selectionColoringModel );
 
-		final TableImage tableImage = new TableImage( tableRows, coloringModel, plateViewerImageView );
-		tableImage.createImage( "score1" );
+		final TableImage tableImage = new TableImage( tableRows, selectionColoringModel, imageView );
+		imageView.addToBdvAndPanel( tableImage );
 
-		plateViewerImageView.addToBdvAndPanel( tableImage );
+		// TODO: below method call in table-utils must be massively improved in terms of clarity!
+		tableView.colorByColumn( "score1", ColumnColoringModelCreator.VIRIDIS, null, null );
 	}
 
 	public Bdv getBdv()

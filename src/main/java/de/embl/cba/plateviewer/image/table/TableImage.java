@@ -2,7 +2,6 @@ package de.embl.cba.plateviewer.image.table;
 
 import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Source;
-import de.embl.cba.bdv.utils.converters.SelectableVolatileARGBConverter;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.img.BDViewable;
@@ -10,14 +9,13 @@ import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColorUtils;
-import de.embl.cba.tables.color.LabelsARGBConverter;
-import de.embl.cba.tables.color.LazyCategoryColoringModel;
+import de.embl.cba.tables.color.SelectionColoringModel;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.converter.Converters;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
@@ -27,12 +25,11 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 public class TableImage implements BDViewable
 {
 	private final List< DefaultSiteNameTableRow > tableRows;
-	private final LazyCategoryColoringModel< DefaultSiteNameTableRow > coloringModel;
+	private final SelectionColoringModel< DefaultSiteNameTableRow > coloringModel;
 	private final PlateViewerImageView plateViewerImageView;
 	private Interval plateInterval;
 	private final long[] siteDimensions;
@@ -44,10 +41,9 @@ public class TableImage implements BDViewable
 	private final JTable jTable;
 	private ARGBConvertedRealSource argbSource;
 
-
 	public TableImage(
 			List< DefaultSiteNameTableRow > tableRows,
-			LazyCategoryColoringModel< DefaultSiteNameTableRow > coloringModel,
+			SelectionColoringModel< DefaultSiteNameTableRow > coloringModel,
 			PlateViewerImageView plateViewerImageView )
 	{
 		this.tableRows = tableRows;
@@ -63,6 +59,8 @@ public class TableImage implements BDViewable
 		createSiteNameToTableRowMap( tableRows );
 
 		contrastLimits = new double[ 2 ];
+
+		createImage();
 	}
 
 	public void createSiteNameToTableRowMap( List< DefaultSiteNameTableRow > tableRows )
@@ -78,42 +76,46 @@ public class TableImage implements BDViewable
 		}
 	}
 
-	public void createImage( String columnName )
+	private void createImage( )
 	{
-		BiConsumer< Localizable, FloatType > biConsumer = ( l, t ) ->
+		// TODO: below code could be optimised by precomputing a tableRowIndexMatrix
+		BiConsumer< Localizable, IntType > biConsumer = ( l, t ) ->
 		{
-			try
-			{
-				final int siteRowIndex = ( int ) ( l.getIntPosition( 0 ) / siteDimensions[ 0 ] );
-				final int siteColumnIndex = ( int ) ( l.getIntPosition( 1 ) / siteDimensions[ 1 ] );
-				final String siteName = this.siteNameMatrix[ siteRowIndex ][ siteColumnIndex ];
-				if ( siteName == null ) return;
-//				final String value = siteNameToTableRow.get( siteName ).getCell( columnName );
-				final Integer integer = siteNameToTableRowIndex.get( siteName );
-				t.setReal( integer );
-			}
-			catch ( Exception e )
-			{
-				//
-			}
+			t.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
+
+			final int siteRowIndex = ( int ) ( l.getIntPosition( 0 ) / siteDimensions[ 0 ] );
+			final int siteColumnIndex = ( int ) ( l.getIntPosition( 1 ) / siteDimensions[ 1 ] );
+
+			if ( siteRowIndex < 0
+					|| siteRowIndex >= siteNameMatrix.length
+					|| siteColumnIndex < 0
+					|| siteColumnIndex >= siteNameMatrix[ 0 ].length )
+				return;
+
+			final String siteName = siteNameMatrix[ siteRowIndex ][ siteColumnIndex ];
+
+			if ( siteName == null ) return;
+
+			t.setInteger( siteNameToTableRowIndex.get( siteName ) );
 		};
 
-		final Supplier< FloatType > typeSupplier = () -> new FloatType();
-
 		final FunctionRandomAccessible< FloatType > randomAccessible =
-				new FunctionRandomAccessible( 2, biConsumer, typeSupplier );
+				new FunctionRandomAccessible( 2, biConsumer, IntType::new );
 
 		rai = Views.interval( randomAccessible, plateInterval );
+
+		rai = Views.addDimension( rai, 0, 0 );
 
 		final RandomAccessibleIntervalSource< FloatType > tableRowIndexSource
 				= new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), "table row index" );
 
-		final SitesARGBConverter< DefaultSiteNameTableRow > argbConverter = new SitesARGBConverter<>( tableRows, coloringModel );
+		final ListItemsARGBConverter< DefaultSiteNameTableRow > argbConverter =
+				new ListItemsARGBConverter<>( tableRows, coloringModel );
 
 		argbSource = new ARGBConvertedRealSource( tableRowIndexSource , argbConverter );
 
-		contrastLimits[ 0 ] = Tables.columnMin( jTable, jTable.getColumnModel().getColumnIndex( columnName ) );
-		contrastLimits[ 1 ] = Tables.columnMax( jTable, jTable.getColumnModel().getColumnIndex( columnName ) );
+		contrastLimits[ 0 ] = 0; //Tables.columnMin( jTable, jTable.getColumnModel().getColumnIndex( columnName ) );
+		contrastLimits[ 1 ] = 255; //Tables.columnMax( jTable, jTable.getColumnModel().getColumnIndex( columnName ) );
 	}
 
 	@Override

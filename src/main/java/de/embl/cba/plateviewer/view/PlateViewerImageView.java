@@ -22,6 +22,7 @@ import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
+import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import net.imglib2.FinalInterval;
@@ -547,6 +548,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		this.siteNames = siteNames;
 		this.selectionModel = selectionModel;
 		registerAsImageSelectionListener( selectionModel );
+	}
+
+	public void registerAsColoringListener( SelectionColoringModel< T > selectionColoringModel )
+	{
+		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdv ) );
 	}
 
 	private void registerAsImageSelectionListener ( SelectionModel < T > selectionModel )
