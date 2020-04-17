@@ -49,8 +49,6 @@ public abstract class MultiSiteLoader implements CellLoader
 		return singleSiteChannelFiles;
 	}
 
-
-
 	private void loadImageIntoCellUsingJHdf5( SingleCellArrayImg cell, File file, String hdf5DataSetName )
 	{
 		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( file );
@@ -88,7 +86,7 @@ public abstract class MultiSiteLoader implements CellLoader
 		}
 	}
 
-	public SingleSiteChannelFile getChannelSource( SingleCellArrayImg cell )
+	public SingleSiteChannelFile getChannelSource( Interval cell )
 	{
 		Interval requestedInterval = Intervals.largestContainedInterval( cell );
 

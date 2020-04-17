@@ -158,6 +158,7 @@
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>bdv-utils</artifactId>
+			<version>0.3.5</version>
 		</dependency>
 		<dependency>
 			<groupId>de.embl.cba</groupId>

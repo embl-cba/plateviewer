@@ -2,7 +2,7 @@ package de.embl.cba.plateviewer;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.image.img.MultiWellHdf5Img;
+import de.embl.cba.plateviewer.image.img.MultiWellBatchLibHdf5Img;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
@@ -131,19 +131,19 @@ public class Utils
 		{
 			channelPatternSet.add( ".*" );
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 			final ArrayList< String > channels = new ArrayList<>();
 			final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( files.get( 0 ) );
 			final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
 			for ( String groupMember : groupMembers )
 			{
-				if ( ! hdf5Reader.hasAttribute( groupMember, MultiWellHdf5Img.SKIP ) )
+				if ( ! hdf5Reader.hasAttribute( groupMember, MultiWellBatchLibHdf5Img.SKIP ) )
 				{
 					continue;
 				}
 
-				final boolean skip = hdf5Reader.bool().getAttr( groupMember, MultiWellHdf5Img.SKIP );
+				final boolean skip = hdf5Reader.bool().getAttr( groupMember, MultiWellBatchLibHdf5Img.SKIP );
 
 				if ( skip )
 				{
@@ -191,8 +191,8 @@ public class Utils
 	{
 		String filePath = file.getAbsolutePath();
 
-		if ( Pattern.compile( NamingSchemes.PATTERN_CORONA_HDF5 ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_CORONA_HDF5;
+		if ( Pattern.compile( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_NIKON_TI2_HDF5;
 		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() )
 			return NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH;
 		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE ).matcher( filePath ).matches() )

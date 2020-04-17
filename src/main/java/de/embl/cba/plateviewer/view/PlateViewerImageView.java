@@ -10,8 +10,7 @@ import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.img.BDViewable;
-import de.embl.cba.plateviewer.image.img.MultiWellHdf5Img;
-import de.embl.cba.plateviewer.image.source.MultiResolutionHdf5ChannelSourceCreator;
+import de.embl.cba.plateviewer.image.source.MultiResolutionBatchLibHdf5ChannelSourceCreator;
 import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
@@ -19,13 +18,14 @@ import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.img.MultiWellImg;
 import de.embl.cba.plateviewer.image.img.MultiWellImagePlusImg;
-import de.embl.cba.plateviewer.table.ImageName;
+import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import net.imglib2.FinalInterval;
+import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.cache.img.SingleCellArrayImg;
@@ -45,9 +45,10 @@ import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends ImageName >
+public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends SiteName >
 {
 	private final ArrayList< MultiWellImg > multiWellImgs;
 	private int numIoThreads;
@@ -55,9 +56,16 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	private Bdv bdv;
 	private PlateViewerMainPanel plateViewerMainPanel;
-	private List< T > imageFileNames;
+	private List< T > siteNames;
 	private SelectionModel< T > selectionModel;
 	private final String fileNamingScheme;
+	private Interval plateInterval;
+	private HashMap< String, Interval > siteNameToInterval;
+	private HashMap< Interval, String > intervalToSiteName;
+	private String[][] siteNameMatrix;
+
+	private boolean isFirstChannel = true;
+	private long[] siteDimensions;
 
 	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -69,7 +77,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		fileNamingScheme = getImageNamingScheme( fileList );
 
-		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
+		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 			this.numIoThreads = 1; // Hdf5 does not support multi-threading
 
 		final List< String > channelPatterns =
@@ -137,43 +145,111 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			Utils.log( "Adding channel: " + channelName );
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );
 
-			if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
+
+			MultiWellImg wellImg;
+
+			if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 			{
-				final MultiResolutionHdf5ChannelSourceCreator sourceCreator = new MultiResolutionHdf5ChannelSourceCreator(
+				final MultiResolutionBatchLibHdf5ChannelSourceCreator sourceCreator = new MultiResolutionBatchLibHdf5ChannelSourceCreator(
 						namingScheme,
 						channelName,
 						channelFiles );
 
 				sourceCreator.create();
 
-				final MultiWellHdf5Img image = sourceCreator.getMultiWellHdf5CachedCellImage();
+				wellImg = sourceCreator.getMultiWellHdf5CachedCellImage();
 
-				image.setSource( sourceCreator.getSource() );
+				wellImg.setSource( sourceCreator.getSource() );
 
-				multiWellImgs.add( image );
+				multiWellImgs.add( wellImg );
 
-				addToBdvAndPanel( image );
+				addToBdvAndPanel( wellImg );
 			}
 			else
 			{
-				final MultiWellImg multiWellImg =
+				wellImg =
 						new MultiWellImagePlusImg(
 								channelFiles,
 								namingScheme,
 								numIoThreads,
 								0 );
 
-				multiWellImgs.add( multiWellImg );
+				multiWellImgs.add( wellImg );
 
-				addToBdvAndPanel( multiWellImg );
+				addToBdvAndPanel( wellImg );
 			}
+
+			if ( isFirstChannel )
+			{
+				setPlateInterval( wellImg );
+
+				mapSiteNamesToIntervals( wellImg );
+
+				setSiteDimensions( wellImg );
+
+				isFirstChannel = false;
+			}
+
+
 		}
+	}
+
+	public void setSiteDimensions( MultiWellImg wellImg )
+	{
+		siteDimensions = new long[ 2 ];
+		wellImg.getLoader().getSingleSiteChannelFiles().get( 0 ).getInterval().dimensions( siteDimensions );
+	}
+
+	public long[] getSiteDimensions()
+	{
+		return siteDimensions;
+	}
+
+	public void setPlateInterval( MultiWellImg wellImg )
+	{
+		plateInterval = wellImg.getRAI();
+	}
+
+	public void mapSiteNamesToIntervals( MultiWellImg multiWellImg )
+	{
+		siteNameToInterval = new HashMap<>();
+		intervalToSiteName = new HashMap<>();
+
+		final ArrayList< SingleSiteChannelFile > siteChannelFiles =
+				multiWellImg.getLoader().getSingleSiteChannelFiles();
+
+		for ( SingleSiteChannelFile channelFile : siteChannelFiles )
+		{
+			siteNameToInterval.put( channelFile.getSiteName(), channelFile.getInterval() );
+			intervalToSiteName.put( channelFile.getInterval(), channelFile.getSiteName() );
+		}
+
+		final Interval siteInterval = siteNameToInterval.values().iterator().next();
+		final int[] numSites = new int[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			numSites[ d ] = (int) (( plateInterval.max( d ) - plateInterval.min( d ) ) / siteInterval.dimension( d )) + 1;
+		}
+
+		siteNameMatrix = new String[ numSites[ 0 ] ][ numSites[ 1 ] ];
+
+		for ( SingleSiteChannelFile channelFile : siteChannelFiles )
+		{
+			final int rowIndex = (int) (channelFile.getInterval().min( 0 ) / siteInterval.dimension( 0 ));
+			final int colIndex = (int) (channelFile.getInterval().min( 1 ) / siteInterval.dimension( 1 ));
+			siteNameMatrix[ rowIndex ][ colIndex ] = channelFile.getSiteName();
+		}
+	}
+
+	public String[][] getSiteNameMatrix()
+	{
+		return siteNameMatrix;
 	}
 
 	public List< File > getChannelFiles ( List < File > fileList, String namingScheme, String channelPattern )
 	{
 		List< File > channelFiles;
-		if ( namingScheme.equals( NamingSchemes.PATTERN_CORONA_HDF5 ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 			// each file contains all channels => we need all
 			channelFiles = fileList;
@@ -196,7 +272,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return loadingQueue;
 	}
 
-	public void zoomToInterval ( FinalInterval interval )
+	public void zoomToInterval ( Interval interval )
 	{
 		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
 
@@ -224,6 +300,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	}
 
 	// TODO: This should be some Map: wellName to interval
+	// and I also need interval To SiteName
 	public void zoomToWell ( String wellName )
 	{
 		int sourceIndex = 0; // channel 0
@@ -249,27 +326,26 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		zoomToInterval( union );
 	}
 
-	// TODO: This should be some Map: siteName to interval
-	public void zoomToSite ( String siteName )
+	public void zoomToSite( String siteName )
 	{
-		int sourceIndex = 0;
-
-		final SingleSiteChannelFile singleSiteChannelFile = multiWellImgs.get( sourceIndex ).getLoader().getChannelSource( siteName );
-
-		zoomToInterval( singleSiteChannelFile.getInterval() );
+		zoomToInterval( siteNameToInterval.get( siteName ) );
 
 		if ( selectionModel != null )
-			notifyImageSelectionModel( singleSiteChannelFile );
+			notifyImageSelectionModel( siteName );
 	}
 
-	public void notifyImageSelectionModel ( SingleSiteChannelFile singleSiteChannelFile )
+	public void notifyImageSelectionModel ( String selectedSiteName )
 	{
-		final String selectedImageFileName = singleSiteChannelFile.getFile().getName();
-		for ( T fileName : imageFileNames )
+		/**
+		 * We need to find the selectable object that corresponds to the the siteName
+		 * // TODO: This should be taken care of by an adaptor
+		 *
+		 */
+		for ( T name : siteNames )
 		{
-			final String imageFileName = fileName.getSiteName();
-			if ( imageFileName.equals( selectedImageFileName ) )
-				selectionModel.focus( fileName );
+			final String siteName = name.getSiteName();
+			if ( siteName.equals( selectedSiteName ) )
+				selectionModel.focus( name );
 		}
 	}
 
@@ -286,7 +362,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return multiWellImgs;
 	}
 
-	public AffineTransform3D getImageZoomTransform ( FinalInterval interval )
+	public AffineTransform3D getImageZoomTransform ( Interval interval )
 	{
 		int[] bdvWindowSize = getBdvWindowSize();
 
@@ -374,6 +450,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		// TODO: if it is a Segmentation, do not show the color button
 		// => give the whole multiWellCachedCellImg to this function
+
 		plateViewerMainPanel.getSourcesPanel().addToPanel(
 				bdViewable.getName(),
 				bdvStackSource,
@@ -400,26 +477,31 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		}
 		else
 		{
-			RandomAccessibleInterval volatileRai =
-					VolatileViews.wrapAsVolatile(
-							bdViewable.getRAI(),
-							loadingQueue );
+			RandomAccessibleInterval< ? > rai = bdViewable.getRAI();
+
+			try
+			{
+				rai = VolatileViews.wrapAsVolatile( rai, loadingQueue );
+			}
+			catch ( Exception e )
+			{
+				Logger.info( "Could not wrap as Volatile: " + bdViewable.getName());
+			}
 
 			if ( bdViewable.getType().equals( Metadata.Type.Segmentation ) )
 			{
-				volatileRai = Converters.convert(
-						volatileRai,
+				rai = Converters.convert(
+						(RandomAccessibleInterval) rai,
 						new RandomARGBConverter(),
 						new VolatileARGBType() );
 			}
 
 			return BdvFunctions.show(
-					volatileRai,
+					rai,
 					bdViewable.getName(),
 					BdvOptions.options().addTo( bdv ) );
 		}
 	}
-
 
 	private void setBdvBehaviors ( )
 	{
@@ -460,9 +542,9 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return cellPos;
 	}
 
-	public void installImageSelectionModel ( List < T > imageFileNames, SelectionModel < T > selectionModel )
+	public void installImageSelectionModel ( List < T > siteNames, SelectionModel < T > selectionModel )
 	{
-		this.imageFileNames = imageFileNames;
+		this.siteNames = siteNames;
 		this.selectionModel = selectionModel;
 		registerAsImageSelectionListener( selectionModel );
 	}
@@ -493,4 +575,8 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		} );
 	}
 
+	public Interval getPlateInterval()
+	{
+		return plateInterval;
+	}
 }

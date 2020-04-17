@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MultiWellChannelFilesProviderCoronaHdf5 implements MultiWellChannelFilesProvider
+public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChannelFilesProvider
 {
 	final List< File > files;
 	private final String hdf5DataSetName;
@@ -27,11 +27,11 @@ public class MultiWellChannelFilesProviderCoronaHdf5 implements MultiWellChannel
 
 	final ArrayList< String > wellNames;
 
-	static final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_CORONA_HDF5;
+	static final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_NIKON_TI2_HDF5;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public MultiWellChannelFilesProviderCoronaHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions )
+	public MultiWellChannelFilesProviderBatchLibHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions )
 	{
 		this.files = files;
 		this.hdf5DataSetName = hdf5DataSetName;
