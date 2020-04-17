@@ -102,7 +102,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		JPanel horizontalLayoutPanel = horizontalLayoutPanel();
 //		final JTextField numPixelsTextField = new JTextField( "1000" );
 
-		final JButton button = new JButton( "Capture current view" );
+		final JButton button = new JButton( "Make Screenshot" );
 
 		button.addActionListener( e -> {
 			SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() ).show();

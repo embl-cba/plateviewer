@@ -2,11 +2,13 @@ package de.embl.cba.plateviewer.image.source;
 
 import bdv.util.RandomAccessibleIntervalMipmapSource;
 import bdv.util.RandomAccessibleIntervalSource;
+import bdv.util.volatiles.SharedQueue;
 import bdv.viewer.Source;
 import de.embl.cba.plateviewer.image.img.MultiWellHdf5CachedCellImg;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.Volatile;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
@@ -21,7 +23,7 @@ public class MultiResolutionHdf5ChannelSourceCreator < R extends NativeType< R >
 	private final String namingScheme;
 	private final String channelName;
 	private final List< File > channelFiles;
-	private RandomAccessibleIntervalMipmapSource< R > source;
+	private RandomAccessibleIntervalMipmapWithOffsetSource< R > source;
 	private MultiWellHdf5CachedCellImg< R > multiWellHdf5CachedCellImage;
 
 	public MultiResolutionHdf5ChannelSourceCreator( String namingScheme,
@@ -64,7 +66,7 @@ public class MultiResolutionHdf5ChannelSourceCreator < R extends NativeType< R >
 
 		final VoxelDimensions voxelDimensions = new FinalVoxelDimensions("pixel", 1, 1 );
 
-		source = new RandomAccessibleIntervalMipmapSource<>(
+		source = new RandomAccessibleIntervalMipmapWithOffsetSource<>(
 				rais,
 				Util.getTypeFromInterval( rais[ 0 ] ),
 				mipmapScales,
@@ -75,6 +77,11 @@ public class MultiResolutionHdf5ChannelSourceCreator < R extends NativeType< R >
 	public Source< R > getSource()
 	{
 		return source;
+	}
+
+	public Source< ? extends Volatile< R > > getVolatileSource()
+	{
+		return source.asVolatile( new SharedQueue( 1 ) );
 	}
 
 	public MultiWellHdf5CachedCellImg< R > getMultiWellHdf5CachedCellImage()

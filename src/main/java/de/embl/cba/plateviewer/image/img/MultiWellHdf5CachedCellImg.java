@@ -100,7 +100,7 @@ public class MultiWellHdf5CachedCellImg< T extends RealType< T > & NativeType< T
 
 		try
 		{
-			final short[] lutMinMax = hdf5Reader.int16().getArrayAttr( channelName, LUT_MIN_MAX );
+			final double[] lutMinMax = hdf5Reader.float64().getArrayAttr( channelName, LUT_MIN_MAX );
 			this.lutMinMax[ 0 ] = lutMinMax[ 0 ];
 			this.lutMinMax[ 1 ] = lutMinMax[ 1 ];
 		}

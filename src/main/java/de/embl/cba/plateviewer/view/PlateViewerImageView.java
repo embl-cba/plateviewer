@@ -7,6 +7,7 @@ import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
+import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.source.MultiResolutionHdf5ChannelSourceCreator;
 import de.embl.cba.plateviewer.io.FileUtils;
@@ -19,6 +20,7 @@ import de.embl.cba.plateviewer.image.img.MultiWellImagePlusCachedCellImg;
 import de.embl.cba.plateviewer.table.ImageName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
+import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import net.imglib2.FinalInterval;
@@ -140,7 +142,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 				addSourceToBdvAndPanel(
 						sourceCreator.getMultiWellHdf5CachedCellImage(),
-						sourceCreator.getSource() );
+						sourceCreator.getVolatileSource() );
 			}
 			else
 			{
@@ -359,6 +361,8 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		bdvStackSource.setActive( multiWellCachedCellImg.isInitiallyVisible() );
 
+		// TODO: if it is a Segmentation, do not show the color button
+		// => give the whole multiWellCachedCellImg to this function
 		plateViewerMainPanel.getSourcesPanel().addSourceToPanel(
 				multiWellCachedCellImg.getChannelName(),
 				bdvStackSource,
@@ -373,9 +377,9 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		{
 			if ( multiWellCachedCellImg.getType().equals( Metadata.Type.Segmentation ) )
 			{
-//				channelSource = new ARGBConvertedRealSource(
-//						channelSource,
-//						new LazyLabelsARGBConverter() );
+				channelSource = new ARGBConvertedRealSource(
+						channelSource,
+						new LazyLabelsARGBConverter() );
 			}
 
 			bdvStackSource = BdvFunctions.show(
@@ -384,7 +388,6 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		}
 		else
 		{
-
 			RandomAccessibleInterval volatileRai =
 					VolatileViews.wrapAsVolatile(
 							multiWellCachedCellImg.getCachedCellImg(),

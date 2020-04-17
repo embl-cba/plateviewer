@@ -1,11 +1,16 @@
 package de.embl.cba.plateviewer.view.panel;
 
 import bdv.util.BdvStackSource;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.plateviewer.Utils;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.type.volatiles.VolatileARGBType;
+import net.imglib2.type.volatiles.VolatileFloatType;
 import net.imglib2.type.volatiles.VolatileUnsignedByteType;
 import net.imglib2.type.volatiles.VolatileUnsignedShortType;
 
@@ -102,27 +107,53 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
     public JButton getBrightnessButton( String sourceName, BdvStackSource< ? > bdvStackSource, int[] buttonDimensions, Object type )
     {
         JButton brightnessButton;
-        if ( type instanceof VolatileUnsignedShortType )
-            brightnessButton = createBrightnessButton(
-                    buttonDimensions,
-                    sourceName,
-                    bdvStackSource,
-                    0,
-                    65535);
-        else if ( type instanceof VolatileUnsignedByteType )
-            brightnessButton = createBrightnessButton(
-                    buttonDimensions,
-                    sourceName,
-                    bdvStackSource,
-                    0,
-                    255 );
-        else
-            brightnessButton = createBrightnessButton(
-                    buttonDimensions,
-                    sourceName,
-                    bdvStackSource,
-                    0,
-                    65535 );
+
+        final double displayRangeMax =
+                bdvStackSource.getConverterSetups().get( 0 ).getDisplayRangeMax();
+
+        brightnessButton = createBrightnessButton(
+                buttonDimensions,
+                sourceName,
+                bdvStackSource,
+                0,
+                displayRangeMax * 5 ); // TODO: What makes sense here?
+
+//        if ( type instanceof VolatileUnsignedShortType
+//                || type instanceof UnsignedShortType )
+//            brightnessButton = createBrightnessButton(
+//                    buttonDimensions,
+//                    sourceName,
+//                    bdvStackSource,
+//                    0,
+//                    65535);
+//        else if ( type instanceof VolatileUnsignedByteType
+//                    || type instanceof UnsignedByteType )
+//            brightnessButton = createBrightnessButton(
+//                    buttonDimensions,
+//                    sourceName,
+//                    bdvStackSource,
+//                    0,
+//                    255 );
+//        else if ( type instanceof VolatileFloatType
+//                    || type instanceof FloatType )
+//        {
+//            final double displayRangeMin = bdvStackSource.getConverterSetups().get( 0 ).getDisplayRangeMin();
+//            final double displayRangeMax = bdvStackSource.getConverterSetups().get( 0 ).getDisplayRangeMax();
+//            brightnessButton = createBrightnessButton(
+//                    buttonDimensions,
+//                    sourceName,
+//                    bdvStackSource,
+//                    0,
+//                    displayRangeMax * 5 );
+//        }
+//        else
+//            brightnessButton = createBrightnessButton(
+//                    buttonDimensions,
+//                    sourceName,
+//                    bdvStackSource,
+//                    0,
+//                    65535 );
+
         return brightnessButton;
     }
 
