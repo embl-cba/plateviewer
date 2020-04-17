@@ -2,12 +2,14 @@ package de.embl.cba.plateviewer.filter;
 
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.cellloader.ImageFilterLoader;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.util.Util;
 
 import java.util.ArrayList;
 
@@ -27,8 +29,6 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 	public ImageFilter( ImageFilterSettings settings )
 	{
 		this.settings = settings;
-
-
 		this.cachedFilterImgName = settings.inputName + " - " + settings.filterType;
 
 		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
@@ -37,7 +37,7 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 		}
 		else
 		{
-			type = ( T ) settings.inputCachedCellImg.firstElement();
+			type = ( T ) Util.getTypeFromInterval( settings.rai );
 		}
 
 	}
@@ -63,10 +63,10 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 		return filterTypes;
 	}
 
-
 	public CachedCellImg< T, ? > createCachedFilterImg( )
 	{
-		final CachedCellImg cachedCellImg = settings.inputCachedCellImg;
+		// TODO, below cast is risky, rather give the dimensions in the settings
+		final CachedCellImg< T, ? > cachedCellImg = ( CachedCellImg ) settings.rai;
 
 		int[] cellDimensions = new int[ cachedCellImg.getCellGrid().numDimensions() ];
 		cachedCellImg.getCellGrid().cellDimensions( cellDimensions );
@@ -88,5 +88,4 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 
 		return cachedFilterImg;
 	}
-
 }

@@ -6,9 +6,9 @@ import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-public class MultiWellFilteredCachedCellImg< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImg< T >
+public class MultiWellFilteredImg< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
 {
-	public MultiWellFilteredCachedCellImg(
+	public MultiWellFilteredImg(
 			CachedCellImg< T , ? > cachedCellImg,
 			String channelName,
 			BdvSource bdvSource,

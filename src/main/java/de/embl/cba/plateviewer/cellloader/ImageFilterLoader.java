@@ -57,7 +57,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 
 	public void applyFilterToSourceAndPutResultIntoCell( SingleCellArrayImg< T, ? > cell )
 	{
-		final IntervalView< T > inputInterval = Views.interval( settings.inputCachedCellImg, cell );
+		final IntervalView< T > inputInterval = Views.interval( settings.rai, cell );
 
 		if ( settings.filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
 		{

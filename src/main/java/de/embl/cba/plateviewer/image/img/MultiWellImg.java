@@ -2,11 +2,13 @@ package de.embl.cba.plateviewer.image.img;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProvider;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import net.imglib2.FinalInterval;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
@@ -19,7 +21,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeType< T > >
+public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > > implements BDViewable
 {
 	protected long[] plateDimensions;
 	protected int[] imageDimensions;
@@ -37,6 +39,7 @@ public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeTy
 	protected String channelName;
 	protected final int resolutionLevel;
 
+	protected Source< ? > source;
 	protected BdvSource bdvSource;
 	protected BdvOverlaySource bdvOverlaySource;
 	protected NativeType nativeType;
@@ -44,7 +47,7 @@ public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeTy
 	protected boolean isInitiallyVisible;
 	protected MultiWellChannelFilesProvider multiWellChannelFilesProvider;
 
-	public MultiWellCachedCellImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
+	public MultiWellImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
 	{
 		this.files = files;
 		this.namingScheme = namingScheme;
@@ -69,17 +72,17 @@ public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeTy
 		return argbType;
 	}
 
-	public BdvSource getBdvSource()
-	{
-		return bdvSource;
-	}
+//	public BdvSource getBdvSource()
+//	{
+//		return bdvSource;
+//	}
+//
+//	public void setBdvSource( BdvSource bdvSource )
+//	{
+//		this.bdvSource = bdvSource;
+//	}
 
-	public void setBdvSource( BdvSource bdvSource )
-	{
-		this.bdvSource = bdvSource;
-	}
-
-	public String getChannelName()
+	public String getName()
 	{
 		return channelName;
 	}
@@ -97,7 +100,7 @@ public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeTy
 			plateDimensions[ d ] = union.max( d ) + 1;
 	}
 
-	public double[] getLutMinMax()
+	public double[] getContrastLimits()
 	{
 		return lutMinMax;
 	}
@@ -107,7 +110,7 @@ public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeTy
 		return loader;
 	}
 
-	public CachedCellImg< T, ? > getCachedCellImg( )
+	public RandomAccessibleInterval< T > getRAI( )
 	{
 		return cachedCellImg;
 	}
@@ -131,5 +134,16 @@ public abstract class MultiWellCachedCellImg< T extends RealType< T > & NativeTy
 	public Metadata.Type getType()
 	{
 		return this.type;
+	}
+
+	@Override
+	public Source< ? > getSource()
+	{
+		return source;
+	}
+
+	public void setSource( Source< ? > source )
+	{
+		this.source = source;
 	}
 }

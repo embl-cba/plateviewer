@@ -58,7 +58,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
     }
 
-    public void addSourceToPanel(
+    public void addToPanel(
             String sourceName,
             BdvStackSource< ? > bdvStackSource,
             ARGBType argb,

@@ -4,13 +4,11 @@ package de.embl.cba.plateviewer.bdv;
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
-import de.embl.cba.plateviewer.image.img.MultiWellCachedCellImg;
 import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
 import net.imglib2.RealPoint;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.util.List;
 import java.awt.*;
 
 import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
@@ -24,11 +22,13 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 	private String wellName;
 	private String siteName;
 
-	public BdvSiteAndWellNamesOverlay( Bdv bdv, List< MultiWellCachedCellImg > multiWellCachedCellImgs )
+	public BdvSiteAndWellNamesOverlay(
+			Bdv bdv,
+			MultiSiteLoader multiSiteLoader )
 	{
 		super();
 		this.bdv = bdv;
-		this.multiSiteLoader = multiWellCachedCellImgs.get( 0 ).getLoader();
+		this.multiSiteLoader = multiSiteLoader;
 		this.numDimensions = 2;
 
 		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );

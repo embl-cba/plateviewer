@@ -1,10 +1,8 @@
 package de.embl.cba.plateviewer.image.source;
 
-import bdv.util.RandomAccessibleIntervalMipmapSource;
-import bdv.util.RandomAccessibleIntervalSource;
 import bdv.util.volatiles.SharedQueue;
 import bdv.viewer.Source;
-import de.embl.cba.plateviewer.image.img.MultiWellHdf5CachedCellImg;
+import de.embl.cba.plateviewer.image.img.MultiWellHdf5Img;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
@@ -24,7 +22,7 @@ public class MultiResolutionHdf5ChannelSourceCreator < R extends NativeType< R >
 	private final String channelName;
 	private final List< File > channelFiles;
 	private RandomAccessibleIntervalMipmapWithOffsetSource< R > source;
-	private MultiWellHdf5CachedCellImg< R > multiWellHdf5CachedCellImage;
+	private MultiWellHdf5Img< R > multiWellHdf5CachedCellImage;
 
 	public MultiResolutionHdf5ChannelSourceCreator( String namingScheme,
 													String channelName,
@@ -37,21 +35,21 @@ public class MultiResolutionHdf5ChannelSourceCreator < R extends NativeType< R >
 
 	public void create()
 	{
-		final int[] scaleFactors = MultiWellHdf5CachedCellImg.getScaleFactors( channelFiles.get( 0 ), channelName );
+		final int[] scaleFactors = MultiWellHdf5Img.getScaleFactors( channelFiles.get( 0 ), channelName );
 
 		RandomAccessibleInterval< R >[] rais = new RandomAccessibleInterval[ scaleFactors.length ];
 		double[][] mipmapScales = new double[ scaleFactors.length ][ NUM_DIMENSIONS ];
 
 		for ( int resolutionLevel = 0; resolutionLevel < scaleFactors.length; resolutionLevel++ )
 		{
-			final MultiWellHdf5CachedCellImg< R > cachedCellImage
-					= new MultiWellHdf5CachedCellImg<>(
+			final MultiWellHdf5Img< R > cachedCellImage
+					= new MultiWellHdf5Img<>(
 						channelFiles,
 						namingScheme,
 						channelName,
 						resolutionLevel );
 
-			rais[ resolutionLevel ] = Views.addDimension( cachedCellImage.getCachedCellImg(), 0, 0);
+			rais[ resolutionLevel ] = Views.addDimension( cachedCellImage.getRAI(), 0, 0);
 
 			for ( int d = 0; d < NUM_DIMENSIONS; d++ )
 			{
@@ -84,7 +82,7 @@ public class MultiResolutionHdf5ChannelSourceCreator < R extends NativeType< R >
 		return source.asVolatile( new SharedQueue( 1 ) );
 	}
 
-	public MultiWellHdf5CachedCellImg< R > getMultiWellHdf5CachedCellImage()
+	public MultiWellHdf5Img< R > getMultiWellHdf5CachedCellImage()
 	{
 		return multiWellHdf5CachedCellImage;
 	}

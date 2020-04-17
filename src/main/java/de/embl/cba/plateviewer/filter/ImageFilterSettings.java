@@ -1,13 +1,14 @@
 package de.embl.cba.plateviewer.filter;
 
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 public class ImageFilterSettings < T extends NativeType< T > & RealType< T > >
 {
-	public CachedCellImg< T, ? > inputCachedCellImg;
+	public RandomAccessibleInterval rai;
 	public String inputName;
 	public String filterType;
 	public int radius = 7;

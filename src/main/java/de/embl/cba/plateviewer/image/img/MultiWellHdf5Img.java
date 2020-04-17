@@ -1,5 +1,6 @@
 package de.embl.cba.plateviewer.image.img;
 
+import bdv.viewer.Source;
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
@@ -18,7 +19,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 
-public class MultiWellHdf5CachedCellImg< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImg< T >
+public class MultiWellHdf5Img< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
 {
 	public static final String LUT_MIN_MAX = "ContrastLimits";
 	public static final String COLOR = "Color";
@@ -28,7 +29,7 @@ public class MultiWellHdf5CachedCellImg< T extends RealType< T > & NativeType< T
 
 	private final String hdf5DataSetName;
 
-	public MultiWellHdf5CachedCellImg( List< File > files, String namingScheme, String channelName, int resolutionLevel )
+	public MultiWellHdf5Img( List< File > files, String namingScheme, String channelName, int resolutionLevel )
 	{
 		super( files, namingScheme, 1, resolutionLevel );
 
@@ -136,4 +137,5 @@ public class MultiWellHdf5CachedCellImg< T extends RealType< T > & NativeType< T
 		else
 			throw new UnsupportedOperationException( "Hdf5 datatype not supported: " + dataType );
 	}
+
 }

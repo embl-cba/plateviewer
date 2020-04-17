@@ -16,9 +16,9 @@ import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.List;
 
-public class MultiWellImagePlusCachedCellImg< T extends RealType< T > & NativeType< T > > extends MultiWellCachedCellImg< T >
+public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
 {
-	public MultiWellImagePlusCachedCellImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
+	public MultiWellImagePlusImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
 	{
 		super( files, namingScheme, numIoThreads, resolutionLevel );
 
