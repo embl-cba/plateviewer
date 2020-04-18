@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.image.img;
+package de.embl.cba.plateviewer.image.channel;
 
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;

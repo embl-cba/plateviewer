@@ -2,7 +2,7 @@ package de.embl.cba.plateviewer;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.image.img.MultiWellBatchLibHdf5Img;
+import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;

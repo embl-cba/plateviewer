@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.image.img;
+package de.embl.cba.plateviewer.image.channel;
 
 import de.embl.cba.plateviewer.cellloader.MultiSiteImagePlusLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderFactory;

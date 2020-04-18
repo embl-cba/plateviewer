@@ -2,12 +2,12 @@ package de.embl.cba.plateviewer.view.panel;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
-import de.embl.cba.plateviewer.image.img.MultiWellFilteredImg;
+import de.embl.cba.plateviewer.image.channel.MultiWellFilteredImg;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;
-import de.embl.cba.plateviewer.image.img.MultiWellImg;
+import de.embl.cba.plateviewer.image.channel.MultiWellImg;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;

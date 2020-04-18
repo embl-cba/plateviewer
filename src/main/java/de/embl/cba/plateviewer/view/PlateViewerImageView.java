@@ -9,15 +9,16 @@ import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.image.img.BDViewable;
+import de.embl.cba.plateviewer.image.channel.BDViewable;
 import de.embl.cba.plateviewer.image.source.MultiResolutionBatchLibHdf5ChannelSourceCreator;
+import de.embl.cba.plateviewer.image.well.OutlinesImage;
 import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.*;
-import de.embl.cba.plateviewer.image.img.MultiWellImg;
-import de.embl.cba.plateviewer.image.img.MultiWellImagePlusImg;
+import de.embl.cba.plateviewer.image.channel.MultiWellImg;
+import de.embl.cba.plateviewer.image.channel.MultiWellImagePlusImg;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
@@ -61,12 +62,13 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	private SelectionModel< T > selectionModel;
 	private final String fileNamingScheme;
 	private Interval plateInterval;
-	private HashMap< String, Interval > siteNameToInterval;
+	private HashMap< String, Interval > wellNameToInterval;
 	private HashMap< Interval, String > intervalToSiteName;
 	private String[][] siteNameMatrix;
 
 	private boolean isFirstChannel = true;
 	private long[] siteDimensions;
+	private long[] wellDimensions;
 
 	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -87,6 +89,9 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		addChannels( fileList, fileNamingScheme, channelPatterns );
 
 		addSiteAndWellNamesOverlay();
+
+		final OutlinesImage outlinesImage = new OutlinesImage( this, 0.05 );
+		addToBdvAndPanel( outlinesImage );
 
 		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
 	}
@@ -186,12 +191,12 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 				mapSiteNamesToIntervals( wellImg );
 
+				mapWellNamesToIntervals( wellImg );
+
 				setSiteDimensions( wellImg );
 
 				isFirstChannel = false;
 			}
-
-
 		}
 	}
 
@@ -213,7 +218,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public void mapSiteNamesToIntervals( MultiWellImg multiWellImg )
 	{
-		siteNameToInterval = new HashMap<>();
+		wellNameToInterval = new HashMap<>();
 		intervalToSiteName = new HashMap<>();
 
 		final ArrayList< SingleSiteChannelFile > siteChannelFiles =
@@ -221,11 +226,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		for ( SingleSiteChannelFile channelFile : siteChannelFiles )
 		{
-			siteNameToInterval.put( channelFile.getSiteName(), channelFile.getInterval() );
+			wellNameToInterval.put( channelFile.getSiteName(), channelFile.getInterval() );
 			intervalToSiteName.put( channelFile.getInterval(), channelFile.getSiteName() );
 		}
 
-		final Interval siteInterval = siteNameToInterval.values().iterator().next();
+		final Interval siteInterval = wellNameToInterval.values().iterator().next();
 		final int[] numSites = new int[ 2 ];
 		for ( int d = 0; d < 2; d++ )
 		{
@@ -241,6 +246,42 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			siteNameMatrix[ rowIndex ][ colIndex ] = channelFile.getSiteName();
 		}
 	}
+
+	public void mapWellNamesToIntervals( MultiWellImg< R > multiWellImg )
+	{
+		wellNameToInterval = new HashMap<>();
+		intervalToSiteName = new HashMap<>();
+
+		int sourceIndex = 0; // channel 0
+
+		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles =
+				multiWellImg.getLoader().getSingleSiteChannelFiles();
+
+		FinalInterval union = null;
+
+		final ArrayList< String > wellNames = multiWellImg.getWellNames();
+
+		for ( String wellName : wellNames )
+		{
+			for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
+			{
+				if ( singleSiteChannelFile.getWellName().equals( wellName ) )
+				{
+					if ( union == null )
+					{
+						union = new FinalInterval( singleSiteChannelFile.getInterval() );
+					} else
+					{
+						union = Intervals.union( singleSiteChannelFile.getInterval(), union );
+					}
+				}
+			}
+			wellNameToInterval.put( wellName, union );
+		}
+
+		wellDimensions = Intervals.dimensionsAsLongArray( wellNameToInterval.values().iterator().next() );
+	}
+
 
 	public String[][] getSiteNameMatrix()
 	{
@@ -300,36 +341,14 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return multiWellImgs.get( 0 ).getWellNames();
 	}
 
-	// TODO: This should be some Map: wellName to interval
-	// and I also need interval To SiteName
 	public void zoomToWell ( String wellName )
 	{
-		int sourceIndex = 0; // channel 0
-
-		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles = this.multiWellImgs.get( sourceIndex ).getLoader().getSingleSiteChannelFiles();
-
-		FinalInterval union = null;
-
-		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
-		{
-			if ( singleSiteChannelFile.getWellName().equals( wellName ) )
-			{
-				if ( union == null )
-				{
-					union = new FinalInterval( singleSiteChannelFile.getInterval() );
-				} else
-				{
-					union = Intervals.union( singleSiteChannelFile.getInterval(), union );
-				}
-			}
-		}
-
-		zoomToInterval( union );
+		zoomToInterval( wellNameToInterval.get( wellName ) );
 	}
 
 	public void zoomToSite( String siteName )
 	{
-		zoomToInterval( siteNameToInterval.get( siteName ) );
+		zoomToInterval( wellNameToInterval.get( siteName ) );
 
 		if ( selectionModel != null )
 			notifyImageSelectionModel( siteName );
@@ -584,5 +603,10 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	public Interval getPlateInterval()
 	{
 		return plateInterval;
+	}
+
+	public long[] getWellDimensions()
+	{
+		return wellDimensions;
 	}
 }

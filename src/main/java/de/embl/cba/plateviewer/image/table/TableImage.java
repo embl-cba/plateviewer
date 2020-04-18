@@ -4,7 +4,7 @@ import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.image.img.BDViewable;
+import de.embl.cba.plateviewer.image.channel.BDViewable;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.tables.Tables;

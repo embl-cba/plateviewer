@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.image.img;
+package de.embl.cba.plateviewer.image.channel;
 
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;

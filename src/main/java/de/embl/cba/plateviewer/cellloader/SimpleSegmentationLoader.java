@@ -5,7 +5,7 @@ import bdv.util.*;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
 import de.embl.cba.plateviewer.bdv.TextOverlay;
-import de.embl.cba.plateviewer.image.img.MultiWellImg;
+import de.embl.cba.plateviewer.image.channel.MultiWellImg;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;

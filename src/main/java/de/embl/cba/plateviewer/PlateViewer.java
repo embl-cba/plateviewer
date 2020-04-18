@@ -6,6 +6,7 @@ import de.embl.cba.plateviewer.image.table.TableImage;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -62,8 +63,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		final TableImage tableImage = new TableImage( tableRows, selectionColoringModel, imageView );
 		imageView.addToBdvAndPanel( tableImage );
 
-		// TODO: below method call in table-utils must be massively improved in terms of clarity!
-		tableView.colorByColumn( "score1", ColumnColoringModelCreator.VIRIDIS, null, null );
+		tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
 	}
 
 	public Bdv getBdv()

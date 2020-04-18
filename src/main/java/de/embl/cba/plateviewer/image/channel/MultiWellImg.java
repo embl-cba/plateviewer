@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.image.img;
+package de.embl.cba.plateviewer.image.channel;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
