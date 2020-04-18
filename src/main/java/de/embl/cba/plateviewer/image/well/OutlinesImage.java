@@ -1,9 +1,10 @@
 package de.embl.cba.plateviewer.image.well;
 
+import bdv.util.BdvOverlay;
 import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.image.channel.BDViewable;
+import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.Interval;
@@ -20,7 +21,7 @@ import net.imglib2.view.Views;
 import java.awt.*;
 import java.util.function.BiConsumer;
 
-public class OutlinesImage implements BDViewable
+public class OutlinesImage implements BdvViewable
 {
 	public static final String IMAGE_NAME = "plate outlines";
 	private Interval imageInterval;
@@ -109,6 +110,12 @@ public class OutlinesImage implements BDViewable
 	public Source< ? > getSource()
 	{
 		return source;
+	}
+
+	@Override
+	public BdvOverlay getOverlay()
+	{
+		return null;
 	}
 
 	@Override

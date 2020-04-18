@@ -1,8 +1,13 @@
 package de.embl.cba.plateviewer.view.panel;
 
+import bdv.util.BdvOverlaySource;
+import bdv.util.BdvSource;
 import bdv.util.BdvStackSource;
+import bdv.util.BdvVirtualChannelSource;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
@@ -58,45 +63,42 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
     }
 
-    public void addToPanel(
-            String sourceName,
-            BdvStackSource< ? > bdvStackSource,
-            ARGBType argb,
-            boolean initiallyVisible )
+    public void addToPanel( BdvViewable bdvViewable, BdvSource bdvSource )
     {
-        if( ! sourceNameToPanel.containsKey( sourceName ) )
+        if( ! sourceNameToPanel.containsKey( bdvViewable.getName() ) )
         {
             JPanel panel = new JPanel();
-            sourceNameToPanel.put( sourceName, panel );
+            sourceNameToPanel.put( bdvViewable.getName() , panel );
 
             panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
             panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
             panel.add( Box.createHorizontalGlue() );
             panel.setOpaque( true );
-            panel.setBackground( Utils.asColor( argb ) );
+            panel.setBackground( Utils.asColor( bdvViewable.getColor() ) );
 
-            JLabel jLabel = new JLabel( sourceName );
+            JLabel jLabel = new JLabel( bdvViewable.getName() );
             jLabel.setHorizontalAlignment( SwingConstants.CENTER );
 
             int[] buttonDimensions = new int[]{ 50, 30 };
 
-            final Object type = bdvStackSource.getSources().get( 0 ).getSpimSource().getType();
-
             panel.add( jLabel );
 
-            if ( ! ( type instanceof VolatileARGBType ) )
+            if ( ! ( bdvSource instanceof BdvOverlaySource ) &&
+                    ! ( bdvViewable.getType().equals( Metadata.Type.Segmentation )) )
             {
-                final JButton colorButton =
-                        createColorButton( panel, buttonDimensions, bdvStackSource );
+                final JButton colorButton = createColorButton( panel, buttonDimensions, bdvSource );
                 panel.add( colorButton );
             }
 
-            JButton brightnessButton =
-                    getBrightnessButton( sourceName, bdvStackSource, buttonDimensions, type );
-            panel.add( brightnessButton );
+            if ( bdvSource instanceof BdvStackSource )
+            {
+                JButton brightnessButton = getBrightnessButton(
+                        bdvViewable.getName(), ( BdvStackSource ) bdvSource, buttonDimensions );
+                panel.add( brightnessButton );
+            }
 
             final JCheckBox visibilityCheckbox =
-                    createVisibilityCheckbox( buttonDimensions, bdvStackSource, initiallyVisible );
+                    createVisibilityCheckbox( buttonDimensions, bdvSource, bdvViewable.isInitiallyVisible() );
             panel.add( visibilityCheckbox );
 
             add( panel );
@@ -104,17 +106,20 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         }
     }
 
-    public JButton getBrightnessButton( String sourceName, BdvStackSource< ? > bdvStackSource, int[] buttonDimensions, Object type )
+    public JButton getBrightnessButton(
+            String sourceName,
+            BdvStackSource< ? > bdvSource, // TODO: could this also be a bdvSource?
+            int[] buttonDimensions )
     {
         JButton brightnessButton;
 
         final double displayRangeMax =
-                bdvStackSource.getConverterSetups().get( 0 ).getDisplayRangeMax();
+                bdvSource.getConverterSetups().get( 0 ).getDisplayRangeMax();
 
         brightnessButton = createBrightnessButton(
                 buttonDimensions,
                 sourceName,
-                bdvStackSource,
+                bdvSource,
                 0,
                 displayRangeMax * 5 ); // TODO: What makes sense here?
 

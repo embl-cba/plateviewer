@@ -1,10 +1,11 @@
 package de.embl.cba.plateviewer.image.table;
 
+import bdv.util.BdvOverlay;
 import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.image.channel.BDViewable;
+import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.tables.Tables;
@@ -26,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableImage implements BDViewable
+public class TableImage implements BdvViewable
 {
 	private final List< DefaultSiteNameTableRow > tableRows;
 	private final SelectionColoringModel< DefaultSiteNameTableRow > coloringModel;
@@ -146,6 +147,12 @@ public class TableImage implements BDViewable
 	public Source< ? > getSource()
 	{
 		return argbSource;
+	}
+
+	@Override
+	public BdvOverlay getOverlay()
+	{
+		return null;
 	}
 
 	@Override

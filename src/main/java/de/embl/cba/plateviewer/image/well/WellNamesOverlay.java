@@ -3,30 +3,21 @@ package de.embl.cba.plateviewer.image.well;
 
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
-import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
-import de.embl.cba.plateviewer.table.SiteName;
+import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import net.imglib2.Interval;
-import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.util.Arrays;
 import java.util.HashMap;
-
-import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
 public class WellNamesOverlay extends BdvOverlay
 {
 	final Bdv bdv;
 	private final PlateViewerImageView< ?, ? > plateViewer;
 
-	public < T extends SiteName > WellNamesOverlay( PlateViewerImageView< ?, ? > plateViewer )
+	public WellNamesOverlay( PlateViewerImageView< ?, ? > plateViewer )
 	{
 		super();
 		this.bdv = plateViewer.getBdv();
@@ -72,9 +63,12 @@ public class WellNamesOverlay extends BdvOverlay
 				screenWellSize[ d ] = (int) ( screenWellPosMax[ d ] - screenWellPosMin[ d ] );
 			}
 
+			final int offset = screenWellSize[ 0 ] / 10;
 			fontSize = Math.min( screenWellSize[ 0 ], screenWellSize[ 1 ] ) / 2;
 			g.setFont( new Font("TimesRoman", Font.PLAIN, fontSize ) );
-			g.drawString( wellName, (int) screenWellPosMin[ 0 ], (int) screenWellPosMax[ 1 ] );
+			g.drawString( wellName,
+					(int) screenWellPosMin[ 0 ] + offset,
+					(int) screenWellPosMax[ 1 ] - offset);
 		}
 	}
 }

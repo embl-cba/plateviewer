@@ -306,16 +306,16 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 					removeSource( imageFilterSourceName );
 
 					final CachedCellImg filterImg = imageFilter.createCachedFilterImg();
-					final BdvStackSource bdvStackSource =
-							addToViewer( filterImg, imageFilterSourceName );
+					final BdvStackSource bdvStackSource = addToViewer( filterImg, imageFilterSourceName );
 
+					// TODO: make all of this a Bdviewable
 					bdvStackSource.setColor( inputSource.getColor() );
 
-					getSourcesPanel().addToPanel(
-							imageFilterSourceName,
-							bdvStackSource,
-							inputSource.getColor(),
-							true );
+//					getSourcesPanel().addToPanel(
+//							imageFilterSourceName,
+//							bdvStackSource,
+//							inputSource.getColor(),
+//							true );
 
 					if ( !settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 					{

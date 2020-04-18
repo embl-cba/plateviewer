@@ -1,5 +1,6 @@
 package de.embl.cba.plateviewer.image.channel;
 
+import bdv.util.BdvOverlay;
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
 import bdv.viewer.Source;
@@ -21,7 +22,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > > implements BDViewable
+public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > > implements BdvViewable
 {
 	protected long[] plateDimensions;
 	protected int[] imageDimensions;
@@ -146,4 +147,11 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	{
 		this.source = source;
 	}
+
+	@Override
+	public BdvOverlay getOverlay()
+	{
+		return null;
+	}
+
 }

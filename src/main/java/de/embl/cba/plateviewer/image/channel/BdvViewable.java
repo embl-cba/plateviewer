@@ -1,11 +1,12 @@
 package de.embl.cba.plateviewer.image.channel;
 
+import bdv.util.BdvOverlay;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.numeric.ARGBType;
 
-public interface BDViewable
+public interface BdvViewable
 {
 	String getName();
 
@@ -16,6 +17,8 @@ public interface BDViewable
 	RandomAccessibleInterval< ? > getRAI();
 
 	Source< ? > getSource();
+
+	BdvOverlay getOverlay();
 
 	boolean isInitiallyVisible();
 
