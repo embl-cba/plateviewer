@@ -33,8 +33,10 @@ public class OutlinesImage implements BDViewable
 	public OutlinesImage( PlateViewerImageView imageView, double relativeWellBorderWidth )
 	{
 		this.wellDimensions = imageView.getWellDimensions();
-		this.imageInterval = Intervals.expand( imageView.getPlateInterval(), 2 * wellDimensions[ 0 ] );
-		this.relativeWellBorderWidth = 0.05;
+		this.imageInterval = Intervals.expand(
+				imageView.getPlateInterval(),
+				(int) ( wellDimensions[ 0 ] * relativeWellBorderWidth ) );
+		this.relativeWellBorderWidth = relativeWellBorderWidth;
 
 		contrastLimits = new double[ 2 ];
 
@@ -56,7 +58,8 @@ public class OutlinesImage implements BDViewable
 
 			if ( distance < relativeWellBorderWidth )
 			{
-				t.set( (int) ( 255.0 * ( relativeWellBorderWidth - distance ) / relativeWellBorderWidth ));
+				t.set( 255 );
+				//t.set( (int) ( 255.0 * ( relativeWellBorderWidth - distance ) / relativeWellBorderWidth ));
 				return;
 			}
 			else

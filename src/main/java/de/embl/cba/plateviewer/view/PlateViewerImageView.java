@@ -12,6 +12,7 @@ import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.BDViewable;
 import de.embl.cba.plateviewer.image.source.MultiResolutionBatchLibHdf5ChannelSourceCreator;
 import de.embl.cba.plateviewer.image.well.OutlinesImage;
+import de.embl.cba.plateviewer.image.well.WellNamesOverlay;
 import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
@@ -88,9 +89,12 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		addChannels( fileList, fileNamingScheme, channelPatterns );
 
-		addSiteAndWellNamesOverlay();
+		if ( multiWellImgs.size() == 0 )
+		{
+			throw new UnsupportedOperationException( "No multi-well images sources have been added." );
+		}
 
-		final OutlinesImage outlinesImage = new OutlinesImage( this, 0.05 );
+		final OutlinesImage outlinesImage = new OutlinesImage( this, 0.01 );
 		addToBdvAndPanel( outlinesImage );
 
 		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
@@ -101,18 +105,21 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return fileNamingScheme;
 	}
 
-	private void addSiteAndWellNamesOverlay()
+	private void addSiteAndWellNamesOverlay( MultiWellImg multiWellImg )
 	{
-		if ( multiWellImgs.size() == 0 )
-		{
-			throw new UnsupportedOperationException( "No multi-well images sources have been added." );
-		}
+		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( this );
+
+		BdvFunctions.showOverlay(
+				wellNamesOverlay,
+				"well names",
+				BdvOptions.options().addTo( bdv ) );
 
 		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay(
 				bdv,
-				multiWellImgs.get( 0 ).getLoader() );
+				multiWellImg.getLoader() );
 
-		BdvFunctions.showOverlay(
+		// TODO: wrap it into a BDViewable
+		final BdvOverlaySource< BdvOverlay > overlaySource = BdvFunctions.showOverlay(
 				bdvOverlay,
 				"site and well names - overlay",
 				BdvOptions.options().addTo( bdv ) );
@@ -194,6 +201,8 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 				mapWellNamesToIntervals( wellImg );
 
 				setSiteDimensions( wellImg );
+
+				addSiteAndWellNamesOverlay( wellImg );
 
 				isFirstChannel = false;
 			}
@@ -344,6 +353,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	public void zoomToWell ( String wellName )
 	{
 		zoomToInterval( wellNameToInterval.get( wellName ) );
+	}
+
+	public HashMap< String, Interval > getWellNameToInterval()
+	{
+		return wellNameToInterval;
 	}
 
 	public void zoomToSite( String siteName )
