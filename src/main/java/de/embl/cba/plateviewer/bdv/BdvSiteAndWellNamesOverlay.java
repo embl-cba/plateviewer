@@ -92,7 +92,7 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 		if ( singleSiteChannelFile != null )
 		{
 			wellName = singleSiteChannelFile.getWellName() + " " + singleSiteChannelFile.getWellInformation();
-			siteName = singleSiteChannelFile.getSiteName() + " " + singleSiteChannelFile.getWellInformation();
+			siteName = singleSiteChannelFile.getSiteName() + " " + singleSiteChannelFile.getSiteInformation();
 		}
 		else
 		{

@@ -62,7 +62,8 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 			}
 		}
 
-		final VoxelDimensions voxelDimensions = new FinalVoxelDimensions("pixel", 1, 1 );
+		final VoxelDimensions voxelDimensions =
+				new FinalVoxelDimensions("pixel", 1, 1, 1 );
 
 		source = new RandomAccessibleIntervalMipmapWithOffsetSource<>(
 				rais,

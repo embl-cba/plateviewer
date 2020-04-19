@@ -13,15 +13,18 @@ public class PlateViewerCommand implements Command
 	@Parameter (label = "Plate images directory", style = "directory" )
 	public File imagesDirectory;
 
+	@Parameter (label = "Include sub-folders")
+	public boolean includeSubFolders = false;
+
 	@Parameter (label = "Only load image files matching" )
-	public String filePattern = ".*.tif";
+	public String filePattern = ".*.h5";
 
 	@Parameter (label = "Plate images table (optional)", required = false)
 	public File imagesTableFile;
 
 	public void run()
 	{
-		new PlateViewer( imagesDirectory, filePattern, imagesTableFile, 4 );
+		new PlateViewer( imagesDirectory, filePattern, imagesTableFile, 4, includeSubFolders );
 	}
 
 }

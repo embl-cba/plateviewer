@@ -27,8 +27,6 @@ public class WellNamesOverlay extends BdvOverlay
 	@Override
 	protected void draw( final Graphics2D g )
 	{
-		int fontSize = 100;
-
 		g.setColor( Color.WHITE );
 
 		final AffineTransform3D globalToViewerTransform = new AffineTransform3D();
@@ -64,7 +62,7 @@ public class WellNamesOverlay extends BdvOverlay
 			}
 
 			final int offset = screenWellSize[ 0 ] / 10;
-			fontSize = Math.min( screenWellSize[ 0 ], screenWellSize[ 1 ] ) / 2;
+			final int fontSize = Math.min( screenWellSize[ 0 ], screenWellSize[ 1 ] ) / 2;
 			g.setFont( new Font("TimesRoman", Font.PLAIN, fontSize ) );
 			g.drawString( wellName,
 					(int) screenWellPosMin[ 0 ] + offset,

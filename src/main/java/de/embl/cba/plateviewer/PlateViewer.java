@@ -7,7 +7,6 @@ import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
 import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.color.ColumnColoringModelCreator;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
@@ -25,9 +24,10 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 {
 	private final Bdv bdv;
 
-	public PlateViewer( File imagesDirectory, String filePattern, File imagesTableFile, int numIoThreads )
+	public PlateViewer( File imagesDirectory, String filePattern, File imagesTableFile, int numIoThreads, boolean includeSubFolders )
 	{
-		final PlateViewerImageView< R, T > imagePlateView = new PlateViewerImageView( imagesDirectory.toString(), filePattern, numIoThreads );
+		final PlateViewerImageView< R, T > imagePlateView =
+				new PlateViewerImageView( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
 
 		bdv = imagePlateView.getBdv();
 

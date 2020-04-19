@@ -8,14 +8,14 @@ import java.util.regex.Pattern;
 
 public class FileUtils
 {
-	public static List< File > getFileList( File directory, String fileNameRegExp )
+	public static List< File > getFileList( File directory, String fileNameRegExp, boolean includeSubFolders )
 	{
 		final List< File > files = new ArrayList<>();
-		populateFileList( directory, fileNameRegExp,files );
+		populateFileList( directory, fileNameRegExp,files, includeSubFolders );
 		return files;
 	}
 
-	private static void populateFileList( File directory, String fileNameRegExp, List< File > files) {
+	private static void populateFileList( File directory, String fileNameRegExp, List< File > files, boolean includeSubFolders ) {
 
 		// Get all the files from a directory.
 		File[] fList = directory.listFiles();
@@ -24,19 +24,21 @@ public class FileUtils
 		{
 			for ( File file : fList )
 			{
-				if ( file.isFile() )
+				final Matcher matcher = Pattern.compile( fileNameRegExp ).matcher( file.getName() );
+
+				if ( matcher.matches() )
 				{
-					final Matcher matcher = Pattern.compile( fileNameRegExp ).matcher( file.getName() );
-
-					if ( matcher.matches() )
-					{
-						files.add( file );
-					}
-
+					files.add( file );
 				}
-				else if ( file.isDirectory() )
+				else
 				{
-					populateFileList( file, fileNameRegExp, files );
+					if ( includeSubFolders )
+					{
+						if ( file.isDirectory() )
+						{
+							populateFileList( file, fileNameRegExp, files, includeSubFolders );
+						}
+					}
 				}
 			}
 		}

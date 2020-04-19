@@ -38,11 +38,12 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 
 		setHdf5ImageProperties( files.get( 0 ) );
 
-		multiWellChannelFilesProvider = new MultiWellChannelFilesProviderBatchLibHdf5( files, hdf5DataSetName, imageDimensions );
+		multiWellChannelFilesProvider = new MultiWellChannelFilesProviderBatchLibHdf5( files, hdf5DataSetName, imageDimensions, resolutionLevel );
 
 		singleSiteChannelFiles = multiWellChannelFilesProvider.getSingleSiteChannelFiles();
 
-		wellNames = multiWellChannelFilesProvider.getWellNames();
+		if ( resolutionLevel == 0 )
+			wellNames = multiWellChannelFilesProvider.getWellNames();
 
 		loader = new MultiSiteHdf5Loader( singleSiteChannelFiles, numIoThreads );
 

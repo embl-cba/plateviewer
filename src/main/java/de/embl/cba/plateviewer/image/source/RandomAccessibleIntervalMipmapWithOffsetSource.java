@@ -32,6 +32,8 @@ package de.embl.cba.plateviewer.image.source;
 import java.util.function.Supplier;
 
 import bdv.util.AbstractSource;
+import bdv.util.RandomAccessibleIntervalMipmapSource;
+import bdv.util.RandomAccessibleIntervalSource;
 import bdv.util.VolatileRandomAccessibleIntervalMipmapSource;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileTypeMatcher;
@@ -58,6 +60,7 @@ public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericTy
 			final AffineTransform3D sourceTransform,
 			final String name )
 	{
+
 		super( type, name );
 		assert imgs.length == mipmapScales.length : "Number of mipmaps and scale factors do not match.";
 
@@ -67,10 +70,10 @@ public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericTy
 		{
 			final AffineTransform3D mipmapTransform = new AffineTransform3D();
 
-			// TODO: figure this out
-			final double m03 = 0; // 100 * ( mipmapScales[ s ][ 0 ] - 1 );
-			final double m13 = - 5.0 * ( mipmapScales[ s ][ 1 ] - 1 ) ;
-			final double m23 = 0; // ( mipmapScales[ s ][ 2 ] - 1 );
+			// TODO: figure this out for batchLibHdf5
+			final double m03 = 0.5 * ( mipmapScales[ s ][ 0 ] - 1 );
+			final double m13 = 0.5 * ( mipmapScales[ s ][ 1 ] - 1 );
+			final double m23 = 0.0 * ( mipmapScales[ s ][ 2 ] - 1 );
 
 			mipmapTransform.set(
 					mipmapScales[ s ][ 0 ], 0, 0, m03,

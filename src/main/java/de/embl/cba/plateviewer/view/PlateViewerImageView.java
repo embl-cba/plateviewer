@@ -65,6 +65,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	private final String fileNamingScheme;
 	private Interval plateInterval;
 	private HashMap< String, Interval > wellNameToInterval;
+	private HashMap< String, Interval > siteNameToInterval;
 	private HashMap< Interval, String > intervalToSiteName;
 	private String[][] siteNameMatrix;
 
@@ -75,12 +76,17 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
 	{
+		this( inputDirectory, filterPattern, numIoThreads, true );
+	}
+
+	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads, boolean includeSubFolders )
+	{
 		this.plateName = new File( inputDirectory ).getName();
 		this.multiWellImgs = new ArrayList<>();
 		this.numIoThreads = numIoThreads;
 		this.loadingQueue = new SharedQueue( numIoThreads );
 
-		final List< File > fileList = getFiles( inputDirectory, filterPattern );
+		final List< File > fileList = getFiles( inputDirectory, filterPattern, includeSubFolders );
 
 		fileNamingScheme = getImageNamingScheme( fileList );
 
@@ -89,6 +95,12 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		final List< String > channelPatterns =
 				Utils.getChannelPatterns( fileList, fileNamingScheme );
+
+		Logger.info( "Detected channels: " );
+		for ( String channelPattern : channelPatterns )
+		{
+			Logger.info( "- " + channelPattern );
+		}
 
 		addChannels( fileList, fileNamingScheme, channelPatterns );
 
@@ -126,10 +138,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return namingScheme;
 	}
 
-	public static List< File > getFiles( String inputDirectory, String filePattern )
+	public static List< File > getFiles( String inputDirectory, String filePattern, boolean includeSubFolders )
 	{
+		Utils.log( "Plate directory: " + inputDirectory );
 		Utils.log( "Fetching files..." );
-		final List< File > fileList = FileUtils.getFileList( new File( inputDirectory ), filePattern );
+		final List< File > fileList = FileUtils.getFileList( new File( inputDirectory ), filePattern, includeSubFolders );
 		Utils.log( "Number of files: " + fileList.size() );
 
 		if ( fileList.size() == 0 )
@@ -146,27 +159,30 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			String namingScheme,
 			List< String > channelPatterns )
 	{
-
 		MultiWellImg wellImg;
 
 		for ( String channelPattern : channelPatterns )
 		{
 			final String channelName = channelPattern;
+
+			if ( ! channelName.equals( "nuclei" ) ) continue;
+
 			Utils.log( "Adding channel: " + channelName );
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );
 
 			if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 			{
-				final MultiResolutionBatchLibHdf5ChannelSourceCreator sourceCreator = new MultiResolutionBatchLibHdf5ChannelSourceCreator(
-						namingScheme,
-						channelName,
-						channelFiles );
+				final MultiResolutionBatchLibHdf5ChannelSourceCreator sourceCreator =
+						new MultiResolutionBatchLibHdf5ChannelSourceCreator(
+							namingScheme,
+							channelName,
+							channelFiles );
 
 				sourceCreator.create();
 
 				wellImg = sourceCreator.getMultiWellHdf5CachedCellImage();
 
-				wellImg.setSource( sourceCreator.getSource() );
+				wellImg.setSource( sourceCreator.getVolatileSource() );
 
 				multiWellImgs.add( wellImg );
 
@@ -194,6 +210,12 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 				mapWellNamesToIntervals( wellImg );
 
 				setSiteDimensions( wellImg );
+
+				// TODO: fix this, as this should be in units of wells per plate and sites per well
+//				Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
+//				Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
+//				Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
+//				Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 
 				isFirstChannel = false;
 			}
@@ -225,7 +247,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public void mapSiteNamesToIntervals( MultiWellImg multiWellImg )
 	{
-		wellNameToInterval = new HashMap<>();
+		siteNameToInterval = new HashMap<>();
 		intervalToSiteName = new HashMap<>();
 
 		final ArrayList< SingleSiteChannelFile > siteChannelFiles =
@@ -233,11 +255,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		for ( SingleSiteChannelFile channelFile : siteChannelFiles )
 		{
-			wellNameToInterval.put( channelFile.getSiteName(), channelFile.getInterval() );
+			siteNameToInterval.put( channelFile.getSiteName(), channelFile.getInterval() );
 			intervalToSiteName.put( channelFile.getInterval(), channelFile.getSiteName() );
 		}
 
-		final Interval siteInterval = wellNameToInterval.values().iterator().next();
+		final Interval siteInterval = siteNameToInterval.values().iterator().next();
 		final int[] numSites = new int[ 2 ];
 		for ( int d = 0; d < 2; d++ )
 		{
@@ -257,19 +279,16 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	public void mapWellNamesToIntervals( MultiWellImg< R > multiWellImg )
 	{
 		wellNameToInterval = new HashMap<>();
-		intervalToSiteName = new HashMap<>();
-
-		int sourceIndex = 0; // channel 0
 
 		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles =
 				multiWellImg.getLoader().getSingleSiteChannelFiles();
-
-		FinalInterval union = null;
 
 		final ArrayList< String > wellNames = multiWellImg.getWellNames();
 
 		for ( String wellName : wellNames )
 		{
+			FinalInterval union = null;
+
 			for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
 			{
 				if ( singleSiteChannelFile.getWellName().equals( wellName ) )
@@ -472,13 +491,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		BdvSource bdvSource = addToBdv( bdvViewable );
 
-		//multiWellCachedCellImg.setBdvSource( bdvStackSource );
+		bdvSource.setActive( bdvViewable.isInitiallyVisible() );
 
 		bdvSource.setDisplayRange( bdvViewable.getContrastLimits()[ 0 ], bdvViewable.getContrastLimits()[ 1 ] );
 
 		bdvSource.setColor( bdvViewable.getColor() );
-
-		bdvSource.setActive( bdvViewable.isInitiallyVisible() );
 
 		plateViewerMainPanel.getSourcesPanel().addToPanel( bdvViewable, bdvSource );
 	}
@@ -503,9 +520,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 						new LazyLabelsARGBConverter() );
 			}
 
-			return BdvFunctions.show(
-					source,
-					BdvOptions.options().addTo( bdv ) );
+			return BdvFunctions.show( source, BdvOptions.options().addTo( bdv ) );
 		}
 		else
 		{

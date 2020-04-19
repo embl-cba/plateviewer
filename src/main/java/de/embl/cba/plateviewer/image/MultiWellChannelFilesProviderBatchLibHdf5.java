@@ -17,6 +17,7 @@ public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChann
 {
 	final List< File > files;
 	private final String hdf5DataSetName;
+	private final int resolutionLevel;
 
 	int numSites, numWells;
 	int[] siteDimensions; // for example, 2x2 sites
@@ -31,10 +32,11 @@ public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChann
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public MultiWellChannelFilesProviderBatchLibHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions )
+	public MultiWellChannelFilesProviderBatchLibHdf5( List< File > files, String hdf5DataSetName, int[] imageDimensions, int resolutionLevel )
 	{
 		this.files = files;
 		this.hdf5DataSetName = hdf5DataSetName;
+		this.resolutionLevel = resolutionLevel;
 		this.singleSiteChannelFiles = new ArrayList<>();
 		this.imageDimensions = imageDimensions;
 
@@ -90,31 +92,45 @@ public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChann
 
 		for ( File file : files )
 		{
-			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
-					file,
-					hdf5DataSetName,
-					getInterval( file ),
-					createSiteName( file.getName() ),
-					getWellName( file.getName() ) );
+			final SingleSiteChannelFile singleSiteChannelFile =
+					new SingleSiteChannelFile(
+						file,
+						hdf5DataSetName,
+						createInterval( file.getName() ),
+						createSiteName( file.getName() ),
+						getWellName( file.getName() ) );
 
-			singleSiteChannelFile.setSiteInformation( readSiteInformation( file ) );
-			singleSiteChannelFile.setWellInformation( readWellInformation( file ) );
+			// TODO: This is too slow, because one needs to go into all the files, one could set a String Supplier here that reads it on demand
+//			singleSiteChannelFile.setSiteInformation( readSiteInformation( file ) );
+//			singleSiteChannelFile.setWellInformation( readWellInformation( file ) );
 			singleSiteChannelFiles.add( singleSiteChannelFile );
 		}
 	}
 
 	private String readSiteInformation( File file )
 	{
-		final IHDF5Reader reader = HDF5Factory.openForReading( file );
-		final String information = reader.string().getAttr( "/", "ImageInformation" );
-		return information;
+		try
+		{
+			final IHDF5Reader reader = HDF5Factory.openForReading( file );
+			return reader.string().getAttr( "/", "ImageInformation" );
+		}
+		catch ( Exception e )
+		{
+			return "No ImageInformation found";
+		}
 	}
 
 	private String readWellInformation( File file )
 	{
-		final IHDF5Reader reader = HDF5Factory.openForReading( file );
-		final String information = reader.string().getAttr( "/", "WellInformation" );
-		return information;
+		try
+		{
+			final IHDF5Reader reader = HDF5Factory.openForReading( file );
+			return reader.string().getAttr( "/", "WellInformation" );
+		}
+		catch ( Exception e )
+		{
+			return "No WellInformation found";
+		}
 	}
 
 	public static String createSiteName( String fileName )
@@ -142,9 +158,6 @@ public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChann
 		int[] maximalWellPositionsInData = getMaximalWellPositionsInData( files );
 
 		wellDimensions = Utils.guessWellDimensions( maximalWellPositionsInData );
-
-		Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
-		Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
 	}
 
 	private void configSites( List< File > files )
@@ -157,10 +170,6 @@ public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChann
 			siteDimensions[ d ] = ( int ) Math.ceil( Math.sqrt( numSites ) );
 			siteDimensions[ d ] = Math.max( 1, siteDimensions[ d ] );
 		}
-
-		Utils.log( "Distinct sites: " +  numSites );
-		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
-		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
 	}
 
 	private int getNumSites( List< File > files )
@@ -211,10 +220,8 @@ public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChann
 		return maximalWellPosition;
 	}
 
-	private FinalInterval getInterval( File file )
+	private FinalInterval createInterval( String filePath )
 	{
-		String filePath = file.getAbsolutePath();
-
 		final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( filePath );
 
 		if ( matcher.matches() )
@@ -228,7 +235,7 @@ public class MultiWellChannelFilesProviderBatchLibHdf5 implements MultiWellChann
 		}
 		else
 		{
-			throw new UnsupportedOperationException( "Could not match file name: " + file );
+			throw new UnsupportedOperationException( "Could not match file name: " + filePath );
 		}
 	}
 

@@ -1,15 +1,7 @@
-import bdv.util.BdvFunctions;
-import bdv.util.BdvOptions;
 import de.embl.cba.plateviewer.PlateViewer;
 import net.imagej.ImageJ;
-import net.imglib2.Localizable;
-import net.imglib2.position.FunctionRandomAccessible;
-import net.imglib2.position.FunctionRealRandomAccessible;
-import net.imglib2.type.numeric.real.FloatType;
 
 import java.io.File;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 public class TestNamingSchemeCorona
 {
@@ -23,12 +15,19 @@ public class TestNamingSchemeCorona
 //				".*.h5",
 //				new File( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() ),
 //				1);
+//
+//		final PlateViewer plateViewer = new PlateViewer(
+//				new File( "/Users/tischer/Desktop/test4" ),
+//				".*.h5",
+//				null, //new File( "/Users/tischer/Desktop/test4/analysis.csv" ),
+//				1 );
 
 		final PlateViewer plateViewer = new PlateViewer(
-				new File( "/Users/tischer/Desktop/test3" ),
+				new File( "/Volumes/kreshuk/pape/Work/data/covid-antibodies/data-processed/20200406_164555_328" ),
 				".*.h5",
-				new File( "/Users/tischer/Desktop/test3/analysis.csv" ),
-				4 );
+				null, //new File( "/Users/tischer/Desktop/test4/analysis.csv" ),
+				1, false );
+
 	}
 
 }
