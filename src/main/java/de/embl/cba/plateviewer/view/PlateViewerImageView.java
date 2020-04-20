@@ -114,6 +114,20 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
+
+		installBdvBehaviours();
+	}
+
+	private void installBdvBehaviours()
+	{
+		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "plate viewer" );
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+			final RealPoint mouseLocation = new RealPoint( 3 );
+			bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( mouseLocation );
+			// TODO: Find sites
+			new PopupMenu().show( bdv.getBdvHandle().getViewerPanel().getDisplay(), x, y );
+		}, "context menu", "button3" ) ;
 	}
 
 	public void addWellOutlinesImages()
