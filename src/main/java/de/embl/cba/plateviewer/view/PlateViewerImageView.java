@@ -21,6 +21,7 @@ import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
 import de.embl.cba.plateviewer.image.channel.MultiWellImagePlusImg;
+import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
@@ -28,6 +29,7 @@ import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
+import de.embl.cba.tables.view.TableRowsTableView;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -73,6 +75,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	private long[] siteDimensions;
 	private long[] wellDimensions;
 	private String plateName;
+	private TableRowsTableView< DefaultSiteNameTableRow > tableView;
 
 	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -104,10 +107,19 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		addChannels( fileList, fileNamingScheme, channelPatterns );
 
-		final OutlinesImage outlinesImage = new OutlinesImage( this, 0.01 );
-		addToBdvAndPanel( outlinesImage );
+		addWellOutlinesImages();
+
+		addSiteAndWellNamesOverlay( multiWellImgs.get( 0 ));
+
+		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
+	}
+
+	public void addWellOutlinesImages()
+	{
+		final OutlinesImage outlinesImage = new OutlinesImage( this, 0.01 );
+		addToBdvAndPanel( outlinesImage );
 	}
 
 	public String getFileNamingScheme()
@@ -165,7 +177,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		{
 			final String channelName = channelPattern;
 
-			if ( ! channelName.equals( "nuclei" ) ) continue;
+			// if ( ! channelName.equals( "nuclei" ) ) continue;
 
 			Utils.log( "Adding channel: " + channelName );
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );
@@ -225,8 +237,6 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		{
 			throw new UnsupportedOperationException( "No multi-well images sources have been added." );
 		}
-
-		addSiteAndWellNamesOverlay( multiWellImgs.get( 0 ));
 	}
 
 	public void setSiteDimensions( MultiWellImg wellImg )
@@ -340,7 +350,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return loadingQueue;
 	}
 
-	public void zoomToInterval ( Interval interval )
+	public void zoomToInterval( Interval interval )
 	{
 		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
 
@@ -379,7 +389,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public void zoomToSite( String siteName )
 	{
-		zoomToInterval( wellNameToInterval.get( siteName ) );
+		zoomToInterval( siteNameToInterval.get( siteName ) );
 
 		if ( selectionModel != null )
 			notifyImageSelectionModel( siteName );
@@ -419,16 +429,20 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-		double[] shiftToImage = new double[ 3 ];
+		double[] shift = new double[ 3 ];
 
 		for ( int d = 0; d < 2; ++d )
 		{
-			shiftToImage[ d ] = -( interval.min( d ) + interval.dimension( d ) / 2.0 );
+			shift[ d ] = -( interval.min( d ) + interval.dimension( d ) / 2.0 );
 		}
 
-		affineTransform3D.translate( shiftToImage );
+		affineTransform3D.translate( shift );
 
-		affineTransform3D.scale( 1.05 * bdvWindowSize[ 0 ] / interval.dimension( 0 ) );
+
+		final long minSize = Math.min( interval.dimension( 0 ), interval.dimension( 1 ) );
+
+		// make is slightly smaller not to start fetching other images
+		affineTransform3D.scale( 1.1 * bdvWindowSize[ 0 ] / minSize );
 
 		double[] shiftToBdvWindowCenter = new double[ 3 ];
 
@@ -450,7 +464,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return bdvWindowDimensions;
 	}
 
-	private void initBdvAndPlateViewerUI ( BdvViewable bdvViewable )
+	private void initBdvAndPlateViewerUI( BdvViewable bdvViewable )
 	{
 		final ArrayImg< BitType, LongArray > dummyImageForInitialisation
 				= ArrayImgs.bits( new long[]{ 100, 100 } );
@@ -474,9 +488,12 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		setBdvBehaviors();
 
-		addToBdvAndPanel( bdvViewable );
+		// move to a region outside the plate, such that adding channels is faster
+		final AffineTransform3D transform3D = new AffineTransform3D();
+		transform3D.translate( 10000, 10000, 0 );
+		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( transform3D );
 
-		zoomToInterval( multiWellImgs.get( 0 ).getLoader().getChannelSource( 0 ).getInterval() );
+		addToBdvAndPanel( bdvViewable );
 
 		bdvTmpSource.removeFromBdv();
 	}
@@ -635,5 +652,16 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	public long[] getWellDimensions()
 	{
 		return wellDimensions;
+	}
+
+	// TODO: what minimal type is needed here? DefaultSiteNameTableRow?
+	public void registerTableView( TableRowsTableView< DefaultSiteNameTableRow > tableView )
+	{
+		this.tableView = tableView;
+	}
+
+	public TableRowsTableView< DefaultSiteNameTableRow > getTableView()
+	{
+		return tableView;
 	}
 }

@@ -16,17 +16,18 @@ public class TestNamingSchemeCorona
 //				new File( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() ),
 //				1);
 //
+		final PlateViewer plateViewer = new PlateViewer(
+				new File( "/Users/tischer/Desktop/test3" ),
+				".*.h5",
+				new File( "/Users/tischer/Desktop/test3/analysis.csv" ),
+				1,
+				false );
+
 //		final PlateViewer plateViewer = new PlateViewer(
-//				new File( "/Users/tischer/Desktop/test4" ),
+//				new File( "/Volumes/kreshuk/pape/Work/data/covid-antibodies/data-processed/20200406_164555_328" ),
 //				".*.h5",
 //				null, //new File( "/Users/tischer/Desktop/test4/analysis.csv" ),
-//				1 );
-
-		final PlateViewer plateViewer = new PlateViewer(
-				new File( "/Volumes/kreshuk/pape/Work/data/covid-antibodies/data-processed/20200406_164555_328" ),
-				".*.h5",
-				null, //new File( "/Users/tischer/Desktop/test4/analysis.csv" ),
-				1, false );
+//				1, false );
 
 	}
 

@@ -61,6 +61,8 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		imageView.registerAsColoringListener( selectionColoringModel );
 
 		final TableImage tableImage = new TableImage( tableRows, selectionColoringModel, imageView );
+
+		imageView.registerTableView( tableView );
 		imageView.addToBdvAndPanel( tableImage );
 
 		tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );

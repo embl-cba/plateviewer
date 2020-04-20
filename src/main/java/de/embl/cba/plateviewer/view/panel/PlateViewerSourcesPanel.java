@@ -8,6 +8,7 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
+import de.embl.cba.plateviewer.image.table.TableImage;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
@@ -84,9 +85,16 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             panel.add( jLabel );
 
             if ( ! ( bdvSource instanceof BdvOverlaySource ) &&
-                    ! ( bdvViewable.getType().equals( Metadata.Type.Segmentation )) )
+                    ! ( bdvViewable.getType().equals( Metadata.Type.Segmentation )) &&
+                    ! ( bdvViewable instanceof TableImage  ) )
             {
                 final JButton colorButton = createColorButton( panel, buttonDimensions, bdvSource );
+                panel.add( colorButton );
+            }
+
+            if ( bdvViewable instanceof TableImage )
+            {
+                final JButton colorButton = createColorByColumnButton( panel, buttonDimensions, bdvSource );
                 panel.add( colorButton );
             }
 
@@ -104,6 +112,24 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             add( panel );
             refreshUI();
         }
+    }
+
+    private JButton createColorByColumnButton( JPanel panel,
+                                             int[] buttonDimensions,
+                                             BdvSource bdvSource )
+    {
+        JButton colorButton;
+        colorButton = new JButton( "C" );
+
+        colorButton.setPreferredSize(
+                new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+
+        colorButton.addActionListener( e -> {
+            // TODO: think about who knows about what
+            plateViewerMainPanel.getPlateViewerImageView().getTableView().showColorByColumnDialog();
+        } );
+
+        return colorButton;
     }
 
     public JButton getBrightnessButton(

@@ -49,6 +49,11 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		sourcesPanel = new PlateViewerSourcesPanel< >( this );
 	}
 
+	public PlateViewerImageView getPlateViewerImageView()
+	{
+		return plateViewerImageView;
+	}
+
 	public BdvHandle getBdv()
 	{
 		return bdv.getBdvHandle();
