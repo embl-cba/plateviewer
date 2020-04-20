@@ -62,12 +62,32 @@ public class WellNamesOverlay extends BdvOverlay
 			}
 
 			final int offset = screenWellSize[ 0 ] / 10;
-			final int fontSize = Math.min( screenWellSize[ 0 ], screenWellSize[ 1 ] ) / 2;
-			g.setFont( new Font("TimesRoman", Font.PLAIN, fontSize ) );
+
+			int fontSize = Math.min( screenWellSize[ 0 ], screenWellSize[ 1 ] ) / 2;
+
+			Font font = new Font( "TimesRoman", Font.PLAIN, fontSize );
+			g.setFont( font );
+
+			font = getAdaptedSizeFont( g, screenWellSize[ 0 ], wellName, fontSize );
+			g.setFont( font );
+
 			g.drawString( wellName,
 					(int) screenWellPosMin[ 0 ] + offset,
 					(int) screenWellPosMax[ 1 ] - offset);
 		}
+	}
+
+	private Font getAdaptedSizeFont( Graphics2D g, int i, String wellName, int fontSize )
+	{
+		Font font;
+		final int stringWidth = g.getFontMetrics().stringWidth( wellName );
+		if ( stringWidth > i )
+		{
+			fontSize *= 0.8 * i / stringWidth;
+		}
+
+		font = new Font( "TimesRoman", Font.PLAIN, fontSize );
+		return font;
 	}
 }
 

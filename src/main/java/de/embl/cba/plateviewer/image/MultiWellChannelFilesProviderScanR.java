@@ -24,7 +24,7 @@ public class MultiWellChannelFilesProviderScanR implements MultiWellChannelFiles
 
 	final ArrayList< String > wellNames;
 
-	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
+	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL;
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
@@ -36,7 +36,7 @@ public class MultiWellChannelFilesProviderScanR implements MultiWellChannelFiles
 
 		createChannelSources();
 
-		this.wellNames = getWellNames( files );
+		this.wellNames = getWellNames( files, WELL_SITE_CHANNEL_PATTERN );
 	}
 
 	@Override
@@ -51,21 +51,21 @@ public class MultiWellChannelFilesProviderScanR implements MultiWellChannelFiles
 		return wellNames;
 	}
 
-	private static ArrayList< String > getWellNames( List< File > files )
+	public static ArrayList< String > getWellNames( List< File > files, String well_site_channel_pattern )
 	{
 		Set< String > wellNameSet = new HashSet<>(  );
 
 		for ( File file : files )
 		{
-			wellNameSet.add( getWellName( file.getName() ) );
+			wellNameSet.add( getWellName( file.getName(), well_site_channel_pattern ) );
 		}
 
 		return new ArrayList<>( wellNameSet );
 	}
 
-	private static String getWellName( String fileName )
+	public static String getWellName( String fileName, String well_site_channel_pattern )
 	{
-		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_SCANR_WELLNAME_WELLNUM ).matcher( fileName );
+		final Matcher matcher = Pattern.compile( well_site_channel_pattern ).matcher( fileName );
 
 		if ( matcher.matches() )
 		{
@@ -89,7 +89,7 @@ public class MultiWellChannelFilesProviderScanR implements MultiWellChannelFiles
 					file,
 					getInterval( file, WELL_SITE_CHANNEL_PATTERN, wellDimensions[ 0 ], siteDimensions[ 0 ] ),
 					file.getName(),
-					getWellName( file.getName() ) );
+					getWellName( file.getName(), WELL_SITE_CHANNEL_PATTERN ) );
 
 			singleSiteChannelFiles.add( singleSiteChannelFile );
 		}

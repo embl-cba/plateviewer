@@ -42,9 +42,10 @@ public class IssueRaiser
 
 		final HttpResponse< String  > response =
 				Unirest.post( url )
-					.header( "accept", "application/json" )
-					.basicAuth( userName, accessToken )
-					.body( issueJson )
+						.header( "A", "a" )
+						.header( "accept", "application/json" )
+						.basicAuth( userName, accessToken )
+						.body( issueJson )
 				.asString();
 
 		System.out.println( response.getBody() );
@@ -61,7 +62,7 @@ public class IssueRaiser
 	public String createIssueJson()
 	{
 		final Issue issue = new Issue();
-		issue.title = "Issue in plate " + plateName;
+		issue.title = "Plate " + plateName + " Site " + siteName;
 
 		JsonObjectMapper mapper = new JsonObjectMapper();
 

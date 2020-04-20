@@ -166,7 +166,7 @@ public class Utils
 					{
 						channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*" );
 					}
-					else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
+					else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ) )
 					{
 						channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*"  );
 					}
@@ -201,8 +201,8 @@ public class Utils
 			return NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
 		else if ( Pattern.compile( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ).matcher( filePath ).matches() )
 			return NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL;
+		else if ( Pattern.compile( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ).matcher( filePath ).matches() )
+			return NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL;
 
 		return PATTERN_NO_MATCH;
 	}

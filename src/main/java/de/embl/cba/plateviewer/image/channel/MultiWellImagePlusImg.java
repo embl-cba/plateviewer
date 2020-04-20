@@ -2,6 +2,7 @@ package de.embl.cba.plateviewer.image.channel;
 
 import de.embl.cba.plateviewer.cellloader.MultiSiteImagePlusLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderFactory;
+import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.LUT;
@@ -12,6 +13,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
 
+import java.awt.*;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.List;
@@ -22,13 +24,13 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 	{
 		super( files, namingScheme, numIoThreads, resolutionLevel );
 
-		setCachedCellImgDimensions( singleSiteChannelFiles );
-
 		setImagePlusProperties( files.get( 0 ) );
 
 		multiWellChannelFilesProvider = MultiWellChannelFilesProviderFactory.getMultiWellChannelFilesProvider( files, namingScheme, imageDimensions );
 
 		singleSiteChannelFiles = multiWellChannelFilesProvider.getSingleSiteChannelFiles();
+
+		setCachedCellImgDimensions( singleSiteChannelFiles );
 
 		wellNames = multiWellChannelFilesProvider.getWellNames();
 
@@ -89,16 +91,22 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 		{
 			final LUT[] luts = imagePlus.getLuts();
 
-			final LUT lut = luts[ 0 ];
-			final IndexColorModel colorModel = lut.getColorModel();
-			final int mapSize = colorModel.getMapSize();
-			final int red = colorModel.getRed( mapSize - 1 );
-			final int green = colorModel.getRed( mapSize - 1 );
-			final int blue = colorModel.getRed( mapSize - 1 );
+			if ( luts.length > 0 )
+			{
+				final LUT lut = luts[ 0 ];
+				final IndexColorModel colorModel = lut.getColorModel();
+				final int mapSize = colorModel.getMapSize();
+				final int red = colorModel.getRed( mapSize - 1 );
+				final int green = colorModel.getRed( mapSize - 1 );
+				final int blue = colorModel.getRed( mapSize - 1 );
 
-			final int rgba = ARGBType.rgba( red, green, blue, 255 );
-
-			argbType = new ARGBType( rgba );
+				final int rgba = ARGBType.rgba( red, green, blue, 255 );
+				argbType = new ARGBType( rgba );
+			}
+			else
+			{
+				argbType = ColorUtils.getARGBType( Color.WHITE );
+			}
 		}
 	}
 

@@ -22,7 +22,7 @@ public class MultiWellChannelFilesProviderFactory
 			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevMultiSite(
 					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELL_SITE_CHANNEL ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ) )
 		{
 			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderScanR( files, imageDimensions );
 		}

@@ -24,6 +24,9 @@ public class ExploreIssueRaising
 		//System.out.println(json);
 
 
+		// NOTE: Once a token has been put here, it will be disabled!!
+
+
 		final HttpResponse< String  > response =
 				Unirest.post( "https://api.github.com/repos/tischi/HTM_Explorer/issues" )
 					.header( "accept", "application/json" )
