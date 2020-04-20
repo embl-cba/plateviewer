@@ -18,17 +18,13 @@ public class PopupMenu
 	private void createPopupMenu()
 	{
 		popup = new JPopupMenu();
-
-		addPopupAction( "Raise issue", e -> {
-			System.out.println("Test...");
-		} );
 	}
 
 	private void addPopupLine() {
 		popup.addSeparator();
 	}
 
-	private void addPopupAction( String actionName, ActionListener actionListener ) {
+	public void addPopupAction( String actionName, ActionListener actionListener ) {
 
 		JMenuItem menuItem = new JMenuItem(actionName);
 		menuItem.addActionListener( actionListener );

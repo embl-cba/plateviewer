@@ -24,14 +24,13 @@ public class ExploreIssueRaising
 		//System.out.println(json);
 
 
-//		final HttpResponse< String  > response =
-//				Unirest.post( "https://api.github.com/repos/tischi/HTM_Explorer/issues" )
-//					.header( "accept", "application/json" )
-//					//	.queryString( "apiKey", "123" )
-//					.basicAuth( "tischi", "ad99337fffaaf428069ca2e6a7761abe5791399c" )
-//					.body( "{ \"title\": \"Found a bug\", \"body\": \"I'm having a problem with this.\"} " )
-//				.asString();
-//
-//		System.out.println( response.getBody() );
+		final HttpResponse< String  > response =
+				Unirest.post( "https://api.github.com/repos/tischi/HTM_Explorer/issues" )
+					.header( "accept", "application/json" )
+					.basicAuth( "tischi", "29b00ef73853f313e6aa54833a0ce44815fb1413" )
+					.body( json )
+				.asString();
+
+		System.out.println( response.getBody() );
 	}
 }

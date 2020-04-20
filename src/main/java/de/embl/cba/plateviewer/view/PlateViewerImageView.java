@@ -9,6 +9,7 @@ import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.plateviewer.github.IssueRaiser;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.source.MultiResolutionBatchLibHdf5ChannelSourceCreator;
 import de.embl.cba.plateviewer.image.well.OutlinesImage;
@@ -125,10 +126,20 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			final RealPoint mouseLocation = new RealPoint( 3 );
 			bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( mouseLocation );
+			final String siteName = getSiteName( mouseLocation );
+
 			// TODO: Find sites
-			new PopupMenu().show( bdv.getBdvHandle().getViewerPanel().getDisplay(), x, y );
+			final PopupMenu popupMenu = new PopupMenu();
+			popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
+			{
+				final IssueRaiser issueRaiser = new IssueRaiser();
+				issueRaiser.showDialogAndCreateIssue( plateName, siteName, x, y );
+			} );
+			popupMenu.show( bdv.getBdvHandle().getViewerPanel().getDisplay(), x, y );
+
 		}, "context menu", "button3" ) ;
 	}
+
 
 	public void addWellOutlinesImages()
 	{
@@ -407,6 +418,16 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		if ( selectionModel != null )
 			notifyImageSelectionModel( siteName );
+	}
+
+	public String getSiteName( RealPoint point )
+	{
+		for ( Interval interval : intervalToSiteName.keySet() )
+		{
+			if ( Intervals.contains( interval, point ) ) return intervalToSiteName.get( interval );
+		}
+
+		return null;
 	}
 
 	public void notifyImageSelectionModel ( String selectedSiteName )
