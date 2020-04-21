@@ -1,7 +1,9 @@
 package de.embl.cba.plateviewer;
 
 import bdv.util.Bdv;
+import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
+import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.TableImage;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
@@ -65,7 +67,17 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		imageView.registerTableView( tableView );
 		imageView.addToBdvAndPanel( tableImage );
 
-		tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
+		if ( imageView.getFileNamingScheme().equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
+		{
+			try
+			{
+				tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
+			}
+			catch ( Exception e )
+			{
+				Utils.log("[WARN] Default table column for coloring not found: " + "score1" );
+			}
+		}
 	}
 
 	public Bdv getBdv()

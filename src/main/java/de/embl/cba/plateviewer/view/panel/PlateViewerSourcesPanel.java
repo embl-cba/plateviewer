@@ -66,10 +66,12 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
     public void addToPanel( BdvViewable bdvViewable, BdvSource bdvSource )
     {
-        if( ! sourceNameToPanel.containsKey( bdvViewable.getName() ) )
+        final String channelName = bdvViewable.getName();
+
+        if( ! sourceNameToPanel.containsKey( channelName ) )
         {
             JPanel panel = new JPanel();
-            sourceNameToPanel.put( bdvViewable.getName() , panel );
+            sourceNameToPanel.put( channelName, panel );
 
             panel.setLayout( new BoxLayout(panel, BoxLayout.LINE_AXIS) );
             panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
@@ -77,41 +79,62 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             panel.setOpaque( true );
             panel.setBackground( Utils.asColor( bdvViewable.getColor() ) );
 
-            JLabel jLabel = new JLabel( bdvViewable.getName() );
-            jLabel.setHorizontalAlignment( SwingConstants.CENTER );
+            JLabel jLabel = new JLabel( channelName );
+            jLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
+
+           // jLabel.setHorizontalAlignment( SwingConstants.LEFT );
+            panel.add( jLabel );
 
             int[] buttonDimensions = new int[]{ 50, 30 };
-
-            panel.add( jLabel );
 
             if ( ! ( bdvSource instanceof BdvOverlaySource ) &&
                     ! ( bdvViewable.getType().equals( Metadata.Type.Segmentation )) &&
                     ! ( bdvViewable instanceof TableImage  ) )
             {
                 final JButton colorButton = createColorButton( panel, buttonDimensions, bdvSource );
+                //colorButton.setHorizontalAlignment( SwingConstants.RIGHT );
                 panel.add( colorButton );
             }
-
-            if ( bdvViewable instanceof TableImage )
+            else if ( bdvViewable instanceof TableImage )
             {
                 final JButton colorButton = createColorByColumnButton( panel, buttonDimensions, bdvSource );
+                //colorButton.setHorizontalAlignment( SwingConstants.RIGHT );
                 panel.add( colorButton );
+            }
+            else
+            {
+                addDummyButton( panel, buttonDimensions );
             }
 
             if ( bdvSource instanceof BdvStackSource )
             {
                 JButton brightnessButton = getBrightnessButton(
-                        bdvViewable.getName(), ( BdvStackSource ) bdvSource, buttonDimensions );
+                        channelName, ( BdvStackSource ) bdvSource, buttonDimensions );
+                //brightnessButton.setHorizontalAlignment( SwingConstants.RIGHT );
                 panel.add( brightnessButton );
             }
+            else
+            {
+                addDummyButton( panel, buttonDimensions );
+            }
+
 
             final JCheckBox visibilityCheckbox =
                     createVisibilityCheckbox( buttonDimensions, bdvSource, bdvViewable.isInitiallyVisible() );
+            //visibilityCheckbox.setHorizontalAlignment( SwingConstants.RIGHT );
             panel.add( visibilityCheckbox );
+
 
             add( panel );
             refreshUI();
         }
+    }
+
+    public void addDummyButton( JPanel panel, int[] buttonDimensions )
+    {
+        final JButton jButton = new JButton( "-" );
+        jButton.setPreferredSize( new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+        panel.add( jButton );
     }
 
     private JButton createColorByColumnButton( JPanel panel,

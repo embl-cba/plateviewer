@@ -17,9 +17,9 @@ public class TestNamingSchemeCorona
 //				1);
 //
 		final PlateViewer plateViewer = new PlateViewer(
-				new File( "/Users/tischer/Desktop/test3" ),
+				new File( "/Users/tischer/Documents/mnt/hci/data-processed-seg-new/titration_plate_20200403_154849" ),
 				".*.h5",
-				new File( "/Users/tischer/Desktop/test3/analysis.csv" ),
+				new File( "/Users/tischer/Documents/mnt/hci/data-processed-seg-new/titration_plate_20200403_154849/analysis.csv" ),
 				1,
 				false );
 

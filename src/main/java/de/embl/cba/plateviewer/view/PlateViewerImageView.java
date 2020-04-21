@@ -198,6 +198,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	{
 		MultiWellImg wellImg;
 
+		Utils.log( "Adding channels..." );
 		for ( String channelPattern : channelPatterns )
 		{
 			final String channelName = channelPattern;
@@ -229,6 +230,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			{
 				wellImg = new MultiWellImagePlusImg(
 								channelFiles,
+								channelName,
 								namingScheme,
 								numIoThreads,
 								0 );

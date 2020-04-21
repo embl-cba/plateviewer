@@ -87,11 +87,7 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 		{
 			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
 					file,
-					getInterval(
-							file,
-							WELL_SITE_CHANNEL_PATTERN,
-							numWellsPerPlate[ 0 ],
-							numSitesPerWell[ 0 ] ),
+					getInterval( file, WELL_SITE_CHANNEL_PATTERN, numWellsPerPlate[ 0 ], numSitesPerWell[ 0 ] ),
 					file.getName(),
 					getWellName( file.getName() ) );
 

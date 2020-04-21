@@ -20,9 +20,12 @@ import java.util.List;
 
 public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
 {
-	public MultiWellImagePlusImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
+	public MultiWellImagePlusImg( List< File > files, String channelName, String namingScheme, int numIoThreads, int resolutionLevel )
 	{
 		super( files, namingScheme, numIoThreads, resolutionLevel );
+
+		// TODO: move into super()
+		this.channelName = channelName;
 
 		setImagePlusProperties( files.get( 0 ) );
 
