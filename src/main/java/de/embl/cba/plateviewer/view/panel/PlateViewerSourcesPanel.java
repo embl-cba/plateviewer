@@ -77,12 +77,11 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             panel.setBorder( BorderFactory.createEmptyBorder(0, 10, 0, 10 ) );
             panel.add( Box.createHorizontalGlue() );
             panel.setOpaque( true );
-            panel.setBackground( Utils.asColor( bdvViewable.getColor() ) );
+            //panel.setBackground( Utils.asColor( bdvViewable.getColor() ) );
 
-            JLabel jLabel = new JLabel( channelName );
+            JLabel jLabel = new JLabel( channelName + "   " );
             jLabel.setAlignmentX(JLabel.LEFT_ALIGNMENT);
 
-           // jLabel.setHorizontalAlignment( SwingConstants.LEFT );
             panel.add( jLabel );
 
             int[] buttonDimensions = new int[]{ 50, 30 };
@@ -91,7 +90,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
                     ! ( bdvViewable.getType().equals( Metadata.Type.Segmentation )) &&
                     ! ( bdvViewable instanceof TableImage  ) )
             {
-                final JButton colorButton = createColorButton( panel, buttonDimensions, bdvSource );
+                final JButton colorButton = createColorButtonWithColoredBackground( buttonDimensions, bdvSource, Utils.asColor( bdvViewable.getColor() ) );
                 //colorButton.setHorizontalAlignment( SwingConstants.RIGHT );
                 panel.add( colorButton );
             }
@@ -130,6 +129,29 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         }
     }
 
+    public static JButton createColorButtonWithColoredBackground(
+            int[] buttonDimensions,
+            BdvSource bdvSource,
+            Color initialColor )
+    {
+        JButton colorButton;
+        colorButton = new JButton( "C" );
+        colorButton.setOpaque( true );
+        colorButton.setBackground( initialColor );
+
+        colorButton.setPreferredSize(
+                new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
+
+        colorButton.addActionListener( e -> {
+            Color color = JColorChooser.showDialog( null, "", null );
+            if ( color == null ) return;
+            bdvSource.setColor( BdvUtils.asArgbType( color ) );
+            colorButton.setBackground( color );
+        } );
+
+        return colorButton;
+    }
+
     public void addDummyButton( JPanel panel, int[] buttonDimensions )
     {
         final JButton jButton = new JButton( "-" );
@@ -143,7 +165,6 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
     {
         JButton colorButton;
         colorButton = new JButton( "C" );
-
         colorButton.setPreferredSize(
                 new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
