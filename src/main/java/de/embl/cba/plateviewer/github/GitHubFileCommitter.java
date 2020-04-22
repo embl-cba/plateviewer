@@ -39,7 +39,7 @@ public class GitHubFileCommitter
 	{
 		String url = repository.replace( "github.com", "api.github.com/repos" );
 		if ( ! url.endsWith( "/" ) ) url += "/";
-		if ( ! path.startsWith( "/" )) path = "/" + path;
+		if ( ! path.startsWith( "/" ) ) path = "/" + path;
 		url += "contents" + path;
 		return url;
 	}

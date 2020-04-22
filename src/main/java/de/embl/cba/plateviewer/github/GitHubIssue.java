@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.github;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Issue
+public class GitHubIssue
 {
 	public String title = "aaa";
 	public String body = "bbb";

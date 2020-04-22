@@ -1,13 +1,7 @@
 package de.embl.cba.plateviewer.github;
 
-import de.embl.cba.tables.Logger;
 import ij.Prefs;
 import ij.gui.GenericDialog;
-
-
-import java.io.DataOutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 public class IssueRaiser
 {
@@ -48,11 +42,11 @@ public class IssueRaiser
 
 	public String createIssueJson()
 	{
-		final Issue issue = new Issue();
-		issue.title = "Plate " + plateLocation.plateName + " Site " + plateLocation.siteName;
-		issue.body = plateLocation.toString();
-		issue.body += "\n\n" + issueBody;
-		return issue.toString();
+		final GitHubIssue gitHubIssue = new GitHubIssue();
+		gitHubIssue.title = "Plate " + plateLocation.plateName + " Site " + plateLocation.siteName;
+		gitHubIssue.body = plateLocation.toString();
+		gitHubIssue.body += "\n\n" + issueBody;
+		return gitHubIssue.toString();
 	}
 
 	public boolean showDialog()

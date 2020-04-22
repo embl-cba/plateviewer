@@ -8,14 +8,14 @@ import java.util.Map;
 
 public class GitHubFileCommit
 {
-	 String message = "my commit message";
-	 Map< String, String> committer = new HashMap<>(  );
-	 String content = "Hello World";
+	public String message = "my commit message";
+	public Map< String, String > committer = new HashMap<>(  );
+	public String content = "Hello World";
 
 	public GitHubFileCommit()
 	{
 		committer.put( "name", "tischi" );
-		committer.put( "email:", "tischitischer@gmail.com");
+		committer.put( "email", "tischitischer@gmail.com" );
 	}
 
 	@Override

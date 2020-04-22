@@ -1,18 +1,21 @@
 package explore;
 
+import de.embl.cba.plateviewer.github.GitHubFileCommit;
+import de.embl.cba.plateviewer.github.GitHubFileCommitter;
+import de.embl.cba.plateviewer.github.GitHubIssue;
+
 import java.io.IOException;
 
-public class ExploreIssueRaising
+public class ExploreGitHubAPI
 {
 	public static void main( String[] args ) throws IOException
 	{
-		// https://api.github.com/embl-cba/fiji-plugin-plateViewer/issues
 
-		// https://api.github.com/repos/tischi/HTM_Explorer/issues
-		// curl -i -u tischi -d '{"title": "A sample new issue", "body": "The user interface is upside down"}' https://api.github.com/repos/tischi/HTM_Explorer/issues
-		//© 2020 GitHub, Inc.
 
-		// https://api.github.com/repos/pengwynn/api-sandbox/issues
+		final GitHubFileCommitter fileCommitter = new GitHubFileCommitter( "tischi", "https://github.com/hci-unihd/antibodies-analysis-issues", accessToken, "screenshots/test.txt" );
+
+		fileCommitter.commitFile();
+
 
 		// curl -i -u tischi:ad99337fffaaf428069ca2e6a7761abe5791399c -d '{"title": "aaaA sample new issue", "body": "The user interface is upside down"}' https://api.github.com/repos/tischi/HTM_Explorer/issues
 
