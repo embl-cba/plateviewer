@@ -8,6 +8,8 @@ import de.embl.cba.plateviewer.image.table.TableImage;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.tables.TableColumns;
+import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -18,6 +20,7 @@ import net.imglib2.type.numeric.RealType;
 
 import java.awt.*;
 import java.io.File;
+import java.util.*;
 import java.util.List;
 
 import static de.embl.cba.plateviewer.table.ImageNameTableRows.createSiteNameTableRowsFromFilePath;

@@ -5,7 +5,7 @@ import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.cellloader.MultiSiteHdf5Loader;
+import de.embl.cba.plateviewer.image.cellloader.MultiSiteHdf5Loader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderBatchLibHdf5;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;

@@ -4,7 +4,7 @@ package de.embl.cba.plateviewer.bdv;
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
-import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
+import de.embl.cba.plateviewer.image.cellloader.MultiSiteLoader;
 import net.imglib2.RealPoint;
 
 import java.awt.event.MouseEvent;

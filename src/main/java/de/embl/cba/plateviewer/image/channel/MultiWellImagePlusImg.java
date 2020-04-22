@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.image.channel;
 
-import de.embl.cba.plateviewer.cellloader.MultiSiteImagePlusLoader;
+import de.embl.cba.plateviewer.image.cellloader.MultiSiteImagePlusLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderFactory;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;

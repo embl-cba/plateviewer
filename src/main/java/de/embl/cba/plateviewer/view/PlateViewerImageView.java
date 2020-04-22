@@ -6,10 +6,11 @@ import bdv.util.volatiles.VolatileViews;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
-import de.embl.cba.bdv.utils.overlays.BdvGrayValuesOverlay;
+import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.github.IssueRaiser;
+import de.embl.cba.plateviewer.github.PlateLocation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.source.MultiResolutionBatchLibHdf5ChannelSourceCreator;
 import de.embl.cba.plateviewer.image.well.OutlinesImage;
@@ -31,6 +32,7 @@ import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
+import ij.gui.GenericDialog;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -54,6 +56,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends SiteName >
 {
@@ -123,23 +126,82 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "plate viewer" );
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			final RealPoint mouseLocation = new RealPoint( 3 );
-			bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( mouseLocation );
-			final String siteName = getSiteName( mouseLocation );
 
-			// TODO: Find sites
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+
+			final RealPoint globalLocation = new RealPoint( 3 );
+			bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalLocation );
+			final String siteName = getSiteName( globalLocation );
+			final PlateLocation plateLocation = new PlateLocation();
+			plateLocation.plateName = plateName;
+			plateLocation.siteName = siteName;
+			globalLocation.localize( plateLocation.pixelLocation );
+
 			final PopupMenu popupMenu = new PopupMenu();
+
 			popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
 			{
 				final IssueRaiser issueRaiser = new IssueRaiser();
-				issueRaiser.showDialogAndCreateIssue( plateName, siteName, x, y );
+				issueRaiser.showDialogAndCreateIssue( plateLocation );
 			} );
+
+			popupMenu.addPopupAction( "Measure pixel value", e -> {
+				logPixelValues( plateLocation );
+			} );
+
+			popupMenu.addPopupAction( "Measure region statistics...", e -> {
+				// TODO out everything below in own class (in bdv-utils repo) and improve UI
+				final GenericDialog gd = new GenericDialog( "Radius" );
+				gd.addNumericField( "Radius", 5.0, 1 );
+				gd.showDialog();
+				if ( gd.wasCanceled() ) return;
+				final double radius = gd.getNextNumber();
+				logRegionStatistics( plateLocation, radius );
+			} );
+
 			popupMenu.show( bdv.getBdvHandle().getViewerPanel().getDisplay(), x, y );
 
 		}, "context menu", "button3" ) ;
 	}
 
+	private void logPixelValues( PlateLocation plateLocation )
+	{
+		Utils.log( "Pixel values at " + plateLocation );
+		final RealPoint realPoint = new RealPoint( 3 );
+		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( realPoint );
+
+		final int currentTimepoint =
+				bdv.getBdvHandle().getViewerPanel().getState().getCurrentTimepoint();
+
+		final Map< Integer, Double > pixelValuesOfActiveSources =
+				BdvUtils.getPixelValuesOfActiveSources(
+						bdv, realPoint, currentTimepoint );
+
+		for ( Map.Entry< Integer, Double > entry : pixelValuesOfActiveSources.entrySet() )
+		{
+			final String name = BdvUtils.getSource( bdv, entry.getKey() ).getName();
+			Utils.log( name + ": " + entry.getValue() );
+		}
+	}
+
+	private void logRegionStatistics( PlateLocation plateLocation, double radius )
+	{
+		Utils.log( "Region (r=" + (int) radius + ") statistics at " + plateLocation );
+
+		final RealPoint realPoint = new RealPoint( 3 );
+	 	bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( realPoint );
+		final int currentTimepoint =
+				bdv.getBdvHandle().getViewerPanel().getState().getCurrentTimepoint();
+
+		final HashMap< Integer, PixelValueStatistics > statistics =
+				BdvUtils.getPixelValueStatisticsOfActiveSources( bdv, realPoint, radius, currentTimepoint );
+
+		for ( Map.Entry< Integer, PixelValueStatistics > entry : statistics.entrySet() )
+		{
+			final String name = BdvUtils.getSource( bdv, entry.getKey() ).getName();
+			Utils.log( name + ": " + entry.getValue() );
+		}
+	}
 
 	public void addWellOutlinesImages()
 	{
@@ -521,7 +583,8 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		plateViewerMainPanel = new PlateViewerMainPanel( this );
 
-		new BdvGrayValuesOverlay( bdv, Utils.bdvTextOverlayFontSize );
+		// This may interfere with loading of the resolution layers => TODO right click!
+		// new BdvGrayValuesOverlay( bdv, Utils.bdvTextOverlayFontSize );
 
 		setBdvBehaviors();
 

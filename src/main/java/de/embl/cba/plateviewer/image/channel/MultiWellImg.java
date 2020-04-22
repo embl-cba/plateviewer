@@ -5,7 +5,7 @@ import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.cellloader.MultiSiteLoader;
+import de.embl.cba.plateviewer.image.cellloader.MultiSiteLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProvider;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import net.imglib2.FinalInterval;

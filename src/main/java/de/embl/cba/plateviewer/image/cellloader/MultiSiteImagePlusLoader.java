@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.cellloader;
+package de.embl.cba.plateviewer.image.cellloader;
 
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;

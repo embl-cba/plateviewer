@@ -1,7 +1,5 @@
 package de.embl.cba.plateviewer.github;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.embl.cba.tables.Logger;
 import ij.Prefs;
 import ij.gui.GenericDialog;
@@ -13,7 +11,6 @@ import java.net.URL;
 
 public class IssueRaiser
 {
-
 	public static final String USER_NAME = "PlateViewer.GitHub user name";
 	public static final String REPOSITORY = "PlateViewer.GitHub repository";
 	public static final String ACCESS_TOKEN = "PlateViewer.GitHub access token";
@@ -22,17 +19,11 @@ public class IssueRaiser
 	private String repository;
 	private String accessToken;
 	private String issueBody;
-	private String plateName;
-	private String siteName;
-	private int x;
-	private int y;
+	private PlateLocation plateLocation;
 
-	public void showDialogAndCreateIssue( String plateName, String siteName, int x, int y )
+	public void showDialogAndCreateIssue( PlateLocation plateLocation )
 	{
-		this.plateName = plateName;
-		this.siteName = siteName;
-		this.x = x;
-		this.y = y;
+		this.plateLocation = plateLocation;
 
 		if ( ! showDialog() ) return;
 
@@ -41,60 +32,13 @@ public class IssueRaiser
 
 	public void postIssue()
 	{
-		String issueJson = null;
-		try
-		{
-			issueJson = createIssueJson();
-		} catch ( JsonProcessingException e )
-		{
-			e.printStackTrace();
-		}
+		String issueJson = createIssueJson();
+		String url = getIssueApiUrl();
 
-		String url = getApiUrl();
-
-		try
-		{
-			URL obj = new URL( url );
-			HttpURLConnection con = ( HttpURLConnection ) obj.openConnection();
-
-			con.setRequestMethod( "POST" );
-			con.setRequestProperty( "Content-Type", "application/json" );
-			con.setRequestProperty( "Authorization", "Token " + accessToken );
-
-			con.setDoOutput( true );
-			DataOutputStream wr = new DataOutputStream( con.getOutputStream() );
-			wr.writeBytes( issueJson );
-			wr.flush();
-			wr.close();
-
-			int responseCode = con.getResponseCode();
-			if ( responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED )
-			{
-				// worked fine
-			}
-			else
-			{
-				Logger.error( ERROR + "Unexpected response code: " + responseCode );
-			}
-		}
-		catch( Exception e )
-		{
-			Logger.error( ERROR + "Please see the error in the console" );
-			System.err.println( e );
-		}
-
-//		final HttpResponse< String  > response =
-//				Unirest.post( url )
-//						.header( "A", "a" )
-//						.header( "accept", "application/json" )
-//						.basicAuth( userName, accessToken )
-//						.body( issueJson )
-//				.asString();
-//
-//		System.out.println( response.getBody() );
+		RESTCaller.call( url, "POST", issueJson, accessToken );
 	}
 
-	public String getApiUrl()
+	public String getIssueApiUrl()
 	{
 		String url = repository.replace( "github.com", "api.github.com/repos" );
 		if ( url.endsWith( "/" ) ) url += "issues";
@@ -102,20 +46,13 @@ public class IssueRaiser
 		return url;
 	}
 
-	public String createIssueJson() throws JsonProcessingException
+	public String createIssueJson()
 	{
 		final Issue issue = new Issue();
-		issue.title = "Plate " + plateName + " Site " + siteName;
-
-		final ObjectMapper objectMapper = new ObjectMapper();
-
-		final PlateLocation plateLocation = new PlateLocation();
-		plateLocation.plateName = plateName;
-		plateLocation.siteName = siteName;
-		plateLocation.xyPixelLocation = new int[]{x, y};
-		issue.body = objectMapper.writeValueAsString( plateLocation );
+		issue.title = "Plate " + plateLocation.plateName + " Site " + plateLocation.siteName;
+		issue.body = plateLocation.toString();
 		issue.body += "\n\n" + issueBody;
-		return objectMapper.writeValueAsString( issue );
+		return issue.toString();
 	}
 
 	public boolean showDialog()

@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.cellloader;
+package de.embl.cba.plateviewer.image.cellloader;
 
 
 import bdv.util.*;

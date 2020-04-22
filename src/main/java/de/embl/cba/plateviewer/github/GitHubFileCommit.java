@@ -3,10 +3,20 @@ package de.embl.cba.plateviewer.github;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Issue
+import java.util.HashMap;
+import java.util.Map;
+
+public class GitHubFileCommit
 {
-	public String title = "aaa";
-	public String body = "bbb";
+	 String message = "my commit message";
+	 Map< String, String> committer = new HashMap<>(  );
+	 String content = "Hello World";
+
+	public GitHubFileCommit()
+	{
+		committer.put( "name", "tischi" );
+		committer.put( "email:", "tischitischer@gmail.com");
+	}
 
 	@Override
 	public String toString()

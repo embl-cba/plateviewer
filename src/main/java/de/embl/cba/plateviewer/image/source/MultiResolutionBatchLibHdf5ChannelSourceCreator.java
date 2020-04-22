@@ -2,6 +2,7 @@ package de.embl.cba.plateviewer.image.source;
 
 import bdv.util.volatiles.SharedQueue;
 import bdv.viewer.Source;
+import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -39,6 +40,8 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 
 		RandomAccessibleInterval< R >[] rais = new RandomAccessibleInterval[ scaleFactors.length ];
 		double[][] mipmapScales = new double[ scaleFactors.length ][ NUM_DIMENSIONS ];
+
+		Utils.log( "Number of resolution levels: " + scaleFactors.length);
 
 		for ( int resolutionLevel = 0; resolutionLevel < scaleFactors.length; resolutionLevel++ )
 		{
