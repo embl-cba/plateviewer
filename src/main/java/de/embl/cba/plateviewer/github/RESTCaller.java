@@ -5,6 +5,9 @@ import de.embl.cba.tables.Logger;
 import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class RESTCaller
 {
@@ -13,19 +16,50 @@ public class RESTCaller
 		try
 		{
 			URL obj = new URL( url );
-			HttpURLConnection con = ( HttpURLConnection ) obj.openConnection();
+			HttpURLConnection httpURLConnection = ( HttpURLConnection ) obj.openConnection();
 
-			con.setRequestMethod( requestMethod );
-			con.setRequestProperty( "Content-Type", "application/json" );
-			con.setRequestProperty( "Authorization", "Token " + accessToken );
+			httpURLConnection.setRequestMethod( requestMethod );
+			httpURLConnection.setRequestProperty( "Content-Type", "application/json" );
+			httpURLConnection.setRequestProperty( "Authorization", "Token " + accessToken );
 
-			con.setDoOutput( true );
-			DataOutputStream wr = new DataOutputStream( con.getOutputStream() );
+			httpURLConnection.setDoOutput( true );
+			DataOutputStream wr = new DataOutputStream( httpURLConnection.getOutputStream() );
 			wr.writeBytes( content );
 			wr.flush();
 			wr.close();
 
-			int responseCode = con.getResponseCode();
+			StringBuilder builder = new StringBuilder();
+			builder.append(httpURLConnection.getResponseCode())
+					.append(" ")
+					.append(httpURLConnection.getResponseMessage())
+					.append("\n");
+
+			Map<String, List<String> > map = httpURLConnection.getHeaderFields();
+			for (Map.Entry<String, List<String>> entry : map.entrySet())
+			{
+				if (entry.getKey() == null)
+					continue;
+				builder.append( entry.getKey())
+						.append(": ");
+
+				List<String> headerValues = entry.getValue();
+				Iterator<String> it = headerValues.iterator();
+				if (it.hasNext()) {
+					builder.append(it.next());
+
+					while (it.hasNext()) {
+						builder.append(", ")
+								.append(it.next());
+					}
+				}
+
+				builder.append("\n");
+			}
+
+			System.out.println(builder);
+
+
+			int responseCode = httpURLConnection.getResponseCode();
 			if ( responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED )
 			{
 				// worked fine

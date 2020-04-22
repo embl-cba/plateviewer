@@ -19,7 +19,7 @@ public class GitHubFileCommitter
 	{
 		final GitHubFileCommit fileCommit = new GitHubFileCommit();
 		String url = createFileCommitApiUrl( path );
-		final String requestMethod = "POST";
+		final String requestMethod = "PUT";
 		final String content = fileCommit.toString();
 
 		RESTCaller.call( url, requestMethod, content, accessToken );

@@ -10,7 +10,8 @@ public class ExploreGitHubAPI
 {
 	public static void main( String[] args ) throws IOException
 	{
-
+		final String a0 = "2309df0a4fbbf32b9b3";
+		final String accessToken = a0 + "cdbb4ca946162378ee4a5";
 
 		final GitHubFileCommitter fileCommitter = new GitHubFileCommitter( "tischi", "https://github.com/hci-unihd/antibodies-analysis-issues", accessToken, "screenshots/test.txt" );
 
