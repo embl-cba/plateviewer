@@ -25,11 +25,10 @@ public class JpegOutputStreamWriter
 	 *
 	 *
 	 * @param imp
-	 * @param path
-	 * @param quality value between 0 and 100
+	 * @param quality value between 0 and 1.0
 	 * @return
 	 */
-	public static String createBase64String( ImagePlus imp, int quality) {
+	public static String createBase64String( ImagePlus imp, float quality) {
 		int width = imp.getWidth();
 		int height = imp.getHeight();
 		int biType = BufferedImage.TYPE_INT_RGB;
@@ -54,7 +53,7 @@ public class JpegOutputStreamWriter
 			writer.setOutput(ios);
 			ImageWriteParam param = writer.getDefaultWriteParam();
 			param.setCompressionMode(param.MODE_EXPLICIT);
-			param.setCompressionQuality(quality/100f);
+			param.setCompressionQuality(quality);
 			if (quality == 100)
 				param.setSourceSubsampling(1, 1, 0, 0);
 			IIOImage iioImage = new IIOImage(bi, null, null);
