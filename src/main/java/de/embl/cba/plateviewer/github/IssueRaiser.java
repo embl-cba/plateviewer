@@ -1,6 +1,7 @@
 package de.embl.cba.plateviewer.github;
 
 import de.embl.cba.plateviewer.io.JpegOutputStreamWriter;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.Prefs;
 import ij.gui.GenericDialog;
@@ -58,14 +59,17 @@ public class IssueRaiser
 
 		if ( isOpenIssue )
 		{
-			openIssueInBrowser( issue );
+			new Thread( () -> {
+				IJ.wait( 3000 );
+				openIssueInBrowser( issue );
+			} ).start();
 		}
 	}
 
 	private int postPlateIssue()
 	{
 		final GitHubIssue githubIssue = createPlateGithubIssue();
-		return postIssue( repository, accessToken, githubIssue );
+		return postIssue( repository, accessToken, githubIssue, screenShot );
 	}
 
 	public int postIssue( String repository, String accessToken, GitHubIssue issue )
@@ -97,10 +101,9 @@ public class IssueRaiser
 
 	public String commitImagePlus( String repository, String accessToken, ImagePlus imp )
 	{
-		final String base64String = JpegOutputStreamWriter.createBase64String( imp, 50 );
+		final String imageJpegBase64String = JpegOutputStreamWriter.createBase64String( imp, 75 );
 
-		final Random random = new Random( Integer.MAX_VALUE );
-		final String path = "screenshots/" + ( random.nextInt() & Integer.MAX_VALUE ) + ".jpg";
+		final String path = createImagePath( imp );
 
 		final GitHubFileCommitter fileCommitter =
 				new GitHubFileCommitter(
@@ -108,9 +111,15 @@ public class IssueRaiser
 						accessToken,
 						path );
 
-		fileCommitter.commitStringAsFile( "Test commit an image", base64String );
+		fileCommitter.commitStringAsFile( "Test commit an image", imageJpegBase64String );
 
 		return "blob/master/" + path;
+	}
+
+	public String createImagePath( ImagePlus imp )
+	{
+		final Random random = new Random( System.currentTimeMillis() );
+		return "screenshots/" + imp.getTitle() + "-" + ( random.nextInt() & Integer.MAX_VALUE ) + ".jpg";
 	}
 
 	private String getIssueApiUrl( String repository )
@@ -126,11 +135,6 @@ public class IssueRaiser
 		final String title = issueTitle + SEP + plateLocation.plateName + SEP + plateLocation.siteName;
 		String body = plateLocation.toString() + "\n\n" + issueBody;
 
-		if ( screenShot != null )
-		{
-			body += "![Alt text](http://full/path/to/img.jpg";
-		}
-
 		return new GitHubIssue( title, body, labels );
 	}
 
@@ -143,7 +147,7 @@ public class IssueRaiser
 		gd.addStringField( "GitHub repository", Prefs.get( REPOSITORY, "https://github.com/hci-unihd/antibodies-analysis-issues" ), columns );
 		gd.addStringField( "GitHub access token", Prefs.get( ACCESS_TOKEN, "1234567890" ), columns );
 		gd.addStringField( "Issue title", "", columns );
-		gd.addChoice( "Issue label", new String[]{"acquisition", "segmentation", "analysis", "other"}, "other" );
+		gd.addChoice( "Issue label", new String[]{"test", "acquisition", "segmentation", "analysis", "other"}, "other" );
 		gd.addTextAreas( "", null, 10, columns );
 		gd.addCheckbox( "Open posted issue", false );
 

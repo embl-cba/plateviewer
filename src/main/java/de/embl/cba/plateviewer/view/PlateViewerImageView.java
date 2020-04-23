@@ -139,9 +139,12 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 			popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
 			{
-				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() );
-				final IssueRaiser issueRaiser = new IssueRaiser();
-				issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
+				new Thread( () -> {
+					final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() );
+					screenShot.setTitle( plateName + "-"  + siteName  );
+					final IssueRaiser issueRaiser = new IssueRaiser();
+					issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
+				}).start();
 			} );
 
 			popupMenu.addPopupAction( "Measure pixel value", e -> {
@@ -264,7 +267,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		{
 			final String channelName = channelPattern;
 
-			// if ( ! channelName.equals( "nuclei" ) ) continue;
+			if ( ! channelName.equals( "nuclei" ) ) continue;
 
 			Utils.log( "Adding channel: " + channelName );
 			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );

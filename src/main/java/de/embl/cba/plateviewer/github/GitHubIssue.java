@@ -5,13 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GitHubIssue
 {
-	public String title = "aaa";
-	public String body = "bbb";
+	public String title;
+	public String body;
+	public String[] labels;
 
 	public GitHubIssue( String title, String body, String[] labels )
 	{
 		this.title = title;
 		this.body = body;
+		this.labels = labels;
 	}
 
 	@Override
