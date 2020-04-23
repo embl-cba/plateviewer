@@ -20,9 +20,9 @@ import java.util.List;
 
 public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
 {
-	public MultiWellImagePlusImg( List< File > files, String channelName, String namingScheme, int numIoThreads, int resolutionLevel )
+	public MultiWellImagePlusImg( List< File > files, String channelName, String namingScheme, int resolutionLevel )
 	{
-		super( files, namingScheme, numIoThreads, resolutionLevel );
+		super( files, namingScheme, resolutionLevel );
 
 		// TODO: move into super()
 		this.channelName = channelName;
@@ -37,7 +37,7 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 
 		wellNames = multiWellChannelFilesProvider.getWellNames();
 
-		loader = new MultiSiteImagePlusLoader( singleSiteChannelFiles, numIoThreads );
+		loader = new MultiSiteImagePlusLoader( singleSiteChannelFiles );
 
 		setCachedCellImg();
 	}

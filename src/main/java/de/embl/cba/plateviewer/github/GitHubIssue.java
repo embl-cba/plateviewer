@@ -8,6 +8,12 @@ public class GitHubIssue
 	public String title = "aaa";
 	public String body = "bbb";
 
+	public GitHubIssue( String title, String body, String[] labels )
+	{
+		this.title = title;
+		this.body = body;
+	}
+
 	@Override
 	public String toString()
 	{

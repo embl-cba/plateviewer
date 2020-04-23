@@ -11,7 +11,14 @@ import java.util.Map;
 
 public class RESTCaller
 {
-	public static void call( String url, String requestMethod, String content, String accessToken )
+
+	private int issueNumber;
+
+	public RESTCaller()
+	{
+	}
+
+	public void call( String url, String requestMethod, String content, String accessToken )
 	{
 		try
 		{
@@ -53,11 +60,16 @@ public class RESTCaller
 					}
 				}
 
+				if (entry.getKey().equals( "Location" ) )
+				{
+					final String[] split = entry.getValue().get( 0 ).split( "/" );
+					issueNumber = Integer.parseInt( split[ split.length - 1 ] );
+				}
+
 				builder.append("\n");
 			}
 
 			System.out.println(builder);
-
 
 			int responseCode = httpURLConnection.getResponseCode();
 			if ( responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED )
@@ -74,5 +86,10 @@ public class RESTCaller
 			Logger.error( "Please see the error in the console" );
 			System.err.println( e );
 		}
+	}
+
+	public int getIssueNumber()
+	{
+		return issueNumber;
 	}
 }

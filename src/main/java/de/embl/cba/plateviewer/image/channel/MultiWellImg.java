@@ -35,7 +35,6 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	protected CachedCellImg< T, ? > cachedCellImg;
 	protected MultiSiteLoader loader;
 	protected final List< File > files;
-	protected final int numIoThreads;
 	protected final String namingScheme;
 	protected String channelName;
 	protected final int resolutionLevel;
@@ -48,12 +47,11 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	protected boolean isInitiallyVisible;
 	protected MultiWellChannelFilesProvider multiWellChannelFilesProvider;
 
-	public MultiWellImg( List< File > files, String namingScheme, int numIoThreads, int resolutionLevel )
+	public MultiWellImg( List< File > files, String namingScheme, int resolutionLevel )
 	{
 		this.files = files;
 		this.namingScheme = namingScheme;
 		this.resolutionLevel = resolutionLevel;
-		this.numIoThreads = numIoThreads;
 	}
 
 	public void dispose()

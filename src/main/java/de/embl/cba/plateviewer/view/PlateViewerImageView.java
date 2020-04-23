@@ -9,6 +9,7 @@ import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.github.IssueRaiser;
 import de.embl.cba.plateviewer.github.PlateLocation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
@@ -32,6 +33,7 @@ import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
+import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
@@ -61,7 +63,6 @@ import java.util.Map;
 public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends SiteName >
 {
 	private final ArrayList< MultiWellImg > multiWellImgs;
-	private int numIoThreads;
 	private final SharedQueue loadingQueue;
 
 	private Bdv bdv;
@@ -90,15 +91,11 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	{
 		this.plateName = new File( inputDirectory ).getName();
 		this.multiWellImgs = new ArrayList<>();
-		this.numIoThreads = numIoThreads;
 		this.loadingQueue = new SharedQueue( numIoThreads );
 
 		final List< File > fileList = getFiles( inputDirectory, filterPattern, includeSubFolders );
 
 		fileNamingScheme = getImageNamingScheme( fileList );
-
-		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
-			this.numIoThreads = 1; // Hdf5 does not support multi-threading
 
 		final List< String > channelPatterns =
 				Utils.getChannelPatterns( fileList, fileNamingScheme );
@@ -132,17 +129,19 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			final RealPoint globalLocation = new RealPoint( 3 );
 			bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalLocation );
 			final String siteName = getSiteName( globalLocation );
-			final PlateLocation plateLocation = new PlateLocation();
-			plateLocation.plateName = plateName;
-			plateLocation.siteName = siteName;
-			globalLocation.localize( plateLocation.pixelLocation );
+
+			final double[] location = new double[ 3 ];
+			globalLocation.localize( location );
+
+			final PlateLocation plateLocation = new PlateLocation( plateName, siteName, location );
 
 			final PopupMenu popupMenu = new PopupMenu();
 
 			popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
 			{
+				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() );
 				final IssueRaiser issueRaiser = new IssueRaiser();
-				issueRaiser.showDialogAndCreateIssue( plateLocation );
+				issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
 			} );
 
 			popupMenu.addPopupAction( "Measure pixel value", e -> {
@@ -294,7 +293,6 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 								channelFiles,
 								channelName,
 								namingScheme,
-								numIoThreads,
 								0 );
 
 				multiWellImgs.add( wellImg );

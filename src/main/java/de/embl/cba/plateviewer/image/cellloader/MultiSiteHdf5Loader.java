@@ -12,9 +12,9 @@ import java.util.ArrayList;
 
 public class MultiSiteHdf5Loader extends MultiSiteLoader
 {
-	public MultiSiteHdf5Loader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles, int numIoThreads )
+	public MultiSiteHdf5Loader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles )
 	{
-		super( singleSiteChannelFiles, numIoThreads );
+		super( singleSiteChannelFiles );
 	}
 
 	@Override

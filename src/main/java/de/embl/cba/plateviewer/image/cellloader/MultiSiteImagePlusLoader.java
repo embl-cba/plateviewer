@@ -12,9 +12,9 @@ import java.util.ArrayList;
 
 public class MultiSiteImagePlusLoader extends MultiSiteLoader
 {
-	public MultiSiteImagePlusLoader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles, int numIoThreads )
+	public MultiSiteImagePlusLoader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles )
 	{
-		super( singleSiteChannelFiles, numIoThreads );
+		super( singleSiteChannelFiles );
 	}
 
 	@Override

@@ -7,7 +7,14 @@ public class PlateLocation
 {
 	public String plateName = "";
 	public String siteName = "";
-	public double[] pixelLocation = new double[3];
+	public double[] pixelLocation;
+
+	public PlateLocation( String plateName, String siteName, double[] pixelLocation )
+	{
+		this.plateName = plateName;
+		this.siteName = siteName;
+		this.pixelLocation = pixelLocation;
+	}
 
 	@Override
 	public String toString()

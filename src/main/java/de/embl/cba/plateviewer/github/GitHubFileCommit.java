@@ -9,16 +9,13 @@ import java.util.Map;
 
 public class GitHubFileCommit
 {
-	public String message = "my commit message";
-	//public Map< String, String > committer = new HashMap<>(  );
-	public String content;
+	public String message = "My commit message";
+	public String content = Base64.getEncoder().encodeToString( "Hello World".getBytes() );;
 
-	public GitHubFileCommit()
+	public GitHubFileCommit( String message, String base64String )
 	{
-		//committer.put( "name", "tischi" );
-		//committer.put( "email", "tischitischer@gmail.com" );
-		final Base64.Encoder encoder = Base64.getEncoder();
-		content = encoder.encodeToString( "Hello World".getBytes() );
+		this.message = message;
+		content = base64String;
 	}
 
 	@Override

@@ -53,7 +53,7 @@ public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericTy
 	protected final VoxelDimensions voxelDimensions;
 
 	public RandomAccessibleIntervalMipmapWithOffsetSource(
-			final RandomAccessibleInterval< T >[] imgs,
+			final RandomAccessibleInterval< T >[] rais,
 			final T type,
 			final double[][] mipmapScales,
 			final VoxelDimensions voxelDimensions,
@@ -62,9 +62,9 @@ public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericTy
 	{
 
 		super( type, name );
-		assert imgs.length == mipmapScales.length : "Number of mipmaps and scale factors do not match.";
+		assert rais.length == mipmapScales.length : "Number of mipmaps and scale factors do not match.";
 
-		this.mipmapSources = imgs;
+		this.mipmapSources = rais;
 		this.mipmapTransforms = new AffineTransform3D[ mipmapScales.length ];
 		for ( int s = 0; s < mipmapScales.length; ++s )
 		{

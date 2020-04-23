@@ -21,13 +21,11 @@ import java.util.concurrent.Executors;
 
 public abstract class MultiSiteLoader implements CellLoader
 {
-	protected final ExecutorService executorService;
 	protected final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
-	public MultiSiteLoader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles, int numIoThreads )
+	public MultiSiteLoader( ArrayList< SingleSiteChannelFile > singleSiteChannelFiles )
 	{
 		this.singleSiteChannelFiles = singleSiteChannelFiles;
-		executorService = Executors.newFixedThreadPool( numIoThreads );
 	}
 
 	public SingleSiteChannelFile getChannelSource( String siteName )

@@ -68,6 +68,15 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 		final VoxelDimensions voxelDimensions =
 				new FinalVoxelDimensions("pixel", 1, 1, 1 );
 
+		for ( int resolutionLevel = 1; resolutionLevel < scaleFactors.length; resolutionLevel++ )
+		{
+			for ( int d = 0; d < NUM_DIMENSIONS; d++ )
+			{
+				final double scale = 1.0 * rais[ 0 ].dimension( d ) / rais[ resolutionLevel ].dimension( d );
+				mipmapScales[ resolutionLevel ][ d ] = scale;
+			}
+		}
+
 		source = new RandomAccessibleIntervalMipmapWithOffsetSource<>(
 				rais,
 				Util.getTypeFromInterval( rais[ 0 ] ),

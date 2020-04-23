@@ -14,7 +14,7 @@ public class MultiWellFilteredImg< T extends RealType< T > & NativeType< T > > e
 			BdvSource bdvSource,
 			BdvOverlaySource bdvOverlaySource )
 	{
-		super( null, null, 1, 0 );
+		super( null, null, 0 );
 		this.cachedCellImg = cachedCellImg;
 		this.channelName = channelName;
 		this.bdvSource = bdvSource;

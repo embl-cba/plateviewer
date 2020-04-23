@@ -30,7 +30,7 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 
 	public MultiWellBatchLibHdf5Img( List< File > files, String namingScheme, String channelName, int resolutionLevel )
 	{
-		super( files, namingScheme, 1, resolutionLevel );
+		super( files, namingScheme, resolutionLevel );
 
 		this.channelName = channelName;
 
@@ -45,7 +45,7 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 		if ( resolutionLevel == 0 )
 			wellNames = multiWellChannelFilesProvider.getWellNames();
 
-		loader = new MultiSiteHdf5Loader( singleSiteChannelFiles, numIoThreads );
+		loader = new MultiSiteHdf5Loader( singleSiteChannelFiles );
 
 		setCachedCellImg();
 	}
