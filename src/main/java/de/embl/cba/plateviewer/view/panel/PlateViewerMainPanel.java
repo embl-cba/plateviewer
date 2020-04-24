@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.view.panel;
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.image.channel.MultiWellFilteredImg;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 
 import static de.embl.cba.plateviewer.filter.ImageFilterUI.getImageFilterSettingsFromUI;
 
@@ -34,18 +33,19 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	JComboBox siteNamesComboBox;
 	JComboBox wellNamesComboBox;
 
-	JComboBox imagesSourcesComboBox;
+	JComboBox< String > imagesSourcesComboBox;
 	JComboBox imageFiltersComboBox;
 	JButton imageFiltersButton;
 
 	final ImagePlateViewer< R, ? > imagePlateViewer;
-	private ArrayList< MultiWellImg< R > > multiWellImgs;
+	private final boolean showProcessingPanel;
 	private ImageFilterSettings previousImageFilterSettings;
 	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
-	public PlateViewerMainPanel( ImagePlateViewer< R, ? > imagePlateViewer )
+	public PlateViewerMainPanel( ImagePlateViewer< R, ? > imagePlateViewer, boolean showProcessingPanel )
 	{
 		this.imagePlateViewer = imagePlateViewer;
+		this.showProcessingPanel = showProcessingPanel;
 		sourcesPanel = new PlateViewerSourcesPanel< >( this );
 	}
 
@@ -54,15 +54,15 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		return imagePlateViewer;
 	}
 
-	private void createUI()
+	private void createPanel()
 	{
-		setImagesSources( );
+		addHeader( " " ,this );
+
+		addSourceSelectionDialog( this );
 
 		this.add( sourcesPanel.getPanel() );
 
 		addHeader( " " ,this );
-
-		// addNavigationMessages( this );
 
 		addWellNavigationUI( this );
 
@@ -72,26 +72,19 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		addViewCaptureUI( this );
 
-		addHeader( " " ,this );
+		if ( showProcessingPanel )
+		{
+			addHeader( " ", this );
 
-		addImageProcessingPanel( this );
+			addImageProcessingPanel( this );
 
-		previousImageFilterSettings = new ImageFilterSettings( );
+			previousImageFilterSettings = new ImageFilterSettings();
+		}
 	}
 
 	public PlateViewerSourcesPanel< R > getSourcesPanel()
 	{
 		return sourcesPanel;
-	}
-
-	private void setImagesSources()
-	{
-		final ArrayList< MultiWellImg > multiWellImgs = imagePlateViewer.getMultiWellImgs();
-
-		for( MultiWellImg channelSource : multiWellImgs )
-		{
-			this.multiWellImgs.add( channelSource );
-		}
 	}
 
 	private void addViewCaptureUI( JPanel panel )
@@ -192,7 +185,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		imagesSourcesComboBox.removeAllItems();
 
-		for( MultiWellImg img : multiWellImgs )
+		for( MultiWellImg img : imagePlateViewer.getChannelToMultiWellImg().values() )
 		{
 			imagesSourcesComboBox.addItem( img.getName() );
 		}
@@ -217,25 +210,40 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		siteNamesComboBox = new JComboBox( );
 
+		setComboBoxDimensions( siteNamesComboBox );
+
 		final ArrayList< String > siteNames = imagePlateViewer.getSiteNames();
 
 		for ( String siteName : siteNames )
 		{
 			siteNamesComboBox.addItem( siteName );
 		}
-		siteNamesComboBox.addActionListener( this );
 
-		horizontalLayoutPanel.add( new JLabel( "Zoom to site: " ) );
+		final JButton button = new JButton( "zoom");
+		button.addActionListener( e ->
+		{
+			SwingUtilities.invokeLater( () ->
+			{
+				imagePlateViewer.zoomToSite( ( String ) siteNamesComboBox.getSelectedItem() );
+				updateBdv( 1000 );
+			} );
+		} );
+
+		final JLabel jLabel = de.embl.cba.plateviewer.swing.SwingUtils.getJLabel( "Site" );
+		horizontalLayoutPanel.add( jLabel );
 		horizontalLayoutPanel.add( siteNamesComboBox );
+		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
 	}
 
 	public void addWellNavigationUI( JPanel panel )
 	{
-		final JPanel horizontalLayoutPanel = horizontalLayoutPanel();
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
 		wellNamesComboBox = new JComboBox();
+
+		setComboBoxDimensions( wellNamesComboBox );
 
 		final ArrayList< String > wellNames = imagePlateViewer.getWellNames();
 
@@ -246,10 +254,20 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			wellNamesComboBox.addItem( wellName );
 		}
 
-		wellNamesComboBox.addActionListener( this );
+		final JButton button = new JButton( "zoom");
+		button.addActionListener( e ->
+		{
+			SwingUtilities.invokeLater( () ->
+			{
+				imagePlateViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
+				updateBdv( 1000 );
+			} );
+		} );
 
-		horizontalLayoutPanel.add( new JLabel( "Zoom to well: " ) );
+		final JLabel jLabel = de.embl.cba.plateviewer.swing.SwingUtils.getJLabel( "Well" );
+		horizontalLayoutPanel.add( jLabel );
 		horizontalLayoutPanel.add( wellNamesComboBox );
+		horizontalLayoutPanel.add( button );
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -271,27 +289,15 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	@Override
 	public void actionPerformed( ActionEvent a )
 	{
-		if ( a.getSource() == siteNamesComboBox )
-		{
-			imagePlateViewer.zoomToSite( ( String ) siteNamesComboBox.getSelectedItem() );
-
-			updateBdv( 1000 );
-		}
-
-		if ( a.getSource() == wellNamesComboBox )
-		{
-			imagePlateViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
-			updateBdv( 2000 );
-		}
-
 		if ( a.getSource() == imageFiltersButton )
 		{
 			SwingUtilities.invokeLater( () ->
 			{
 				new Thread( () ->
 				{
+					// TODO: Fix this and move into own class!
 					final MultiWellImg inputSource =
-							multiWellImgs.get( imagesSourcesComboBox.getSelectedIndex() );
+							imagePlateViewer.getChannelToMultiWellImg().get( imagesSourcesComboBox.getSelectedItem() );
 
 					ImageFilterSettings settings = configureImageFilterSettings( inputSource );
 					settings = getImageFilterSettingsFromUI( settings );
@@ -329,7 +335,8 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 									bdvStackSource,
 									bdvOverlaySource );
 
-					multiWellImgs.add( filteredMultiWellImg );
+					// TODO: fix this!!
+					// multiWellImgs.add( filteredMultiWellImg );
 
 					previousImageFilterSettings = new ImageFilterSettings( settings );
 
@@ -368,19 +375,21 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	public void removeSource( String name )
 	{
-		for ( MultiWellImg source : multiWellImgs )
-		{
-			if ( source.getName().equals( name ) )
-			{
-				source.dispose();
-				multiWellImgs.remove( source );
-				source = null;
-				System.gc();
-				break;
-			}
-		}
+		// TODO: Fix this, only needed for the image filter
 
-		updateImagesSourcesComboBoxItems();
+//		for ( MultiWellImg source : multiWellImgs )
+//		{
+//			if ( source.getName().equals( name ) )
+//			{
+//				source.dispose();
+//				multiWellImgs.remove( source );
+//				source = null;
+//				System.gc();
+//				break;
+//			}
+//		}
+//
+//		updateImagesSourcesComboBoxItems();
 	}
 
 	private BdvStackSource addToViewer(
@@ -398,14 +407,20 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	private void addSourceSelectionDialog( JPanel panel )
 	{
-		final JComboBox< String > comboBox = new JComboBox( imagePlateViewer.getChannelPatterns().toArray( new String[]{} ) );
-		// setComboBoxDimensions( comboBox ); get from PlatyBrowser is needed
+		final ArrayList< String > channels = Utils.getSortedList( imagePlateViewer.getChannelNames() );
+		final JComboBox< String > comboBox = new JComboBox( channels.toArray( new String[]{} ) );
+		setComboBoxDimensions( comboBox );
 		addSourceSelectionComboBoxAndButton( panel, comboBox );
 	}
 
-	public ArrayList< String > getSortedModalities()
+	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
+	public static final int COMBOBOX_WIDTH = 270;
+
+	private void setComboBoxDimensions( JComboBox< String > comboBox )
 	{
-		return sortedModalities;
+		comboBox.setPrototypeDisplayValue( PROTOTYPE_DISPLAY_VALUE );
+		comboBox.setPreferredSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
+		comboBox.setMaximumSize( new Dimension( COMBOBOX_WIDTH, 20 ) );
 	}
 
 	private void addSourceSelectionComboBoxAndButton(
@@ -416,8 +431,8 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton addToView = new JButton( "add");
-		addToView.addActionListener( e ->
+		final JButton action = new JButton( "add");
+		action.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
 			{
@@ -428,16 +443,16 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 				}
 
 				final String selectedSource = ( String ) comboBox.getSelectedItem();
-				imagePlateViewer.addToPanelAndBdv( selectedSource );
+				imagePlateViewer.addToPanelAndBdvAndSetVisible( selectedSource );
 			} );
 		} );
 
 
-		final JLabel comp = de.embl.cba.plateviewer.swing.SwingUtils.getJLabel( modality );
+		final JLabel comp = de.embl.cba.plateviewer.swing.SwingUtils.getJLabel( "Channel" );
 
 		horizontalLayoutPanel.add( comp );
 		horizontalLayoutPanel.add( comboBox );
-		horizontalLayoutPanel.add( addToView );
+		horizontalLayoutPanel.add( action );
 
 		panel.add( horizontalLayoutPanel );
 	}
@@ -448,11 +463,10 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	 * this method should be invoked from the
 	 * event-dispatching thread.
 	 */
-	public void showUI( Component parentComponent )
+	public void show( Component parentComponent )
 	{
-		createUI();
+		createPanel();
 
-		//Create and set up the window.
 		frame = new JFrame( "Plate viewer" );
 		frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 
@@ -464,9 +478,6 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			);
 		}
 
-
-		getSourcesPanel().sourceNameToPanel.size();
-
 		//Create and set up the content pane.
 		setOpaque( true ); //content panes must be opaque
 		setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
@@ -474,6 +485,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		frame.setContentPane( this );
 
 		//Display the window.
+		frame.setMinimumSize(frame.getPreferredSize());
 		frame.pack();
 		frame.setVisible( true );
 	}

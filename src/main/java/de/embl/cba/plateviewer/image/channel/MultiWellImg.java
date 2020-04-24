@@ -130,6 +130,11 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 		return isInitiallyVisible;
 	}
 
+	public void setInitiallyVisible( boolean initiallyVisible )
+	{
+		isInitiallyVisible = initiallyVisible;
+	}
+
 	public Metadata.Type getType()
 	{
 		return this.type;

@@ -23,10 +23,8 @@ import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -122,69 +120,20 @@ public class Utils
 		return center;
 	}
 
-	public static List< String > getChannelPatterns(
-			List< File > files, String namingScheme )
+
+	public static ArrayList< String > getSortedList( Collection< String > strings )
 	{
-		final Set< String > channelPatternSet = new HashSet<>( );
+		final ArrayList< String > sorted = new ArrayList<>( strings );
+		Collections.sort( sorted, new SortIgnoreCase() );
+		return sorted;
+	}
 
-		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
-		{
-			channelPatternSet.add( ".*" );
+	public static class SortIgnoreCase implements Comparator<Object> {
+		public int compare(Object o1, Object o2) {
+			String s1 = (String) o1;
+			String s2 = (String) o2;
+			return s1.toLowerCase().compareTo(s2.toLowerCase());
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
-		{
-			final ArrayList< String > channels = new ArrayList<>();
-			final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( files.get( 0 ) );
-			final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
-			for ( String groupMember : groupMembers )
-			{
-				if ( ! hdf5Reader.hasAttribute( groupMember, MultiWellBatchLibHdf5Img.SKIP ) )
-				{
-					continue;
-				}
-
-				final boolean skip = hdf5Reader.bool().getAttr( groupMember, MultiWellBatchLibHdf5Img.SKIP );
-
-				if ( skip )
-				{
-					continue;
-				}
-				channels.add( groupMember );
-			}
-
-			return channels;
-		}
-		else // multiple channels, figure out which ones...
-		{
-			for ( File file : files )
-			{
-				final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
-
-				if ( matcher.matches() )
-				{
-					if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
-					{
-						channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*" );
-					}
-					else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ) )
-					{
-						channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*"  );
-					}
-					else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
-					{
-						channelPatternSet.add( ".*_s.*_w" + matcher.group( 3 ) + ".*" );
-					}
-					else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
-					{
-						channelPatternSet.add( ".*" + matcher.group( 2 ) + "\\..*" );
-					}
-				}
-			}
-		}
-
-		ArrayList< String > channelPatterns = new ArrayList<>( channelPatternSet );
-
-		return channelPatterns;
 	}
 
 	public static String getNamingScheme( File file )

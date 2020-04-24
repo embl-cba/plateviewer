@@ -3,7 +3,7 @@ import net.imagej.ImageJ;
 
 import java.io.File;
 
-public class TestNamingSchemeCorona
+public class TestNamingSchemeBatchLibHdf5
 {
 	public static void main( String[] args )
 	{

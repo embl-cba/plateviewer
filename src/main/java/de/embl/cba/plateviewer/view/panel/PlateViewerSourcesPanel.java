@@ -115,11 +115,23 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             panel.add( visibilityCheckbox );
 
             add( panel );
-            refreshUI();
+            refreshUIs();
         }
     }
 
-    public static JButton createColorButtonWithColoredBackground(
+    private void refreshUIs()
+    {
+        this.refreshUI();
+
+        try{
+            mainPanel.refreshUI();
+        } catch ( Exception e )
+        {
+            // panel not yet visible.
+        }
+    }
+
+    private static JButton createColorButtonWithColoredBackground(
             int[] buttonDimensions,
             BdvSource bdvSource,
             Color initialColor )

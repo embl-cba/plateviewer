@@ -13,11 +13,10 @@ public class MultiWellImgCreator
 	public static MultiWellImg create( List< File > fileList, String namingScheme, String channelPattern )
 	{
 		MultiWellImg wellImg;
+
 		final String channelName = channelPattern;
 
-		if ( ! channelName.equals( "nuclei" ) ) return null;
-
-		Utils.log( "Adding channel: " + channelName );
+		Utils.log( "Fetching channel: " + channelName );
 		List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );
 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
