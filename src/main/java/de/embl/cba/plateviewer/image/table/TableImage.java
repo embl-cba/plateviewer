@@ -7,7 +7,7 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -31,7 +31,7 @@ public class TableImage implements BdvViewable
 {
 	private final List< DefaultSiteNameTableRow > tableRows;
 	private final SelectionColoringModel< DefaultSiteNameTableRow > coloringModel;
-	private final PlateViewerImageView plateViewerImageView;
+	private final ImagePlateViewer imagePlateViewer;
 	private Interval plateInterval;
 	private final long[] siteDimensions;
 	private RandomAccessibleInterval< FloatType > rai;
@@ -45,17 +45,17 @@ public class TableImage implements BdvViewable
 	public TableImage(
 			List< DefaultSiteNameTableRow > tableRows,
 			SelectionColoringModel< DefaultSiteNameTableRow > coloringModel,
-			PlateViewerImageView plateViewerImageView )
+			ImagePlateViewer imagePlateViewer )
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
-		this.plateViewerImageView = plateViewerImageView;
+		this.imagePlateViewer = imagePlateViewer;
 
 		jTable = Tables.jTableFromTableRows( tableRows );
 
-		plateInterval = plateViewerImageView.getPlateInterval();
-		siteDimensions = plateViewerImageView.getSiteDimensions();
-		siteNameMatrix = plateViewerImageView.getSiteNameMatrix();
+		plateInterval = imagePlateViewer.getPlateInterval();
+		siteDimensions = imagePlateViewer.getSiteDimensions();
+		siteNameMatrix = imagePlateViewer.getSiteNameMatrix();
 
 		createSiteNameToTableRowMap( tableRows );
 

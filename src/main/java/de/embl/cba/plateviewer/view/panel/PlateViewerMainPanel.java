@@ -2,12 +2,15 @@ package de.embl.cba.plateviewer.view.panel;
 
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
+import de.embl.cba.bdv.utils.Logger;
+import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.MultiWellFilteredImg;
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
+import de.embl.cba.tables.SwingUtils;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
@@ -20,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 
 import static de.embl.cba.plateviewer.filter.ImageFilterUI.getImageFilterSettingsFromUI;
 
@@ -34,29 +38,20 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	JComboBox imageFiltersComboBox;
 	JButton imageFiltersButton;
 
-	final PlateViewerImageView plateViewerImageView;
-	private final Bdv bdv;
+	final ImagePlateViewer< R, ? > imagePlateViewer;
 	private ArrayList< MultiWellImg< R > > multiWellImgs;
 	private ImageFilterSettings previousImageFilterSettings;
 	private final PlateViewerSourcesPanel< R > sourcesPanel;
 
-	public PlateViewerMainPanel( PlateViewerImageView plateViewerImageView )
+	public PlateViewerMainPanel( ImagePlateViewer< R, ? > imagePlateViewer )
 	{
-		this.plateViewerImageView = plateViewerImageView;
-
-		this.bdv = plateViewerImageView.getBdv();
-
+		this.imagePlateViewer = imagePlateViewer;
 		sourcesPanel = new PlateViewerSourcesPanel< >( this );
 	}
 
-	public PlateViewerImageView getPlateViewerImageView()
+	public ImagePlateViewer getImagePlateViewer()
 	{
-		return plateViewerImageView;
-	}
-
-	public BdvHandle getBdv()
-	{
-		return bdv.getBdvHandle();
+		return imagePlateViewer;
 	}
 
 	private void createUI()
@@ -89,12 +84,9 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		return sourcesPanel;
 	}
 
-
-	private void setImagesSources( )
+	private void setImagesSources()
 	{
-		this.multiWellImgs = new ArrayList<>(  );
-
-		final ArrayList< MultiWellImg > multiWellImgs = plateViewerImageView.getMultiWellImgs();
+		final ArrayList< MultiWellImg > multiWellImgs = imagePlateViewer.getMultiWellImgs();
 
 		for( MultiWellImg channelSource : multiWellImgs )
 		{
@@ -110,7 +102,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		final JButton button = new JButton( "Make Screenshot" );
 
 		button.addActionListener( e -> {
-			SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() ).show();
+			SimpleScreenShotMaker.getSimpleScreenShot( imagePlateViewer.getBdvHandle().getViewerPanel() ).show();
 //			BdvViewCaptures.captureView(
 //					bdv.getBdvHandle(),
 //					1.0,
@@ -225,7 +217,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		siteNamesComboBox = new JComboBox( );
 
-		final ArrayList< String > siteNames = plateViewerImageView.getSiteNames();
+		final ArrayList< String > siteNames = imagePlateViewer.getSiteNames();
 
 		for ( String siteName : siteNames )
 		{
@@ -245,7 +237,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		wellNamesComboBox = new JComboBox();
 
-		final ArrayList< String > wellNames = plateViewerImageView.getWellNames();
+		final ArrayList< String > wellNames = imagePlateViewer.getWellNames();
 
 		Collections.sort( wellNames );
 
@@ -272,7 +264,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			{
 				e.printStackTrace();
 			}
-			plateViewerImageView.getBdv().getBdvHandle().getViewerPanel().requestRepaint();
+			imagePlateViewer.getBdvHandle().getBdvHandle().getViewerPanel().requestRepaint();
 		} )).start();
 	}
 
@@ -281,14 +273,14 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		if ( a.getSource() == siteNamesComboBox )
 		{
-			plateViewerImageView.zoomToSite( ( String ) siteNamesComboBox.getSelectedItem() );
+			imagePlateViewer.zoomToSite( ( String ) siteNamesComboBox.getSelectedItem() );
 
 			updateBdv( 1000 );
 		}
 
 		if ( a.getSource() == wellNamesComboBox )
 		{
-			plateViewerImageView.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
+			imagePlateViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
 			updateBdv( 2000 );
 		}
 
@@ -315,12 +307,6 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 					// TODO: make all of this a Bdviewable
 					bdvStackSource.setColor( inputSource.getColor() );
-
-//					getSourcesPanel().addToPanel(
-//							imageFilterSourceName,
-//							bdvStackSource,
-//							inputSource.getColor(),
-//							true );
 
 					if ( !settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 					{
@@ -364,7 +350,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		settings.filterType = (String) imageFiltersComboBox.getSelectedItem();
 		settings.rai = inputSource.getRAI();
 		settings.inputName = ( String ) imagesSourcesComboBox.getSelectedItem();
-		settings.plateViewerImageView = plateViewerImageView;
+		settings.imagePlateViewer = imagePlateViewer;
 		return settings;
 	}
 
@@ -375,7 +361,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 				BdvFunctions.showOverlay(
 						bdvOverlay,
 						name +" - overlay",
-						BdvOptions.options().addTo( settings.plateViewerImageView.getBdv() ) );
+						BdvOptions.options().addTo( settings.imagePlateViewer.getBdvHandle() ) );
 
 		return bdvOverlaySource;
 	}
@@ -397,37 +383,65 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		updateImagesSourcesComboBoxItems();
 	}
 
-
 	private BdvStackSource addToViewer(
 			CachedCellImg< UnsignedByteType, ? > cachedCellImg,
 			String cachedFilterImgName )
 	{
 
 		final BdvStackSource< Volatile< UnsignedByteType > > bdvStackSource = BdvFunctions.show(
-				VolatileViews.wrapAsVolatile( cachedCellImg, plateViewerImageView.getLoadingQueue() ),
+				VolatileViews.wrapAsVolatile( cachedCellImg, imagePlateViewer.getLoadingQueue() ),
 				cachedFilterImgName,
-				BdvOptions.options().addTo( plateViewerImageView.getBdv() ) );
-
-		// TODO: set color
-//		bdvSource.setColor( settings.baseImagesSource.getColor() );
+				BdvOptions.options().addTo( imagePlateViewer.getBdvHandle() ) );
 
 		return bdvStackSource;
-
 	}
 
-//	public static void setLut( BdvSource bdvSource, MultiWellCachedCellImg multiWellCachedCellImg, String filterType )
-//	{
-//		final double[] lutMinMax = multiWellCachedCellImg.getLutMinMax();
-//
-//		if ( filterType.equals( ImageFilter.MEDIAN_DEVIATION ) )
-//		{
-//			bdvSource.setDisplayRange( 0, lutMinMax[ 1 ] - lutMinMax[ 0 ] );
-//		}
-//		else if ( filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
-//		{
-//			bdvSource.setDisplayRange( 0, 255 );
-//		}
-//	}
+	private void addSourceSelectionDialog( JPanel panel )
+	{
+		final JComboBox< String > comboBox = new JComboBox( imagePlateViewer.getChannelPatterns().toArray( new String[]{} ) );
+		// setComboBoxDimensions( comboBox ); get from PlatyBrowser is needed
+		addSourceSelectionComboBoxAndButton( panel, comboBox );
+	}
+
+	public ArrayList< String > getSortedModalities()
+	{
+		return sortedModalities;
+	}
+
+	private void addSourceSelectionComboBoxAndButton(
+			final JPanel panel,
+			final JComboBox comboBox )
+	{
+		if ( comboBox.getModel().getSize() == 0 ) return;
+
+		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
+
+		final JButton addToView = new JButton( "add");
+		addToView.addActionListener( e ->
+		{
+			SwingUtilities.invokeLater( () ->
+			{
+				if ( imagePlateViewer.getBdvHandle() == null )
+				{
+					Logger.log( "Warning: Source cannot be added yet, because BigDataViewer is still being initialised..." );
+					return;
+				}
+
+				final String selectedSource = ( String ) comboBox.getSelectedItem();
+				imagePlateViewer.addToPanelAndBdv( selectedSource );
+			} );
+		} );
+
+
+		final JLabel comp = de.embl.cba.plateviewer.swing.SwingUtils.getJLabel( modality );
+
+		horizontalLayoutPanel.add( comp );
+		horizontalLayoutPanel.add( comboBox );
+		horizontalLayoutPanel.add( addToView );
+
+		panel.add( horizontalLayoutPanel );
+	}
+
 
 	/**
 	 * Create the GUI and show it.  For thread safety,

@@ -1,4 +1,4 @@
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import net.imagej.ImageJ;
 
 public class TestNamingSchemeSCANRMultiSite
@@ -7,7 +7,7 @@ public class TestNamingSchemeSCANRMultiSite
 	{
 		new ImageJ().ui().showUI();
 
-		new PlateViewerImageView(
+		new ImagePlateViewer(
 				TestNamingSchemeSCANRMultiSite.class.getResource( "SCANR-S9-C1-T1" ).getFile(),
 				".*.tif",
 				1);

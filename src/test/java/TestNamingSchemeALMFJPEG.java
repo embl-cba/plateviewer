@@ -1,10 +1,10 @@
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 
 public class TestNamingSchemeALMFJPEG
 {
 	public static void main( String[] args )
 	{
-		new PlateViewerImageView(
+		new ImagePlateViewer(
 				TestNamingSchemeALMFJPEG.class.getResource( "ALMF-EMBL-JPEG" ).getFile(),
 				".*.jpeg",
 				4 );

@@ -1,8 +1,7 @@
 package de.embl.cba.plateviewer.filter;
 
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
@@ -17,7 +16,7 @@ public class ImageFilterSettings < T extends NativeType< T > & RealType< T > >
 	public double threshold = 1;
 	public long minObjectSize = 100;
 	public boolean normalize = false;
-	public PlateViewerImageView plateViewerImageView;
+	public ImagePlateViewer imagePlateViewer;
 
 	public ImageFilterSettings( )
 	{

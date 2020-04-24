@@ -1,4 +1,4 @@
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 
 public class TestMDMultiSite
 {
@@ -9,7 +9,7 @@ public class TestMDMultiSite
 //				".*.jpeg",
 //				4);
 
-		new PlateViewerImageView(
+		new ImagePlateViewer(
 				TestMDMultiSite.class.getResource( "MD-P2-S4-C1-T1" ).getFile(),
 				".*",
 				4 );

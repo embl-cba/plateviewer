@@ -13,7 +13,7 @@ import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.github.IssueRaiser;
 import de.embl.cba.plateviewer.github.PlateLocation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.image.source.MultiResolutionBatchLibHdf5ChannelSourceCreator;
+import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
 import de.embl.cba.plateviewer.image.well.OutlinesImage;
 import de.embl.cba.plateviewer.image.well.OverlayBdvViewable;
 import de.embl.cba.plateviewer.image.well.WellNamesOverlay;
@@ -23,7 +23,6 @@ import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
-import de.embl.cba.plateviewer.image.channel.MultiWellImagePlusImg;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
@@ -60,9 +59,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T extends SiteName >
+public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T extends SiteName >
 {
-	private final ArrayList< MultiWellImg > multiWellImgs;
 	private final SharedQueue loadingQueue;
 
 	private Bdv bdv;
@@ -81,24 +79,30 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	private long[] wellDimensions;
 	private String plateName;
 	private TableRowsTableView< DefaultSiteNameTableRow > tableView;
+	private BdvSource dummySource;
+	private List< String > channelPatterns;
+	private List< File > fileList;
+	private HashMap< String, MultiWellImg< ? > > channelToMultiWellImg;
+	private MultiWellImg referenceWellImg;
 
-	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads )
+	public ImagePlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
 	{
 		this( inputDirectory, filterPattern, numIoThreads, true );
 	}
 
-	public PlateViewerImageView( String inputDirectory, String filterPattern, int numIoThreads, boolean includeSubFolders )
+	public ImagePlateViewer( String inputDirectory, String filterPattern, int numIoThreads, boolean includeSubFolders )
 	{
 		this.plateName = new File( inputDirectory ).getName();
-		this.multiWellImgs = new ArrayList<>();
+		//this.multiWellImgs = new ArrayList<>();
+		channelToMultiWellImg = new HashMap<>();
+
 		this.loadingQueue = new SharedQueue( numIoThreads );
 
-		final List< File > fileList = getFiles( inputDirectory, filterPattern, includeSubFolders );
+		fileList = getFiles( inputDirectory, filterPattern, includeSubFolders );
 
 		fileNamingScheme = getImageNamingScheme( fileList );
 
-		final List< String > channelPatterns =
-				Utils.getChannelPatterns( fileList, fileNamingScheme );
+		channelPatterns = Utils.getChannelPatterns( fileList, fileNamingScheme );
 
 		Logger.info( "Detected channels: " );
 		for ( String channelPattern : channelPatterns )
@@ -106,17 +110,28 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			Logger.info( "- " + channelPattern );
 		}
 
-		addChannels( fileList, fileNamingScheme, channelPatterns );
+		plateViewerMainPanel = new PlateViewerMainPanel( this );
+
+		fetchReferenceWellImg( channelPatterns.get( 0 ) );
+
+		addToPanelAndBdv( referenceWellImg );
+
+		configPlateDimensions();
 
 		addWellOutlinesImages();
 
-		addSiteAndWellNamesOverlay( multiWellImgs.get( 0 ));
+		addSiteAndWellNamesOverlay( referenceWellImg );
 
 		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		plateViewerMainPanel.showUI( bdv.getBdvHandle().getViewerPanel() );
 
 		installBdvBehaviours();
+	}
+
+	public List< String > getChannelPatterns()
+	{
+		return channelPatterns;
 	}
 
 	private void installBdvBehaviours()
@@ -208,7 +223,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	public void addWellOutlinesImages()
 	{
 		final OutlinesImage outlinesImage = new OutlinesImage( this, 0.01 );
-		addToBdvAndPanel( outlinesImage );
+		addToPanelAndBdv( outlinesImage );
 	}
 
 	public String getFileNamingScheme()
@@ -220,7 +235,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	{
 		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( this );
 
-		addToBdvAndPanel( new OverlayBdvViewable( wellNamesOverlay, "well names" ) );
+		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "well names" ) );
 
 		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay(
 				bdv,
@@ -255,79 +270,25 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return fileList;
 	}
 
-	public void addChannels(
-			List< File > fileList,
-			String namingScheme,
-			List< String > channelPatterns )
+	public void fetchReferenceWellImg( String channelPattern )
 	{
-		MultiWellImg wellImg;
+		referenceWellImg = MultiWellImgCreator.create( fileList, fileNamingScheme, channelPattern );
 
-		Utils.log( "Adding channels..." );
-		for ( String channelPattern : channelPatterns )
-		{
-			final String channelName = channelPattern;
+		channelToMultiWellImg.put( channelPattern, referenceWellImg );
 
-			if ( ! channelName.equals( "nuclei" ) ) continue;
-
-			Utils.log( "Adding channel: " + channelName );
-			List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );
-
-			if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
-			{
-				final MultiResolutionBatchLibHdf5ChannelSourceCreator sourceCreator =
-						new MultiResolutionBatchLibHdf5ChannelSourceCreator(
-							namingScheme,
-							channelName,
-							channelFiles );
-
-				sourceCreator.create();
-
-				wellImg = sourceCreator.getMultiWellHdf5CachedCellImage();
-
-				wellImg.setSource( sourceCreator.getVolatileSource() );
-
-				multiWellImgs.add( wellImg );
-
-				addToBdvAndPanel( wellImg );
-			}
-			else
-			{
-				wellImg = new MultiWellImagePlusImg(
-								channelFiles,
-								channelName,
-								namingScheme,
-								0 );
-
-				multiWellImgs.add( wellImg );
-
-				addToBdvAndPanel( wellImg );
-			}
-
-			if ( isFirstChannel )
-			{
-				setPlateInterval( wellImg );
-
-				mapSiteNamesToIntervals( wellImg );
-
-				mapWellNamesToIntervals( wellImg );
-
-				setSiteDimensions( wellImg );
-
-				// TODO: fix this, as this should be in units of wells per plate and sites per well
-//				Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
-//				Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
-//				Utils.log( "Well dimensions [ 0 ] : " +  wellDimensions[ 0 ] );
-//				Utils.log( "Well dimensions [ 1 ] : " +  wellDimensions[ 1 ] );
-
-				isFirstChannel = false;
-			}
-		}
-
-		if ( multiWellImgs.size() == 0 )
-		{
-			throw new UnsupportedOperationException( "No multi-well images sources have been added." );
-		}
 	}
+
+	public void configPlateDimensions()
+	{
+		setPlateInterval( referenceWellImg );
+
+		mapSiteNamesToIntervals( referenceWellImg );
+
+		mapWellNamesToIntervals( referenceWellImg );
+
+		setSiteDimensions( referenceWellImg );
+	}
+
 
 	public void setSiteDimensions( MultiWellImg wellImg )
 	{
@@ -414,25 +375,9 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return siteNameMatrix;
 	}
 
-	public List< File > getChannelFiles ( List < File > fileList, String namingScheme, String channelPattern )
+	public BdvHandle getBdvHandle( )
 	{
-		List< File > channelFiles;
-		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
-		{
-			// each file contains all channels => we need all
-			channelFiles = fileList;
-		} else
-		{
-			// one channel per file => we need to filter the relevant files
-			channelFiles = FileUtils.filterFiles( fileList, channelPattern );
-		}
-
-		return channelFiles;
-	}
-
-	public Bdv getBdv ( )
-	{
-		return bdv;
+		return bdv.getBdvHandle();
 	}
 
 	public SharedQueue getLoadingQueue ( )
@@ -450,7 +395,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	public ArrayList< String > getSiteNames ( )
 	{
 		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles =
-				this.multiWellImgs.get( 0 ).getLoader().getSingleSiteChannelFiles();
+				referenceWellImg.getLoader().getSingleSiteChannelFiles();
 
 		final ArrayList< String > imageNames = new ArrayList<>();
 
@@ -464,7 +409,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public ArrayList< String > getWellNames ( )
 	{
-		return multiWellImgs.get( 0 ).getWellNames();
+		return referenceWellImg.getWellNames();
 	}
 
 	public void zoomToWell ( String wellName )
@@ -512,15 +457,10 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 	public boolean isImageExisting ( final SingleCellArrayImg< R, ? > cell )
 	{
-		final SingleSiteChannelFile imageFile = multiWellImgs.get( 0 ).getLoader().getChannelSource( cell );
+		final SingleSiteChannelFile imageFile = referenceWellImg.getLoader().getChannelSource( cell );
 
 		if ( imageFile != null ) return true;
 		else return false;
-	}
-
-	public ArrayList< MultiWellImg > getMultiWellImgs( )
-	{
-		return multiWellImgs;
 	}
 
 	public AffineTransform3D getImageZoomTransform ( Interval interval )
@@ -564,7 +504,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		return bdvWindowDimensions;
 	}
 
-	private void initBdvAndPlateViewerUI( BdvViewable bdvViewable )
+	private BdvSource initBdvAndBehaviours()
 	{
 		final ArrayImg< BitType, LongArray > dummyImageForInitialisation
 				= ArrayImgs.bits( new long[]{ 100, 100 } );
@@ -582,8 +522,6 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 
 		bdv = bdvTmpSource.getBdvHandle();
 
-		plateViewerMainPanel = new PlateViewerMainPanel( this );
-
 		// This may interfere with loading of the resolution layers => TODO right click!
 		// new BdvGrayValuesOverlay( bdv, Utils.bdvTextOverlayFontSize );
 
@@ -594,17 +532,14 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		transform3D.translate( 10000, 10000, 0 );
 		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( transform3D );
 
-		addToBdvAndPanel( bdvViewable );
-
-		bdvTmpSource.removeFromBdv();
+		return bdvTmpSource;
 	}
 
-	public void addToBdvAndPanel( BdvViewable bdvViewable )
+	public void addToPanelAndBdv( BdvViewable bdvViewable )
 	{
 		if ( bdv == null )
 		{
-			initBdvAndPlateViewerUI( bdvViewable );
-			return;
+			dummySource = initBdvAndBehaviours();
 		}
 
 		BdvSource bdvSource = addToBdv( bdvViewable );
@@ -616,6 +551,8 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 		bdvSource.setColor( bdvViewable.getColor() );
 
 		plateViewerMainPanel.getSourcesPanel().addToPanel( bdvViewable, bdvSource );
+
+		dummySource.removeFromBdv();
 	}
 
 	public BdvSource addToBdv( BdvViewable bdvViewable )
@@ -683,7 +620,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	{
 		final long[] coordinates = getMouseCoordinates();
 
-		final SingleSiteChannelFile singleSiteChannelFile = multiWellImgs.get( 0 ).getLoader().getChannelSource( coordinates );
+		final SingleSiteChannelFile singleSiteChannelFile = referenceWellImg.getLoader().getChannelSource( coordinates );
 
 		if ( singleSiteChannelFile != null )
 		{
@@ -732,8 +669,7 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 			@Override
 			public void focusEvent( T selection )
 			{
-				int sourceIndex = 0; // TODO: this is because the siteName is the same for all channelSources, so we just take the first one.
-				final SingleSiteChannelFile singleSiteChannelFile = multiWellImgs.get( sourceIndex ).getLoader().getChannelSource( selection.getSiteName() );
+				final SingleSiteChannelFile singleSiteChannelFile = referenceWellImg.getLoader().getChannelSource( selection.getSiteName() );
 
 				if ( singleSiteChannelFile == null )
 				{
@@ -764,5 +700,26 @@ public class PlateViewerImageView < R extends NativeType< R > & RealType< R >, T
 	public TableRowsTableView< DefaultSiteNameTableRow > getTableView()
 	{
 		return tableView;
+	}
+
+	public void addToPanelAndBdv( String channel )
+	{
+		MultiWellImg multiWellImg = getMultiWellImg( channel );
+
+		addToPanelAndBdv( multiWellImg );
+	}
+
+	public MultiWellImg getMultiWellImg( String channel )
+	{
+		if ( channelToMultiWellImg.containsKey( channel ) )
+		{
+			return channelToMultiWellImg.get( channel );
+		}
+		else
+		{
+			MultiWellImg multiWellImg = MultiWellImgCreator.create( fileList, fileNamingScheme, channel );
+			channelToMultiWellImg.put( channel, multiWellImg );
+			return  multiWellImg;
+		}
 	}
 }

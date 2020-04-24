@@ -3,22 +3,13 @@ package de.embl.cba.plateviewer.view.panel;
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
 import bdv.util.BdvStackSource;
-import bdv.util.BdvVirtualChannelSource;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.table.TableImage;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.type.volatiles.VolatileARGBType;
-import net.imglib2.type.volatiles.VolatileFloatType;
-import net.imglib2.type.volatiles.VolatileUnsignedByteType;
-import net.imglib2.type.volatiles.VolatileUnsignedShortType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,13 +22,13 @@ import static de.embl.cba.bdv.utils.BdvDialogs.*;
 
 public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R > > extends JPanel
 {
-    private final PlateViewerMainPanel< R > plateViewerMainPanel;
+    private final PlateViewerMainPanel< R > mainPanel;
     public List< Color > colors;
     protected Map< String, JPanel > sourceNameToPanel;
 
-    public PlateViewerSourcesPanel( PlateViewerMainPanel< R > plateViewerMainPanel )
+    public PlateViewerSourcesPanel( PlateViewerMainPanel< R > mainPanel )
     {
-        this.plateViewerMainPanel = plateViewerMainPanel;
+        this.mainPanel = mainPanel;
 
         this.setLayout( new BoxLayout(this, BoxLayout.Y_AXIS ) );
         this.setAlignmentX( Component.LEFT_ALIGNMENT );
@@ -123,7 +114,6 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             //visibilityCheckbox.setHorizontalAlignment( SwingConstants.RIGHT );
             panel.add( visibilityCheckbox );
 
-
             add( panel );
             refreshUI();
         }
@@ -170,7 +160,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
         colorButton.addActionListener( e -> {
             // TODO: think about who knows about what
-            plateViewerMainPanel.getPlateViewerImageView().getTableView().showColorByColumnDialog();
+            mainPanel.getImagePlateViewer().getTableView().showColorByColumnDialog();
         } );
 
         return colorButton;
@@ -193,42 +183,6 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
                 0,
                 displayRangeMax * 5 ); // TODO: What makes sense here?
 
-//        if ( type instanceof VolatileUnsignedShortType
-//                || type instanceof UnsignedShortType )
-//            brightnessButton = createBrightnessButton(
-//                    buttonDimensions,
-//                    sourceName,
-//                    bdvStackSource,
-//                    0,
-//                    65535);
-//        else if ( type instanceof VolatileUnsignedByteType
-//                    || type instanceof UnsignedByteType )
-//            brightnessButton = createBrightnessButton(
-//                    buttonDimensions,
-//                    sourceName,
-//                    bdvStackSource,
-//                    0,
-//                    255 );
-//        else if ( type instanceof VolatileFloatType
-//                    || type instanceof FloatType )
-//        {
-//            final double displayRangeMin = bdvStackSource.getConverterSetups().get( 0 ).getDisplayRangeMin();
-//            final double displayRangeMax = bdvStackSource.getConverterSetups().get( 0 ).getDisplayRangeMax();
-//            brightnessButton = createBrightnessButton(
-//                    buttonDimensions,
-//                    sourceName,
-//                    bdvStackSource,
-//                    0,
-//                    displayRangeMax * 5 );
-//        }
-//        else
-//            brightnessButton = createBrightnessButton(
-//                    buttonDimensions,
-//                    sourceName,
-//                    bdvStackSource,
-//                    0,
-//                    65535 );
-
         return brightnessButton;
     }
 
@@ -249,11 +203,10 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         return removeButton;
     }
 
-
     private void removeSource( String sourceName, BdvStackSource< R > source )
     {
         // remove from bdv
-        plateViewerMainPanel.getBdv().getViewerPanel().removeSource(
+        mainPanel.getImagePlateViewer().getBdvHandle().getViewerPanel().removeSource(
                 source.getSources().get( 0 ).getSpimSource() );
 
         // remove from this panel
@@ -261,7 +214,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         sourceNameToPanel.remove( sourceName );
 
         // remove from image list
-        plateViewerMainPanel.removeSource( sourceName );
+        mainPanel.removeSource( sourceName );
 
         refreshUI();
     }

@@ -3,8 +3,7 @@ package de.embl.cba.plateviewer.image.well;
 
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -15,12 +14,12 @@ import java.util.HashMap;
 public class WellNamesOverlay extends BdvOverlay
 {
 	final Bdv bdv;
-	private final PlateViewerImageView< ?, ? > plateViewer;
+	private final ImagePlateViewer< ?, ? > plateViewer;
 
-	public WellNamesOverlay( PlateViewerImageView< ?, ? > plateViewer )
+	public WellNamesOverlay( ImagePlateViewer< ?, ? > plateViewer )
 	{
 		super();
-		this.bdv = plateViewer.getBdv();
+		this.bdv = plateViewer.getBdvHandle();
 		this.plateViewer = plateViewer;
 	}
 

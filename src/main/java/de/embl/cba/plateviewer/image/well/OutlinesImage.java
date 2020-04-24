@@ -5,7 +5,7 @@ import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
@@ -31,7 +31,7 @@ public class OutlinesImage implements BdvViewable
 	private RandomAccessibleIntervalSource< FloatType > source;
 	private final double relativeWellBorderWidth;
 
-	public OutlinesImage( PlateViewerImageView imageView, double relativeWellBorderWidth )
+	public OutlinesImage( ImagePlateViewer imageView, double relativeWellBorderWidth )
 	{
 		this.wellDimensions = imageView.getWellDimensions();
 		this.imageInterval = Intervals.expand(

@@ -1,15 +1,12 @@
 package de.embl.cba.plateviewer;
 
 import bdv.util.Bdv;
-import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.TableImage;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
-import de.embl.cba.plateviewer.view.PlateViewerImageView;
-import de.embl.cba.tables.TableColumns;
-import de.embl.cba.tables.Tables;
+import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -20,7 +17,6 @@ import net.imglib2.type.numeric.RealType;
 
 import java.awt.*;
 import java.io.File;
-import java.util.*;
 import java.util.List;
 
 import static de.embl.cba.plateviewer.table.ImageNameTableRows.createSiteNameTableRowsFromFilePath;
@@ -31,10 +27,10 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 	public PlateViewer( File imagesDirectory, String filePattern, File imagesTableFile, int numIoThreads, boolean includeSubFolders )
 	{
-		final PlateViewerImageView< R, T > imagePlateView =
-				new PlateViewerImageView( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
+		final ImagePlateViewer< R, T > imagePlateView =
+				new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
 
-		bdv = imagePlateView.getBdv();
+		bdv = imagePlateView.getBdvHandle();
 
 		if ( imagesTableFile != null )
 		{
@@ -42,7 +38,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		}
 	}
 
-	public void showTable( File imagesTableFile, PlateViewerImageView imageView )
+	public void showTable( File imagesTableFile, ImagePlateViewer imageView )
 	{
 		final DefaultSelectionModel< DefaultSiteNameTableRow > selectionModel = new DefaultSelectionModel<>();
 
@@ -59,7 +55,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		final TableRowsTableView< DefaultSiteNameTableRow > tableView =
 				new TableRowsTableView<>( tableRows, selectionModel, selectionColoringModel );
 
-		final Component parentComponent = imageView.getBdv().getBdvHandle().getViewerPanel();
+		final Component parentComponent = imageView.getBdvHandle().getBdvHandle().getViewerPanel();
 		tableView.showTableAndMenu( parentComponent );
 		tableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
 		imageView.installImageSelectionModel( tableRows, selectionModel );
@@ -68,7 +64,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		final TableImage tableImage = new TableImage( tableRows, selectionColoringModel, imageView );
 
 		imageView.registerTableView( tableView );
-		imageView.addToBdvAndPanel( tableImage );
+		imageView.addToPanelAndBdv( tableImage );
 
 		if ( imageView.getFileNamingScheme().equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
