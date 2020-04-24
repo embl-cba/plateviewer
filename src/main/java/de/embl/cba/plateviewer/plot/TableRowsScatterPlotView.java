@@ -15,29 +15,24 @@ import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.numeric.real.FloatType;
-import net.imglib2.util.Util;
-import net.imglib2.view.Views;
 
 import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 public class TableRowsScatterPlotView< T extends TableRow >
 {
-	public static final String IMAGE_NAME = "plate outlines";
 	private final List< T > tableRows;
 	private FinalInterval scatterPlotInterval;
-	private RandomAccessibleInterval< UnsignedShortType > rai;
-	private double[] contrastLimits = new double[ 2 ];
-	private RandomAccessibleIntervalSource< UnsignedShortType > source;
-	private FunctionRealRandomAccessible< UnsignedShortType > rra;
 	private int numTableRows;
 	private final LazyCategoryColoringModel< DefaultSiteNameTableRow > coloringModel;
 	private final SelectionColoringModel< DefaultSiteNameTableRow > selectionColoringModel;
 	private BdvHandle bdvHandle;
+	private ArrayList< RealPoint > values;
+	private ArrayList< Integer > indices;
+	private double pointSize;
+	private ARGBConvertedRealSource source;
+	private NearestNeighborSearchOnKDTree< Integer > search;
 
 	public TableRowsScatterPlotView( List< T > tableRows, LazyCategoryColoringModel< DefaultSiteNameTableRow > coloringModel, SelectionColoringModel< DefaultSiteNameTableRow > selectionColoringModel )
 	{
@@ -49,15 +44,27 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	public void showScatterPlot( String columnNameX, String columnNameY )
 	{
-		final ArrayList< RealPoint > points = new ArrayList<>();
-		final ArrayList< Integer > indices = new ArrayList<>();
+		setValuesAndSearch( columnNameX, columnNameY );
+
+		BiConsumer< RealLocalizable, IntType > biConsumer = createFunction();
+
+		createSource( biConsumer );
+
+		showSource();
+	}
+
+	public void setValuesAndSearch( String columnNameX, String columnNameY )
+	{
+		values = new ArrayList<>();
+		indices = new ArrayList<>();
 
 		double x,y,xMax=-Double.MAX_VALUE,yMax=-Double.MAX_VALUE,xMin=Double.MAX_VALUE,yMin=Double.MAX_VALUE;
+
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
 			x = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameX ) );
 			y = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameY ) );
-			points.add( new RealPoint( x, y ) );
+			values.add( new RealPoint( x, y ) );
 			indices.add( rowIndex );
 			if ( x > xMax ) xMax = x;
 			if ( y > yMax ) yMax = y;
@@ -65,19 +72,22 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			if ( y < yMin ) yMin = y;
 		}
 
-
 		scatterPlotInterval = FinalInterval.createMinMax(
 				(int) ( 0.9 * xMin ), (int)( 0.9 * yMin ), 0,
 				(int) Math.ceil( 1.1 * xMax ), (int) Math.ceil( 1.1 * yMax ), 0 );
 
-		final KDTree< Integer > kdTree = new KDTree<>( indices, points );
-		final NearestNeighborSearchOnKDTree< Integer > search = new NearestNeighborSearchOnKDTree<>( kdTree );
 
-		double pointSize = xMax / 500.0; // TODO: ?
+		final KDTree< Integer > kdTree = new KDTree<>( indices, values );
+		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 
+		pointSize = xMax / 500.0; // TODO: ?
+	}
+
+	public BiConsumer< RealLocalizable, IntType > createFunction()
+	{
 		double minDistanceSquared = pointSize * pointSize;
 
-		BiConsumer< RealLocalizable, IntType > biConsumer = ( position, t ) ->
+		return ( position, t ) ->
 		{
 			synchronized ( this )
 			{
@@ -96,20 +106,12 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				}
 			}
 		};
+	}
 
-		final FunctionRealRandomAccessible< IntType > fra = new FunctionRealRandomAccessible<>( 2, biConsumer, IntType::new );
-
-		final RealRandomAccessible< IntType > rra = RealViews.addDimension( fra );
-
-		final RealRandomAccessibleIntervalSource scatterSource = new RealRandomAccessibleIntervalSource( rra, scatterPlotInterval, new IntType(  ), "scatterPlot" );
-
-		final ListItemsARGBConverter< DefaultSiteNameTableRow > argbConverter =
-				new ListItemsARGBConverter( tableRows, coloringModel );
-
-		final ARGBConvertedRealSource argbScatterSource = new ARGBConvertedRealSource( scatterSource, argbConverter );
-
+	public void showSource()
+	{
 		final BdvStackSource< IntType > plot = BdvFunctions.show(
-				argbScatterSource,
+				source,
 				BdvOptions.options().is2D().transformEventHandlerFactory(
 				new BehaviourTransformEventHandlerPlanar
 						.BehaviourTransformEventHandlerPlanarFactory() ) );
@@ -119,7 +121,20 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		plot.setDisplayRange( 0, 255);
 
 		fixViewerTransform();
+	}
 
+	public void createSource( BiConsumer< RealLocalizable, IntType > biConsumer )
+	{
+		final FunctionRealRandomAccessible< IntType > fra = new FunctionRealRandomAccessible<>( 2, biConsumer, IntType::new );
+
+		final RealRandomAccessible< IntType > rra = RealViews.addDimension( fra );
+
+		final RealRandomAccessibleIntervalSource scatterSource = new RealRandomAccessibleIntervalSource( rra, scatterPlotInterval, new IntType(  ), "scatterPlot" );
+
+		final ListItemsARGBConverter< DefaultSiteNameTableRow > argbConverter =
+				new ListItemsARGBConverter( tableRows, coloringModel );
+
+		source = new ARGBConvertedRealSource( scatterSource, argbConverter );
 	}
 
 	public void fixViewerTransform()
