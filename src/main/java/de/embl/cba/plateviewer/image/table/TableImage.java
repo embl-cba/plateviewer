@@ -34,12 +34,11 @@ public class TableImage implements BdvViewable
 	private final ImagePlateViewer imagePlateViewer;
 	private Interval plateInterval;
 	private final long[] siteDimensions;
-	private RandomAccessibleInterval< FloatType > rai;
+	private RandomAccessibleInterval< IntType > rai;
 	private double[] contrastLimits;
 	private final String[][] siteNameMatrix;
 	private HashMap< String, DefaultSiteNameTableRow > siteNameToTableRow;
 	private HashMap< String, Integer > siteNameToTableRowIndex;
-	private final JTable jTable;
 	private ARGBConvertedRealSource argbSource;
 
 	public TableImage(
@@ -51,7 +50,6 @@ public class TableImage implements BdvViewable
 		this.coloringModel = coloringModel;
 		this.imagePlateViewer = imagePlateViewer;
 
-		jTable = Tables.jTableFromTableRows( tableRows );
 
 		plateInterval = imagePlateViewer.getPlateInterval();
 		siteDimensions = imagePlateViewer.getSiteDimensions();
@@ -100,14 +98,14 @@ public class TableImage implements BdvViewable
 			t.setInteger( siteNameToTableRowIndex.get( siteName ) );
 		};
 
-		final FunctionRandomAccessible< FloatType > randomAccessible =
+		final FunctionRandomAccessible< IntType > randomAccessible =
 				new FunctionRandomAccessible( 2, biConsumer, IntType::new );
 
 		rai = Views.interval( randomAccessible, plateInterval );
 
 		rai = Views.addDimension( rai, 0, 0 );
 
-		final RandomAccessibleIntervalSource< FloatType > tableRowIndexSource
+		final RandomAccessibleIntervalSource< IntType > tableRowIndexSource
 				= new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), "table row index" );
 
 		final ListItemsARGBConverter< DefaultSiteNameTableRow > argbConverter =
@@ -115,8 +113,8 @@ public class TableImage implements BdvViewable
 
 		argbSource = new ARGBConvertedRealSource( tableRowIndexSource , argbConverter );
 
-		contrastLimits[ 0 ] = 0; //Tables.columnMin( jTable, jTable.getColumnModel().getColumnIndex( columnName ) );
-		contrastLimits[ 1 ] = 255; //Tables.columnMax( jTable, jTable.getColumnModel().getColumnIndex( columnName ) );
+		contrastLimits[ 0 ] = 0;
+		contrastLimits[ 1 ] = 255;
 	}
 
 	@Override
