@@ -12,6 +12,7 @@ import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
+import ij.IJ;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
@@ -23,23 +24,34 @@ import static de.embl.cba.plateviewer.table.ImageNameTableRows.createSiteNameTab
 
 public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends SiteName >
 {
-	private final Bdv bdv;
+	private final File imagesDirectory;
+	private final String filePattern;
+	private final boolean loadImageTable;
+	private final int numIoThreads;
+	private final boolean includeSubFolders;
 
-	public PlateViewer( File imagesDirectory, String filePattern, File imagesTableFile, int numIoThreads, boolean includeSubFolders )
+	public PlateViewer( File imagesDirectory, String filePattern, boolean loadImageTable, int numIoThreads, boolean includeSubFolders )
 	{
-		final ImagePlateViewer< R, T > imagePlateView =
-				new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
+		this.imagesDirectory = imagesDirectory;
+		this.filePattern = filePattern;
+		this.loadImageTable = loadImageTable;
+		this.numIoThreads = numIoThreads;
+		this.includeSubFolders = includeSubFolders;
 
-		bdv = imagePlateView.getBdvHandle();
+		final ImagePlateViewer< R, T > imagePlateView = new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
 
-		if ( imagesTableFile != null )
+		if ( loadImageTable )
 		{
-			showTable( imagesTableFile, imagePlateView );
+			showTable( imagePlateView );
 		}
 	}
 
-	public void showTable( File imagesTableFile, ImagePlateViewer imageView )
+	public void showTable( ImagePlateViewer imageView )
 	{
+		final String fileNamingScheme = imageView.getFileNamingScheme();
+
+		File tableFile = getTableFile( fileNamingScheme );
+
 		final DefaultSelectionModel< DefaultSiteNameTableRow > selectionModel = new DefaultSelectionModel<>();
 
 		final LazyCategoryColoringModel< DefaultSiteNameTableRow > coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
@@ -49,8 +61,8 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 				selectionModel );
 
 		final List< DefaultSiteNameTableRow > tableRows = createSiteNameTableRowsFromFilePath(
-				imagesTableFile.getAbsolutePath(),
-				imageView.getFileNamingScheme() );
+				tableFile.getAbsolutePath(),
+				fileNamingScheme );
 
 		final TableRowsTableView< DefaultSiteNameTableRow > tableView =
 				new TableRowsTableView<>( tableRows, selectionModel, selectionColoringModel );
@@ -66,7 +78,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		imageView.registerTableView( tableView );
 		imageView.addToPanelAndBdv( tableImage );
 
-		if ( imageView.getFileNamingScheme().equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
+		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 			try
 			{
@@ -79,8 +91,26 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		}
 	}
 
-	public Bdv getBdv()
+	public File getTableFile( String fileNamingScheme )
 	{
-		return bdv;
+		File tableFile = null;
+
+		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
+		{
+			final String plateName = imagesDirectory.getName();
+			tableFile = new File( imagesDirectory, plateName + "_analysis.csv" );
+			if ( ! tableFile.exists() )
+			{
+				tableFile = new File( imagesDirectory, "analysis.csv" );
+				if ( ! tableFile.exists() )
+				{
+					final String tableFilePath = IJ.getFilePath( "Please select table file" );
+					if ( tableFilePath != null )
+						tableFile = new File( tableFilePath );
+				}
+			}
+		}
+
+		return tableFile;
 	}
 }

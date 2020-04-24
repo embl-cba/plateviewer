@@ -19,7 +19,7 @@ public class TestNamingSchemeBatchLibHdf5
 		final PlateViewer plateViewer = new PlateViewer(
 				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/titration_plate_20200403_154849" ),
 				".*.h5",
-				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/titration_plate_20200403_154849/analysis.csv" ),
+				true,
 				1,
 				false );
 	}

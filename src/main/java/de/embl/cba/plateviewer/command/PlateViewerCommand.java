@@ -19,12 +19,12 @@ public class PlateViewerCommand implements Command
 	@Parameter (label = "Only load image files matching" )
 	public String filePattern = ".*.h5";
 
-	@Parameter (label = "Plate images table (optional)", required = false)
-	public File imagesTableFile;
+	@Parameter (label = "Load image table")
+	public boolean loadImageTable;
 
 	public void run()
 	{
-		new PlateViewer( imagesDirectory, filePattern, imagesTableFile, 4, includeSubFolders );
+		new PlateViewer( imagesDirectory, filePattern, loadImageTable, 4, includeSubFolders );
 	}
 
 }
