@@ -1,6 +1,8 @@
 package de.embl.cba.plateviewer.plot;
 
 import bdv.util.*;
+import bdv.viewer.ViewerPanel;
+import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
@@ -20,6 +22,8 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -40,19 +44,27 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private String columnNameX;
 	private String columnNameY;
 
-	public TableRowsScatterPlotView( List< T > tableRows, SelectionColoringModel< T > coloringModel, SelectionModel< T > selectionModel )
+	public TableRowsScatterPlotView(
+			List< T > tableRows,
+			SelectionColoringModel< T > coloringModel,
+			SelectionModel< T > selectionModel, String columnNameX, String columnNameY )
 	{
 		this.tableRows = tableRows;
 		numTableRows = tableRows.size();
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
+		this.columnNameX = columnNameX;
+		this.columnNameY = columnNameY;
 	}
 
-	public void showScatterPlot( String columnNameX, String columnNameY )
+	public void setColumns( String columnNameX, String columnNameY )
 	{
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
+	}
 
+	private void createAndShowImage()
+	{
 		setValuesAndSearch( columnNameX, columnNameY );
 
 		BiConsumer< RealLocalizable, IntType > biConsumer = createFunction();
@@ -68,7 +80,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		SelectedPointOverlay selectedPointOverlay = new SelectedPointOverlay( bdvHandle, tableRows, selectionModel, points );
 
 		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
-
 
 		installBdvBehaviours();
 	}
@@ -166,12 +177,16 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		};
 	}
 
-	public void showSource()
+	private void showSource()
 	{
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
 		final BdvStackSource< IntType > plot = BdvFunctions.show(
 				source,
-				BdvOptions.options().is2D().transformEventHandlerFactory(
-				new BehaviourTransformEventHandlerPlanar
+				BdvOptions.options()
+						.is2D()
+						.preferredSize( screenSize.width / 4, screenSize.width / 4 )
+						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar
 						.BehaviourTransformEventHandlerPlanarFactory() ) );
 
 		bdvHandle = plot.getBdvHandle();
@@ -207,5 +222,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		final int height = bdvHandle.getViewerPanel().getHeight();
 		viewerTransform.translate( 0, height, 0 ); // TODO: ??
 		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
+	}
+
+	public void show( JComponent component )
+	{
+		createAndShowImage();
+		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
+				component.getLocation(  ).x + component.getWidth(),
+				component.getLocation(  ).y);
 	}
 }

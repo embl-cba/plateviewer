@@ -219,7 +219,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			siteNamesComboBox.addItem( siteName );
 		}
 
-		final JButton button = new JButton( "zoom");
+		final JButton button = new JButton( "focus");
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -254,7 +254,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 			wellNamesComboBox.addItem( wellName );
 		}
 
-		final JButton button = new JButton( "zoom");
+		final JButton button = new JButton( "focus");
 		button.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
@@ -431,7 +431,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton action = new JButton( "add");
+		final JButton action = new JButton( "view");
 		action.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->

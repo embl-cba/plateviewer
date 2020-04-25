@@ -4,6 +4,7 @@ import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import bdv.viewer.Source;
+import bdv.viewer.ViewerFrame;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
@@ -49,20 +50,23 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
+import java.awt.*;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 
 public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T extends SiteName >
 {
 	private final SharedQueue loadingQueue;
 
-	private Bdv bdv;
+	private BdvHandle bdvHandle;
 	private PlateViewerMainPanel mainPanel;
 	private List< T > siteNames;
 	private SelectionModel< T > selectionModel;
@@ -108,6 +112,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		initMainPanel();
 
+		mainPanel.show( null );
+
 		addToPanelAndBdv( referenceWellImg );
 
 		configPlateDimensions();
@@ -119,8 +125,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		installBdvBehaviours();
-
-		mainPanel.show( bdv.getBdvHandle().getViewerPanel() );
 	}
 
 	public void initMainPanel()
@@ -153,7 +157,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private void installBdvBehaviours()
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "plate viewer" );
+		behaviours.install( bdvHandle.getTriggerbindings(), "plate viewer" );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showPopupMenu( x, y );
@@ -163,7 +167,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private void showPopupMenu( int x, int y )
 	{
 		final RealPoint globalLocation = new RealPoint( 3 );
-		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalLocation );
+		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
 		final String siteName = getSiteName( globalLocation );
 
 		final double[] location = new double[ 3 ];
@@ -176,7 +180,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
 		{
 			new Thread( () -> {
-				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() );
+				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdvHandle.getViewerPanel() );
 				screenShot.setTitle( plateName + "-"  + siteName  );
 				final IssueRaiser issueRaiser = new IssueRaiser();
 				issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
@@ -197,25 +201,30 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			logRegionStatistics( plateLocation, radius );
 		} );
 
-		popupMenu.show( bdv.getBdvHandle().getViewerPanel().getDisplay(), x, y );
+//		popupMenu.addPopupAction( "Focus image" );
+
+//		popupMenu.addPopupAction( "Focus well" );
+
+
+		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
 	}
 
 	private void logPixelValues( PlateLocation plateLocation )
 	{
 		Utils.log( "Pixel values at " + plateLocation );
 		final RealPoint realPoint = new RealPoint( 3 );
-		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( realPoint );
+		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
 
 		final int currentTimepoint =
-				bdv.getBdvHandle().getViewerPanel().getState().getCurrentTimepoint();
+				bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
 
 		final Map< Integer, Double > pixelValuesOfActiveSources =
 				BdvUtils.getPixelValuesOfActiveSources(
-						bdv, realPoint, currentTimepoint );
+						bdvHandle, realPoint, currentTimepoint );
 
 		for ( Map.Entry< Integer, Double > entry : pixelValuesOfActiveSources.entrySet() )
 		{
-			final String name = BdvUtils.getSource( bdv, entry.getKey() ).getName();
+			final String name = BdvUtils.getSource( bdvHandle, entry.getKey() ).getName();
 			Utils.log( name + ": " + entry.getValue() );
 		}
 	}
@@ -225,16 +234,16 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		Utils.log( "Region (r=" + (int) radius + ") statistics at " + plateLocation );
 
 		final RealPoint realPoint = new RealPoint( 3 );
-	 	bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( realPoint );
+	 	bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
 		final int currentTimepoint =
-				bdv.getBdvHandle().getViewerPanel().getState().getCurrentTimepoint();
+				bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
 
 		final HashMap< Integer, PixelValueStatistics > statistics =
-				BdvUtils.getPixelValueStatisticsOfActiveSources( bdv, realPoint, radius, currentTimepoint );
+				BdvUtils.getPixelValueStatisticsOfActiveSources( bdvHandle, realPoint, radius, currentTimepoint );
 
 		for ( Map.Entry< Integer, PixelValueStatistics > entry : statistics.entrySet() )
 		{
-			final String name = BdvUtils.getSource( bdv, entry.getKey() ).getName();
+			final String name = BdvUtils.getSource( bdvHandle, entry.getKey() ).getName();
 			Utils.log( name + ": " + entry.getValue() );
 		}
 	}
@@ -257,13 +266,13 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "well names" ) );
 
 		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay(
-				bdv,
+				bdvHandle,
 				multiWellImg.getLoader() );
 
 		BdvFunctions.showOverlay(
 				bdvOverlay,
 				"site and well names mouse hover",
-				BdvOptions.options().addTo( bdv ) );
+				BdvOptions.options().addTo( bdvHandle ) );
 	}
 
 	public static String getImageNamingScheme( List< File > fileList )
@@ -405,7 +414,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 	public BdvHandle getBdvHandle( )
 	{
-		return bdv.getBdvHandle();
+		return bdvHandle;
 	}
 
 	public SharedQueue getLoadingQueue ( )
@@ -417,7 +426,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
 
-		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( affineTransform3D );
+		bdvHandle.getViewerPanel().setCurrentViewerTransform( affineTransform3D );
 	}
 
 	public ArrayList< String > getSiteNames ( )
@@ -527,8 +536,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private int[] getBdvWindowSize ( )
 	{
 		int[] bdvWindowDimensions = new int[ 2 ];
-		bdvWindowDimensions[ 0 ] = BdvUtils.getBdvWindowWidth( bdv );
-		bdvWindowDimensions[ 1 ] = BdvUtils.getBdvWindowHeight( bdv );
+		bdvWindowDimensions[ 0 ] = BdvUtils.getBdvWindowWidth( bdvHandle );
+		bdvWindowDimensions[ 1 ] = BdvUtils.getBdvWindowHeight( bdvHandle );
 		return bdvWindowDimensions;
 	}
 
@@ -537,18 +546,20 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		final ArrayImg< BitType, LongArray > dummyImageForInitialisation
 				= ArrayImgs.bits( new long[]{ 100, 100 } );
 
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
 		BdvSource bdvTmpSource = BdvFunctions.show(
 				dummyImageForInitialisation,
 				"",
 				Bdv.options()
 						.is2D().frameTitle( plateName )
-						.preferredSize( 600, 600 )
+						.preferredSize( screenSize.width / 4, screenSize.width / 4 )
 						.doubleBuffered( false )
 						.transformEventHandlerFactory(
 								new BehaviourTransformEventHandlerPlanar
 										.BehaviourTransformEventHandlerPlanarFactory() ) );
 
-		bdv = bdvTmpSource.getBdvHandle();
+		bdvHandle = bdvTmpSource.getBdvHandle();
 
 		// This may interfere with loading of the resolution layers => TODO right click!
 		// new BdvGrayValuesOverlay( bdv, Utils.bdvTextOverlayFontSize );
@@ -558,14 +569,18 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		// move to a region outside the plate, such that adding channels is faster
 		final AffineTransform3D transform3D = new AffineTransform3D();
 		transform3D.translate( 10000, 10000, 0 );
-		bdv.getBdvHandle().getViewerPanel().setCurrentViewerTransform( transform3D );
+		bdvHandle.getViewerPanel().setCurrentViewerTransform( transform3D );
+
+		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
+				mainPanel.getLocation().x + mainPanel.getWidth(),
+				mainPanel.getLocation().y );
 
 		return bdvTmpSource;
 	}
 
 	public void addToPanelAndBdv( BdvViewable bdvViewable )
 	{
-		if ( bdv == null )
+		if ( bdvHandle == null )
 		{
 			dummySource = initBdvAndBehaviours();
 		}
@@ -600,7 +615,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			return BdvFunctions.showOverlay(
 					bdvViewable.getOverlay(),
 					bdvViewable.getName(),
-					BdvOptions.options().addTo( bdv ) );
+					BdvOptions.options().addTo( bdvHandle ) );
 		}
 		else if ( bdvViewable.getSource() != null )
 		{
@@ -613,7 +628,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 						new LazyLabelsARGBConverter() );
 			}
 
-			return BdvFunctions.show( source, BdvOptions.options().addTo( bdv ) );
+			return BdvFunctions.show( source, BdvOptions.options().addTo( bdvHandle ) );
 		}
 		else
 		{
@@ -639,14 +654,14 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			return BdvFunctions.show(
 					rai,
 					bdvViewable.getName(),
-					BdvOptions.options().addTo( bdv ) );
+					BdvOptions.options().addTo( bdvHandle ) );
 		}
 	}
 
 	private void setBdvBehaviors ( )
 	{
 		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "my-new-behaviours" );
+		behaviours.install( bdvHandle.getTriggerbindings(), "my-new-behaviours" );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showImageName();
@@ -670,7 +685,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		final RealPoint position = new RealPoint( 3 );
 
-		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( position );
+		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( position );
 
 		long[] cellPos = new long[ 2 ];
 
@@ -691,7 +706,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 	public void registerAsColoringListener( SelectionColoringModel< T > selectionColoringModel )
 	{
-		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdv ) );
+		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
 	}
 
 	private void registerAsImageSelectionListener ( SelectionModel < T > selectionModel )
@@ -730,6 +745,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	}
 
 	// TODO: what minimal type is needed here? DefaultSiteNameTableRow?
+	// TODO: maybe this is not needed?
 	public void registerTableView( TableRowsTableView< DefaultSiteNameTableRow > tableView )
 	{
 		this.tableView = tableView;

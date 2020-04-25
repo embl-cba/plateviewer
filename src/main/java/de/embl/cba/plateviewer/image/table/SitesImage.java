@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableImage implements BdvViewable
+public class SitesImage implements BdvViewable
 {
 	private final List< DefaultSiteNameTableRow > tableRows;
 	private final SelectionColoringModel< DefaultSiteNameTableRow > coloringModel;
@@ -41,7 +41,7 @@ public class TableImage implements BdvViewable
 	private HashMap< String, Integer > siteNameToTableRowIndex;
 	private ARGBConvertedRealSource argbSource;
 
-	public TableImage(
+	public SitesImage(
 			List< DefaultSiteNameTableRow > tableRows,
 			SelectionColoringModel< DefaultSiteNameTableRow > coloringModel,
 			ImagePlateViewer imagePlateViewer )
