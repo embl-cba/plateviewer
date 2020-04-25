@@ -140,14 +140,14 @@ public class IssueRaiser
 
 	public boolean showDialog()
 	{
-		final GenericDialog gd = new GenericDialog( "Raise GitHub issue" );
+		final GenericDialog gd = new GenericDialog( "Report an issue" );
 		final int columns = 80;
 
 		//gd.addStringField( "GitHub user name", Prefs.get( USER_NAME, "tischi" ), columns );
 		gd.addStringField( "GitHub repository", Prefs.get( REPOSITORY, "https://github.com/hci-unihd/antibodies-analysis-issues" ), columns );
 		gd.addStringField( "GitHub access token", Prefs.get( ACCESS_TOKEN, "1234567890" ), columns );
 		gd.addStringField( "Issue title", "", columns );
-		gd.addChoice( "Issue label", new String[]{"test", "acquisition", "segmentation", "analysis", "other"}, "other" );
+		gd.addChoice( "Issue label", new String[]{"test", "sample", "acquisition", "segmentation", "analysis", "other"}, "other" );
 		gd.addTextAreas( "", null, 10, columns );
 		gd.addCheckbox( "Open posted issue", false );
 

@@ -185,7 +185,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		final PopupMenu popupMenu = new PopupMenu();
 
-		popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
+		popupMenu.addPopupAction( "Report issue...", e ->
 		{
 			new Thread( () -> {
 				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdvHandle.getViewerPanel() );
@@ -195,11 +195,16 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			}).start();
 		} );
 
-		popupMenu.addPopupAction( "Measure pixel value", e -> {
+		popupMenu.addPopupAction( "Focus image", e -> {
+			zoomToSite( siteName );
+		} );
+
+
+		popupMenu.addPopupAction( "Measure pixel values", e -> {
 			logPixelValues( plateLocation );
 		} );
 
-		popupMenu.addPopupAction( "Measure region statistics...", e -> {
+		popupMenu.addPopupAction( "Measure pixel values statistics...", e -> {
 			// TODO out everything below in own class (in bdv-utils repo) and improve UI
 			final GenericDialog gd = new GenericDialog( "Radius" );
 			gd.addNumericField( "Radius", 5.0, 1 );
@@ -208,11 +213,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			final double radius = gd.getNextNumber();
 			logRegionStatistics( plateLocation, radius );
 		} );
-
-//		popupMenu.addPopupAction( "Focus image" );
-
-//		popupMenu.addPopupAction( "Focus well" );
-
 
 		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
 	}

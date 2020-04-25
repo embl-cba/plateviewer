@@ -115,7 +115,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showPopupMenu( x, y );
-		}, "context menu", "button1", "button3" ) ;
+		}, "context menu", "button3" ) ; // "button1",
 	}
 
 	private void showPopupMenu( int x, int y )
