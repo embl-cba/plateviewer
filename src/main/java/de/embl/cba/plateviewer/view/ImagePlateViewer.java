@@ -177,6 +177,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		final RealPoint globalLocation = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
 		final String siteName = getSiteName( globalLocation );
+		if ( siteName == null ) return;
 
 		final double[] location = new double[ 3 ];
 		globalLocation.localize( location );

@@ -13,6 +13,7 @@ import java.util.Map;
 public class RESTCaller
 {
 	private int issueNumber;
+	private String status;
 
 	public RESTCaller()
 	{
@@ -77,19 +78,21 @@ public class RESTCaller
 				issueNumber = Integer.parseInt( split[ split.length - 1 ] );
 			}
 
+			if (entry.getKey().equals( "Status" ) )
+			{
+				status = entry.getValue().get( 0 );
+			}
+
+
 			builder.append("\n");
 		}
 
 		System.out.println(builder);
 
 		int responseCode = httpURLConnection.getResponseCode();
-		if ( responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED )
+		if ( ! ( responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED ) )
 		{
-			// worked fine
-		}
-		else
-		{
-			Logger.error( "Unexpected response code: " + responseCode );
+			Logger.error( "Unexpected response code: " + responseCode + "\n"+status);
 		}
 	}
 

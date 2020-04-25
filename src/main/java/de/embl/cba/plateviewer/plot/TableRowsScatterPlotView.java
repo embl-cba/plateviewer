@@ -122,7 +122,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	{
 		final PopupMenu popupMenu = new PopupMenu();
 
-		popupMenu.addPopupAction( "Focus closest point", e ->
+		popupMenu.addPopupAction( "Focus closest image", e ->
 		{
 			new Thread( () -> {
 				final RealPoint global2dLocation = getMouseGlobal2dLocation();
