@@ -36,7 +36,7 @@ public class ScatterPlotOverlay extends BdvOverlay
 		final AffineTransform3D globalToViewerTransform = new AffineTransform3D();
 		getCurrentTransform3D( globalToViewerTransform );
 
-		drawDiagonal( g, globalToViewerTransform );
+		drawDiagonalAndFrame( g, globalToViewerTransform );
 
 		drawAxisLabels( g );
 	}
@@ -63,19 +63,37 @@ public class ScatterPlotOverlay extends BdvOverlay
 				bdvWindowHeight - distanceToWindowBottom );
 	}
 
-	private void drawDiagonal( Graphics2D g, AffineTransform3D globalToViewerTransform )
+	private void drawDiagonalAndFrame( Graphics2D g, AffineTransform3D globalToViewerTransform )
 	{
-		final double[] zero = new double[ 3 ];
-		double[] zeroInViewer = new double[ 3 ];
-		globalToViewerTransform.apply( zero, zeroInViewer );
+		double[] min = new double[ 3 ];
+		globalToViewerTransform.apply( new double[ 3 ], min );
 
 		final double[] one = new double[]{ max, max, 0 };
-		double[] oneInViewer = new double[ 3 ];
-		globalToViewerTransform.apply( one, oneInViewer );
+		double[] max = new double[ 3 ];
+		globalToViewerTransform.apply( one, max );
+
+		g.setColor( Color.LIGHT_GRAY );
 
 		g.drawLine(
-				(int) zeroInViewer[ 0 ], (int) zeroInViewer[ 1 ],
-				(int) oneInViewer[ 0 ], (int) oneInViewer[ 1 ] );
+				(int) min[ 0 ], (int) min[ 1 ],
+				(int) max[ 0 ], (int) max[ 1 ] );
+
+		g.drawLine(
+				(int) min[ 0 ], (int) min[ 1 ],
+				(int) min[ 0 ], (int) max[ 1 ] );
+
+		g.drawLine(
+				(int) min[ 0 ], (int) min[ 1 ],
+				(int) max[ 0 ], (int) min[ 1 ] );
+
+		g.drawLine(
+				(int) min[ 0 ], (int) max[ 1 ],
+				(int) max[ 0 ], (int) max[ 1 ] );
+
+		g.drawLine(
+				(int) max[ 0 ], (int) min[ 1 ],
+				(int) max[ 0 ], (int) max[ 1 ] );
+
 	}
 
 	private Font getAdaptedSizeFont( Graphics2D g, int i, String wellName, int fontSize )

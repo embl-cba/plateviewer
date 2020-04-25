@@ -414,7 +414,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	}
 
 	public static final String PROTOTYPE_DISPLAY_VALUE = "01234567890123456789";
-	public static final int COMBOBOX_WIDTH = 270;
+	public static final int COMBOBOX_WIDTH = 200;
 
 	private void setComboBoxDimensions( JComboBox< String > comboBox )
 	{
@@ -485,7 +485,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		frame.setContentPane( this );
 
 		//Display the window.
-		frame.setMinimumSize(frame.getPreferredSize());
+		//frame.setMini(frame.getPreferredSize());
 		frame.pack();
 		frame.setVisible( true );
 	}

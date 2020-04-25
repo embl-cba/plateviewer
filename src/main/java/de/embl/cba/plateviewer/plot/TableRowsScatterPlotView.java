@@ -1,7 +1,6 @@
 package de.embl.cba.plateviewer.plot;
 
 import bdv.util.*;
-import bdv.viewer.ViewerPanel;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.plateviewer.Utils;
@@ -9,6 +8,7 @@ import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.view.PopupMenu;
+import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
@@ -41,20 +41,29 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private double pointSize;
 	private ARGBConvertedRealSource source;
 	private NearestNeighborSearchOnKDTree< Integer > search;
+	private final String plateName;
 	private String columnNameX;
 	private String columnNameY;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
 			SelectionColoringModel< T > coloringModel,
-			SelectionModel< T > selectionModel, String columnNameX, String columnNameY )
+			SelectionModel< T > selectionModel,
+			String plateName,
+			String columnNameX,
+			String columnNameY )
 	{
 		this.tableRows = tableRows;
 		numTableRows = tableRows.size();
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
+		this.plateName = plateName;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
+
+		coloringModel.listeners().add( () -> {
+			bdvHandle.getViewerPanel().requestRepaint();
+		} );
 	}
 
 	public void setColumns( String columnNameX, String columnNameY )
@@ -73,15 +82,30 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		showSource();
 
-		final ScatterPlotOverlay overlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, scatterPlotInterval );
+		showOverlays();
 
-		BdvFunctions.showOverlay( overlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		installBdvBehaviours();
+	}
 
+	private void showOverlays()
+	{
+		showFrameAndAxis();
+
+		showSelectedPoints();
+	}
+
+	private void showSelectedPoints()
+	{
 		SelectedPointOverlay selectedPointOverlay = new SelectedPointOverlay( bdvHandle, tableRows, selectionModel, points );
 
 		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+	}
 
-		installBdvBehaviours();
+	private void showFrameAndAxis()
+	{
+		final ScatterPlotOverlay overlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, scatterPlotInterval );
+
+		BdvFunctions.showOverlay( overlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void installBdvBehaviours()
@@ -91,7 +115,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showPopupMenu( x, y );
-		}, "context menu", "button1" ) ; // TODO: make button3
+		}, "context menu", "button1", "button3" ) ;
 	}
 
 	private void showPopupMenu( int x, int y )
@@ -185,7 +209,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				source,
 				BdvOptions.options()
 						.is2D()
-						.preferredSize( screenSize.width / 4, screenSize.width / 4 )
+						.frameTitle( plateName )
+						.preferredSize( Utils.getBdvWindowSize(), Utils.getBdvWindowSize() )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar
 						.BehaviourTransformEventHandlerPlanarFactory() ) );
 
@@ -227,8 +252,11 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	public void show( JComponent component )
 	{
 		createAndShowImage();
+
+		JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(component);
+
 		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				component.getLocation(  ).x + component.getWidth(),
-				component.getLocation(  ).y);
+				topFrame.getLocationOnScreen(  ).x + component.getWidth() + 10,
+				topFrame.getLocationOnScreen(  ).y  );
 	}
 }

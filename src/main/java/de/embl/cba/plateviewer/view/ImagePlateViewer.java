@@ -4,7 +4,6 @@ import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import bdv.viewer.Source;
-import bdv.viewer.ViewerFrame;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
@@ -50,7 +49,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.ClickBehaviour;
@@ -125,6 +123,16 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		installBdvBehaviours();
+	}
+
+	public PlateViewerMainPanel getMainPanel()
+	{
+		return mainPanel;
+	}
+
+	public String getPlateName()
+	{
+		return plateName;
 	}
 
 	public void initMainPanel()
@@ -553,7 +561,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 				"",
 				Bdv.options()
 						.is2D().frameTitle( plateName )
-						.preferredSize( screenSize.width / 4, screenSize.width / 4 )
+						.preferredSize( Utils.getBdvWindowSize(),  Utils.getBdvWindowSize() )
 						.doubleBuffered( false )
 						.transformEventHandlerFactory(
 								new BehaviourTransformEventHandlerPlanar
@@ -572,7 +580,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		bdvHandle.getViewerPanel().setCurrentViewerTransform( transform3D );
 
 		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				mainPanel.getLocation().x + mainPanel.getWidth(),
+				mainPanel.getLocation().x + mainPanel.getWidth() + 10,
 				mainPanel.getLocation().y );
 
 		return bdvTmpSource;

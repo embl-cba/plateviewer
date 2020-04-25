@@ -11,7 +11,7 @@ public class ReadCoronaHdf5
 {
 	public static void main(String[] args) throws FormatException, IOException
 	{
-//		String filePath = ReadCoronaHdf5.class.getResource( "../CORONA/WellC01_PointC01_0000_ChannelDAPI,WF_GFP,TRITC,WF_Cy5_Seq0216.h5" ).getFile();
+//		String filePath = ReadCoronaHdf5.class.getResource( "../BATCHLIBHDF5/WellC01_PointC01_0000_ChannelDAPI,WF_GFP,TRITC,WF_Cy5_Seq0216.h5" ).getFile();
 //
 //		final boolean matches = Pattern.compile( NamingSchemes.PATTERN_CORONA_HDF5 ).matcher( filePath ).matches();
 //

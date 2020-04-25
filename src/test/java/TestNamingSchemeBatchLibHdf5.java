@@ -11,13 +11,13 @@ public class TestNamingSchemeBatchLibHdf5
 		imageJ.ui().showUI();
 
 //		new PlateViewer(
-//				new File( TestNamingSchemeCorona.class.getResource( "CORONA" ).getFile() ),
+//				new File( TestNamingSchemeCorona.class.getResource( "BATCHLIBHDF5" ).getFile() ),
 //				".*.h5",
-//				new File( TestNamingSchemeCorona.class.getResource( "CORONA/default.csv" ).getFile() ),
+//				new File( TestNamingSchemeCorona.class.getResource( "BATCHLIBHDF5/default.csv" ).getFile() ),
 //				1, false);
 
 		final PlateViewer plateViewer = new PlateViewer(
-				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/titration_plate_20200403_154849" ),
+				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/20200406_210102_953" ),
 				".*.h5",
 				true,
 				1,

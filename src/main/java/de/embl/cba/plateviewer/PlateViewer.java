@@ -8,15 +8,14 @@ import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
-import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.color.LazyCategoryColoringModel;
-import de.embl.cba.tables.color.SelectionColoringModel;
+import de.embl.cba.tables.color.*;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
 import ij.IJ;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
+import java.awt.*;
 import java.io.File;
 import java.util.List;
 
@@ -42,11 +41,11 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		this.numIoThreads = numIoThreads;
 		this.includeSubFolders = includeSubFolders;
 
-		final ImagePlateViewer< R, T > imagePlateView = new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
+		final ImagePlateViewer< R, T > imageView = new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
 
 		if ( loadImageTable )
 		{
-			showTable( imagePlateView );
+			showTable( imageView );
 		}
 	}
 
@@ -72,7 +71,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, "infected_median", "not_infected_median" );
+			final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, imageView.getPlateName(), "infected_median", "not_infected_median" );
 			scatterPlotView.show( bdvViewerPanel );
 
 		}
@@ -84,7 +83,8 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
+			NumericColoringModelDialog.dialogLocation = new Point( 10, imageView.getMainPanel().getLocationOnScreen().y + imageView.getMainPanel().getHeight() + 80 );
+			tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
 		}
 
 		return sitesImage;

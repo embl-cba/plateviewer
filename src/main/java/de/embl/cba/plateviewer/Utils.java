@@ -1,5 +1,8 @@
 package de.embl.cba.plateviewer;
 
+import bdv.util.Bdv;
+import bdv.util.BdvFunctions;
+import bdv.util.BdvSource;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
@@ -40,12 +43,20 @@ public class Utils
 	public static final String H5_INT = "INTEGER(4)";
 	public static final String H5_FLOAT = "FLOAT(4)";
 	public static final int bdvTextOverlayFontSize = 15;
+	public static final int BDV_RELATIVE_WINDOW_SIZE = 3;
 
 	public static void log( String msg )
 	{
 		IJ.log( msg );
 	}
 	public static boolean logDebug = false;
+
+
+	public static int getBdvWindowSize()
+	{
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		return screenSize.width / Utils.BDV_RELATIVE_WINDOW_SIZE;
+	}
 
 	public static void debug( String msg )
 	{
