@@ -12,12 +12,19 @@ public class MultiWellImgCreator
 {
 	public static MultiWellImg create( List< File > fileList, String namingScheme, String channelPattern )
 	{
+		Utils.log( "Fetching channel files..." );
+		List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelPattern );
+
+		return createFromChannelFiles( channelFiles, namingScheme, channelPattern );
+	}
+
+	public static MultiWellImg createFromChannelFiles( List< File > channelFiles, String namingScheme, String channelPattern )
+	{
 		MultiWellImg wellImg;
 
 		final String channelName = channelPattern;
 
-		Utils.log( "Fetching channel: " + channelName );
-		List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelName );
+		Utils.log( "Creating channel: " + channelName );
 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
@@ -46,7 +53,8 @@ public class MultiWellImgCreator
 		return wellImg;
 	}
 
-	public static List< File > getChannelFiles( List < File > fileList, String namingScheme, String channelPattern )
+
+	private static List< File > getChannelFiles( List < File > fileList, String namingScheme, String channelPattern )
 	{
 		List< File > channelFiles;
 		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )

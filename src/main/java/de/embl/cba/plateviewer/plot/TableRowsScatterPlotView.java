@@ -6,8 +6,9 @@ import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
-import de.embl.cba.tables.color.LazyCategoryColoringModel;
+import de.embl.cba.plateviewer.view.PopupMenu;
 import de.embl.cba.tables.color.SelectionColoringModel;
+import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
@@ -15,6 +16,9 @@ import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
+import org.scijava.ui.behaviour.ClickBehaviour;
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
+import org.scijava.ui.behaviour.util.Behaviours;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,25 +29,30 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private final List< T > tableRows;
 	private FinalInterval scatterPlotInterval;
 	private int numTableRows;
-	private final LazyCategoryColoringModel< DefaultSiteNameTableRow > coloringModel;
-	private final SelectionColoringModel< DefaultSiteNameTableRow > selectionColoringModel;
+	private final SelectionColoringModel< T > coloringModel;
+	private final SelectionModel< T > selectionModel;
 	private BdvHandle bdvHandle;
-	private ArrayList< RealPoint > values;
+	private ArrayList< RealPoint > points;
 	private ArrayList< Integer > indices;
 	private double pointSize;
 	private ARGBConvertedRealSource source;
 	private NearestNeighborSearchOnKDTree< Integer > search;
+	private String columnNameX;
+	private String columnNameY;
 
-	public TableRowsScatterPlotView( List< T > tableRows, LazyCategoryColoringModel< DefaultSiteNameTableRow > coloringModel, SelectionColoringModel< DefaultSiteNameTableRow > selectionColoringModel )
+	public TableRowsScatterPlotView( List< T > tableRows, SelectionColoringModel< T > coloringModel, SelectionModel< T > selectionModel )
 	{
 		this.tableRows = tableRows;
 		numTableRows = tableRows.size();
 		this.coloringModel = coloringModel;
-		this.selectionColoringModel = selectionColoringModel;
+		this.selectionModel = selectionModel;
 	}
 
 	public void showScatterPlot( String columnNameX, String columnNameY )
 	{
+		this.columnNameX = columnNameX;
+		this.columnNameY = columnNameY;
+
 		setValuesAndSearch( columnNameX, columnNameY );
 
 		BiConsumer< RealLocalizable, IntType > biConsumer = createFunction();
@@ -51,11 +60,59 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		createSource( biConsumer );
 
 		showSource();
+
+		final ScatterPlotOverlay overlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, scatterPlotInterval );
+
+		BdvFunctions.showOverlay( overlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+
+		SelectedPointOverlay selectedPointOverlay = new SelectedPointOverlay( bdvHandle, tableRows, selectionModel, points );
+
+		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+
+
+		installBdvBehaviours();
+	}
+
+	private void installBdvBehaviours()
+	{
+		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
+		behaviours.install( bdvHandle.getTriggerbindings(), "plate viewer" );
+
+		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
+			showPopupMenu( x, y );
+		}, "context menu", "button1" ) ; // TODO: make button3
+	}
+
+	private void showPopupMenu( int x, int y )
+	{
+		final PopupMenu popupMenu = new PopupMenu();
+
+		popupMenu.addPopupAction( "Focus closest point", e ->
+		{
+			new Thread( () -> {
+				final RealPoint global2dLocation = getMouseGlobal2dLocation();
+				search.search( global2dLocation );
+				final Sampler< Integer > sampler = search.getSampler();
+				final Integer rowIndex = sampler.get();
+				final T tableRow = tableRows.get( rowIndex );
+//				final String cell = tableRow.getCell( columnNameX );
+				selectionModel.focus( tableRow );
+			}).start();
+		} );
+
+		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
+	}
+
+	private RealPoint getMouseGlobal2dLocation()
+	{
+		final RealPoint global3dLocation = new RealPoint( 3 );
+		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( global3dLocation );
+		return new RealPoint( global3dLocation.getDoublePosition( 0 ), global3dLocation.getDoublePosition( 1 ) );
 	}
 
 	public void setValuesAndSearch( String columnNameX, String columnNameY )
 	{
-		values = new ArrayList<>();
+		points = new ArrayList<>();
 		indices = new ArrayList<>();
 
 		double x,y,xMax=-Double.MAX_VALUE,yMax=-Double.MAX_VALUE,xMin=Double.MAX_VALUE,yMin=Double.MAX_VALUE;
@@ -64,7 +121,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		{
 			x = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameX ) );
 			y = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameY ) );
-			values.add( new RealPoint( x, y ) );
+			points.add( new RealPoint( x, y ) );
 			indices.add( rowIndex );
 			if ( x > xMax ) xMax = x;
 			if ( y > yMax ) yMax = y;
@@ -76,8 +133,9 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				(int) ( 0.9 * xMin ), (int)( 0.9 * yMin ), 0,
 				(int) Math.ceil( 1.1 * xMax ), (int) Math.ceil( 1.1 * yMax ), 0 );
 
-
-		final KDTree< Integer > kdTree = new KDTree<>( indices, values );
+		// Give a copy because the order of the list is changed by the KDTree
+		final ArrayList< RealPoint > copy = new ArrayList<>( points );
+		final KDTree< Integer > kdTree = new KDTree<>( indices, copy );
 		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 
 		pointSize = xMax / 500.0; // TODO: ?

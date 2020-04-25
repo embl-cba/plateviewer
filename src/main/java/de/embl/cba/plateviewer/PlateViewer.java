@@ -4,6 +4,7 @@ import bdv.util.Bdv;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.TableImage;
+import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
@@ -83,6 +84,11 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 			try
 			{
 				tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
+
+				final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel );
+
+				scatterPlotView.showScatterPlot( "infected_median", "not_infected_median" );
+
 			}
 			catch ( Exception e )
 			{

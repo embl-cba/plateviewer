@@ -156,45 +156,48 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		behaviours.install( bdv.getBdvHandle().getTriggerbindings(), "plate viewer" );
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-
-			final RealPoint globalLocation = new RealPoint( 3 );
-			bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalLocation );
-			final String siteName = getSiteName( globalLocation );
-
-			final double[] location = new double[ 3 ];
-			globalLocation.localize( location );
-
-			final PlateLocation plateLocation = new PlateLocation( plateName, siteName, location );
-
-			final PopupMenu popupMenu = new PopupMenu();
-
-			popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
-			{
-				new Thread( () -> {
-					final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() );
-					screenShot.setTitle( plateName + "-"  + siteName  );
-					final IssueRaiser issueRaiser = new IssueRaiser();
-					issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
-				}).start();
-			} );
-
-			popupMenu.addPopupAction( "Measure pixel value", e -> {
-				logPixelValues( plateLocation );
-			} );
-
-			popupMenu.addPopupAction( "Measure region statistics...", e -> {
-				// TODO out everything below in own class (in bdv-utils repo) and improve UI
-				final GenericDialog gd = new GenericDialog( "Radius" );
-				gd.addNumericField( "Radius", 5.0, 1 );
-				gd.showDialog();
-				if ( gd.wasCanceled() ) return;
-				final double radius = gd.getNextNumber();
-				logRegionStatistics( plateLocation, radius );
-			} );
-
-			popupMenu.show( bdv.getBdvHandle().getViewerPanel().getDisplay(), x, y );
-
+			showPopupMenu( x, y );
 		}, "context menu", "button3" ) ;
+	}
+
+	private void showPopupMenu( int x, int y )
+	{
+		final RealPoint globalLocation = new RealPoint( 3 );
+		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalLocation );
+		final String siteName = getSiteName( globalLocation );
+
+		final double[] location = new double[ 3 ];
+		globalLocation.localize( location );
+
+		final PlateLocation plateLocation = new PlateLocation( plateName, siteName, location );
+
+		final PopupMenu popupMenu = new PopupMenu();
+
+		popupMenu.addPopupAction( "Raise GitHub Issue...", e ->
+		{
+			new Thread( () -> {
+				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdv.getBdvHandle().getViewerPanel() );
+				screenShot.setTitle( plateName + "-"  + siteName  );
+				final IssueRaiser issueRaiser = new IssueRaiser();
+				issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
+			}).start();
+		} );
+
+		popupMenu.addPopupAction( "Measure pixel value", e -> {
+			logPixelValues( plateLocation );
+		} );
+
+		popupMenu.addPopupAction( "Measure region statistics...", e -> {
+			// TODO out everything below in own class (in bdv-utils repo) and improve UI
+			final GenericDialog gd = new GenericDialog( "Radius" );
+			gd.addNumericField( "Radius", 5.0, 1 );
+			gd.showDialog();
+			if ( gd.wasCanceled() ) return;
+			final double radius = gd.getNextNumber();
+			logRegionStatistics( plateLocation, radius );
+		} );
+
+		popupMenu.show( bdv.getBdvHandle().getViewerPanel().getDisplay(), x, y );
 	}
 
 	private void logPixelValues( PlateLocation plateLocation )
@@ -761,10 +764,25 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		}
 		else
 		{
-			MultiWellImg multiWellImg = MultiWellImgCreator.create( fileList, fileNamingScheme, channel );
+			MultiWellImg multiWellImg = createMultiWellImg( channel );
 			channelToMultiWellImg.put( channel, multiWellImg );
 			return  multiWellImg;
 		}
+	}
+
+	public MultiWellImg createMultiWellImg( String channel )
+	{
+		MultiWellImg multiWellImg;
+		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5  ) )
+		{
+			// All channels are in the same files, thus we do not have to fetch them again.
+			multiWellImg = MultiWellImgCreator.createFromChannelFiles( referenceWellImg.getChannelFiles(), fileNamingScheme, channel );
+		}
+		else
+		{
+			multiWellImg = MultiWellImgCreator.create( fileList, fileNamingScheme, channel );
+		}
+		return multiWellImg;
 	}
 
 	public HashMap< String, MultiWellImg< ? > > getChannelToMultiWellImg()

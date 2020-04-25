@@ -34,7 +34,7 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	protected ArrayList< String > wellNames;
 	protected CachedCellImg< T, ? > cachedCellImg;
 	protected MultiSiteLoader loader;
-	protected final List< File > files;
+	protected final List< File > channelFiles;
 	protected final String namingScheme;
 	protected String channelName;
 	protected final int resolutionLevel;
@@ -49,7 +49,7 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 
 	public MultiWellImg( List< File > files, String namingScheme, int resolutionLevel )
 	{
-		this.files = files;
+		this.channelFiles = files;
 		this.namingScheme = namingScheme;
 		this.resolutionLevel = resolutionLevel;
 	}
@@ -138,6 +138,11 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	public Metadata.Type getType()
 	{
 		return this.type;
+	}
+
+	public List< File > getChannelFiles()
+	{
+		return channelFiles;
 	}
 
 	@Override
