@@ -8,10 +8,10 @@ import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.view.PopupMenu;
-import de.embl.cba.tables.color.ColoringListener;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
+import net.imagej.DefaultDataset;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
@@ -245,9 +245,41 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		viewerTransform.concatenate( reflectY );
 		final int height = bdvHandle.getViewerPanel().getHeight();
-		viewerTransform.translate( 0, height, 0 ); // TODO: ??
+
+		final FinalRealInterval bounds = viewerTransform.estimateBounds( scatterPlotInterval );
+
+		//final AffineTransform3D translation = getTranslation( bdvHandle, scatterPlotInterval );
+		//viewerTransform.preConcatenate( translation );
+		viewerTransform.translate( 0, -bounds.realMin( 1 ), 0 ); // TODO: ??
+
 		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
 	}
+
+
+//	private AffineTransform3D getTranslation( BdvHandle bdvHandle, Interval interval )
+//	{
+//		final AffineTransform3D translation = new AffineTransform3D();
+//
+//		double[] shiftToImage = new double[ 3 ];
+//
+//		for ( int d = 0; d < 3; ++d )
+//			shiftToImage[ d ] = -( interval.min( d ) + interval.dimension( d ) / 2.0 );
+//
+//		translation.translate( shiftToImage );
+//
+//		int[] bdvWindowDimensions = new int[ 2 ];
+//		bdvWindowDimensions[ 0 ] = bdvHandle.getViewerPanel().getWidth();
+//		bdvWindowDimensions[ 1 ] = bdvHandle.getViewerPanel().getHeight();
+//
+//		double[] shiftToBdvWindowCenter = new double[ 3 ];
+//
+//		for ( int d = 0; d < 2; ++d )
+//			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
+//
+//		translation.translate( shiftToBdvWindowCenter );
+//
+//		return translation;
+//	}
 
 	public void show( JComponent component )
 	{

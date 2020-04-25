@@ -18,6 +18,7 @@ import net.imglib2.type.numeric.RealType;
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import static de.embl.cba.plateviewer.table.ImageNameTableRows.createSiteNameTableRowsFromFilePath;
 
@@ -77,14 +78,22 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		}
 	}
 
-	public SitesImage createTableColoredSiteImage( ImagePlateViewer imageView, String fileNamingScheme, TableRowsTableView< DefaultSiteNameTableRow > tableView )
+	public SitesImage createTableColoredSiteImage(
+			ImagePlateViewer imageView,
+			String fileNamingScheme,
+			TableRowsTableView< DefaultSiteNameTableRow > tableView )
 	{
 		final SitesImage sitesImage = new SitesImage( tableRows, selectionColoringModel, imageView );
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 			NumericColoringModelDialog.dialogLocation = new Point( 10, imageView.getMainPanel().getLocationOnScreen().y + imageView.getMainPanel().getHeight() + 80 );
-			tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
+
+			final Set< String > columnNames = tableView.getTableRows().get( 0 ).getColumnNames();
+			if ( columnNames.contains( "cell_based_score" ) )
+				tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
+			else if ( columnNames.contains( "score1" ) )
+				tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
 		}
 
 		return sitesImage;

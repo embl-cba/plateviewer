@@ -17,7 +17,7 @@ public class TestNamingSchemeBatchLibHdf5
 //				1, false);
 
 		final PlateViewer plateViewer = new PlateViewer(
-				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/20200406_210102_953" ),
+				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/20200415_150710_683" ),
 				".*.h5",
 				true,
 				1,
