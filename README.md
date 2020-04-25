@@ -8,7 +8,10 @@
 - Within Fiji, please [enable below Update Site](https://imagej.net/Following_an_update_site): 
     - [X] EMBL-CBA
 - Restart Fiji
-- The plugin will appear under [ Plugins > Screening > PlateViewer... ]
+- The plugin can be started at [ Plugins > Screening > PlateViewer... ]
+    - Most efficiently, just type *Plate* into the Fiji search bar and hit [ Run ]:
+![image](https://user-images.githubusercontent.com/2157566/80029189-b6a78d80-84e6-11ea-957d-6fe5f9d07f32.png)
+
 
 ## Citation
 
