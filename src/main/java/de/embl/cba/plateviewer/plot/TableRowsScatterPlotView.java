@@ -1,10 +1,11 @@
 package de.embl.cba.plateviewer.plot;
 
 import bdv.util.*;
+import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
+import de.embl.cba.plateviewer.image.source.ARGBConvertedRealAccessibleSource;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
 import de.embl.cba.plateviewer.view.PopupMenu;
 import de.embl.cba.tables.color.ColorUtils;
@@ -15,10 +16,10 @@ import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
-import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -41,18 +42,19 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private ArrayList< RealPoint > points;
 	private ArrayList< Integer > indices;
 	private double pointSize;
-	private ARGBConvertedRealSource source;
+	private Source< VolatileARGBType > argbSource;
 	private NearestNeighborSearchOnKDTree< Integer > search;
 	private final String plateName;
 	private String columnNameX;
 	private String columnNameY;
-	private BdvStackSource< IntType > scatterPlotSource;
+	private BdvStackSource< VolatileARGBType > scatterPlotBdvSource;
 	private final String[] columnNames;
-	private BdvOverlaySource< SelectedPointOverlay > selectedPointOverlaySource;
-	private BdvOverlaySource< ScatterPlotOverlay > scatterPlotOverlaySource;
+	private BdvOverlaySource< SelectedPointOverlay > selectedPointOverlayBdvSource;
+	private BdvOverlaySource< ScatterPlotOverlay > scatterPlotOverlayBdvSource;
 	private String[] lineChoices;
 	private String lineOverlay;
 	private double viewerAspectRatio = 1.0;
+	private RealRandomAccessibleIntervalSource indexSource;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
@@ -91,6 +93,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		showSource();
 
+		setViewerTransform();
+
 		showOverlays();
 	}
 
@@ -105,18 +109,18 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	{
 		SelectedPointOverlay selectedPointOverlay = new SelectedPointOverlay( bdvHandle, tableRows, selectionModel, points );
 
-		if ( selectedPointOverlaySource != null) selectedPointOverlaySource.removeFromBdv();
+		if ( selectedPointOverlayBdvSource != null) selectedPointOverlayBdvSource.removeFromBdv();
 
-		selectedPointOverlaySource = BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		selectedPointOverlayBdvSource = BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void showFrameAndAxis()
 	{
 		ScatterPlotOverlay scatterPlotOverlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, scatterPlotInterval, lineOverlay );
 
-		if ( scatterPlotOverlaySource != null ) scatterPlotOverlaySource.removeFromBdv();
+		if ( scatterPlotOverlayBdvSource != null ) scatterPlotOverlayBdvSource.removeFromBdv();
 
-		scatterPlotOverlaySource = BdvFunctions.showOverlay( scatterPlotOverlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		scatterPlotOverlayBdvSource = BdvFunctions.showOverlay( scatterPlotOverlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void installBdvBehaviours()
@@ -216,19 +220,26 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	public BiConsumer< RealLocalizable, IntType > createFunction()
 	{
-		double minDistanceSquared = pointSize * pointSize;
+		double squaredViewerPointSize = pointSize * pointSize;
+		//final double scaledPointSizeY = pointSize * viewerAspectRatio;
+
+		final double[] dxy = new double[ 2 ];
 
 		return ( position, t ) ->
 		{
 			synchronized ( this )
 			{
 				search.search( position );
-				final Sampler< Integer > sampler = search.getSampler();
-				final Integer integer = sampler.get();
 
-				// TODO: make point size dependent on ViewerTransform
-				if ( search.getSquareDistance() < minDistanceSquared )
+				for ( int d = 0; d < 2; d++ )
 				{
+					dxy[ d ] = search.getPosition().getDoublePosition( d ) - position.getDoublePosition( d );
+				}
+
+				if ( ( dxy[ 0 ] * dxy[ 0 ] + dxy[ 1 ] * dxy[ 1 ] * viewerAspectRatio * viewerAspectRatio ) < squaredViewerPointSize  )
+				{
+					final Sampler< Integer > sampler = search.getSampler();
+					final Integer integer = sampler.get();
 					t.set( integer );
 				}
 				else
@@ -241,10 +252,10 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void showSource()
 	{
-		if ( scatterPlotSource != null ) scatterPlotSource.removeFromBdv();
+		if ( scatterPlotBdvSource != null ) scatterPlotBdvSource.removeFromBdv();
 
-		scatterPlotSource = BdvFunctions.show(
-				source,
+		scatterPlotBdvSource = BdvFunctions.show(
+				argbSource,
 				BdvOptions.options()
 						.is2D()
 						.frameTitle( plateName )
@@ -252,27 +263,27 @@ public class TableRowsScatterPlotView< T extends TableRow >
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar
 						.BehaviourTransformEventHandlerPlanarFactory() ).addTo( bdvHandle ) );
 
-		bdvHandle = scatterPlotSource.getBdvHandle();
+		bdvHandle = scatterPlotBdvSource.getBdvHandle();
 
-		scatterPlotSource.setDisplayRange( 0, 255);
-
-		setViewerTransform();
+		scatterPlotBdvSource.setDisplayRange( 0, 255);
 	}
 
 	public void createSource( BiConsumer< RealLocalizable, IntType > biConsumer )
 	{
-		final FunctionRealRandomAccessible< IntType > fra = new FunctionRealRandomAccessible<>( 2, biConsumer, IntType::new );
+		final FunctionRealRandomAccessible< IntType > fra = new FunctionRealRandomAccessible< IntType >( 2, biConsumer, IntType::new );
 
 		final RealRandomAccessible< IntType > rra = RealViews.addDimension( fra );
 
-		final RealRandomAccessibleIntervalSource scatterSource = new RealRandomAccessibleIntervalSource( rra, scatterPlotInterval, new IntType(  ), "scatterPlot" );
+		indexSource = new RealRandomAccessibleIntervalSource( rra, scatterPlotInterval, new IntType(  ), "scatterPlot" );
+
+		//scatterSource.getInterpolatedSource(  )
 
 		final ListItemsARGBConverter< T > converter =
 				new ListItemsARGBConverter( tableRows, coloringModel );
 
 		converter.getIndexToColor().put( -1, ColorUtils.getARGBType( Color.LIGHT_GRAY ).get() );
 
-		source = new ARGBConvertedRealSource( scatterSource, converter );
+		argbSource = new ARGBConvertedRealAccessibleSource( indexSource, converter );
 	}
 
 	public void setViewerTransform()
@@ -297,9 +308,10 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		if ( aspectRatio < 0.2 )
 		{
 			final AffineTransform3D scale = new AffineTransform3D();
-			scale.scale( 1.0, 1.0 / aspectRatio, 1.0  );
+			final double yScale = 1.0 / aspectRatio;
+			scale.scale( 1.0, yScale, 1.0  );
 			viewerTransform.preConcatenate( scale );
-			viewerAspectRatio = 1.0 / aspectRatio;
+			viewerAspectRatio = yScale;
 		}
 		else
 		{
