@@ -6,18 +6,16 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
-import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.view.PopupMenu;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
-import net.imagej.DefaultDataset;
+import ij.gui.GenericDialog;
 import net.imglib2.*;
-import net.imglib2.display.RealARGBColorConverter;
-import net.imglib2.display.RealLUTARGBColorConverter;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
@@ -27,7 +25,6 @@ import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
-import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +46,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private final String plateName;
 	private String columnNameX;
 	private String columnNameY;
+	private BdvStackSource< IntType > scatterPlotSource;
+	private final String[] columnNames;
+	private BdvOverlaySource< SelectedPointOverlay > selectedPointOverlaySource;
+	private BdvOverlaySource< ScatterPlotOverlay > scatterPlotOverlaySource;
+	private String[] lineChoices;
+	private String lineOverlay;
+	private double viewerAspectRatio = 1.0;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
@@ -56,25 +60,25 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			SelectionModel< T > selectionModel,
 			String plateName,
 			String columnNameX,
-			String columnNameY )
+			String columnNameY,
+			String lineOverlay
+			)
 	{
 		this.tableRows = tableRows;
-		numTableRows = tableRows.size();
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
 		this.plateName = plateName;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
 
+		numTableRows = tableRows.size();
+		columnNames = tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new );
+
 		coloringModel.listeners().add( () -> {
 			bdvHandle.getViewerPanel().requestRepaint();
 		} );
-	}
 
-	public void setColumns( String columnNameX, String columnNameY )
-	{
-		this.columnNameX = columnNameX;
-		this.columnNameY = columnNameY;
+		this.lineOverlay = lineOverlay;
 	}
 
 	private void createAndShowImage()
@@ -88,8 +92,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		showSource();
 
 		showOverlays();
-
-		installBdvBehaviours();
 	}
 
 	private void showOverlays()
@@ -103,14 +105,18 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	{
 		SelectedPointOverlay selectedPointOverlay = new SelectedPointOverlay( bdvHandle, tableRows, selectionModel, points );
 
-		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		if ( selectedPointOverlaySource != null) selectedPointOverlaySource.removeFromBdv();
+
+		selectedPointOverlaySource = BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void showFrameAndAxis()
 	{
-		final ScatterPlotOverlay overlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, scatterPlotInterval );
+		ScatterPlotOverlay scatterPlotOverlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, scatterPlotInterval, lineOverlay );
 
-		BdvFunctions.showOverlay( overlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		if ( scatterPlotOverlaySource != null ) scatterPlotOverlaySource.removeFromBdv();
+
+		scatterPlotOverlaySource = BdvFunctions.showOverlay( scatterPlotOverlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void installBdvBehaviours()
@@ -120,7 +126,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showPopupMenu( x, y );
-		}, "context menu", "button3" ) ; // "button1",
+		}, "context menu", "button3", "button1" ) ; // "button1",
 	}
 
 	private void showPopupMenu( int x, int y )
@@ -139,6 +145,27 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				selectionModel.focus( tableRow );
 			}).start();
 		} );
+
+		popupMenu.addPopupAction( "Change columns...", e ->
+		{
+			lineChoices = new String[]{ ScatterPlotOverlay.X_Y, ScatterPlotOverlay.Y_1 };
+
+			new Thread( () -> {
+				final GenericDialog gd = new GenericDialog( "Column selection" );
+				gd.addChoice( "Column X", columnNames, columnNameX );
+				gd.addChoice( "Column Y", columnNames, columnNameY );
+				gd.addChoice( "Add line", lineChoices, ScatterPlotOverlay.X_Y );
+				gd.showDialog();
+				if ( gd.wasCanceled() ) return;
+				columnNameX = gd.getNextChoice();
+				columnNameY = gd.getNextChoice();
+				lineOverlay = gd.getNextChoice();
+
+				createAndShowImage();
+
+			}).start();
+		} );
+
 
 		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
 	}
@@ -199,7 +226,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				final Sampler< Integer > sampler = search.getSampler();
 				final Integer integer = sampler.get();
 
-				// TODO: make point size dependend on ViewerTransform
+				// TODO: make point size dependent on ViewerTransform
 				if ( search.getSquareDistance() < minDistanceSquared )
 				{
 					t.set( integer );
@@ -214,20 +241,22 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void showSource()
 	{
-		final BdvStackSource< IntType > plot = BdvFunctions.show(
+		if ( scatterPlotSource != null ) scatterPlotSource.removeFromBdv();
+
+		scatterPlotSource = BdvFunctions.show(
 				source,
 				BdvOptions.options()
 						.is2D()
 						.frameTitle( plateName )
 						.preferredSize( Utils.getBdvWindowSize(), Utils.getBdvWindowSize() )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar
-						.BehaviourTransformEventHandlerPlanarFactory() ) );
+						.BehaviourTransformEventHandlerPlanarFactory() ).addTo( bdvHandle ) );
 
-		bdvHandle = plot.getBdvHandle();
+		bdvHandle = scatterPlotSource.getBdvHandle();
 
-		plot.setDisplayRange( 0, 255);
+		scatterPlotSource.setDisplayRange( 0, 255);
 
-		fixViewerTransform();
+		setViewerTransform();
 	}
 
 	public void createSource( BiConsumer< RealLocalizable, IntType > biConsumer )
@@ -238,7 +267,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		final RealRandomAccessibleIntervalSource scatterSource = new RealRandomAccessibleIntervalSource( rra, scatterPlotInterval, new IntType(  ), "scatterPlot" );
 
-
 		final ListItemsARGBConverter< T > converter =
 				new ListItemsARGBConverter( tableRows, coloringModel );
 
@@ -247,20 +275,36 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		source = new ARGBConvertedRealSource( scatterSource, converter );
 	}
 
-	public void fixViewerTransform()
+	public void setViewerTransform()
 	{
 		AffineTransform3D viewerTransform = new AffineTransform3D();
 		bdvHandle.getViewerPanel().getState().getViewerTransform( viewerTransform  );
 
 		AffineTransform3D reflectY = new AffineTransform3D();
 		reflectY.set( -1.0, 1,1 );
-
-		viewerTransform.concatenate( reflectY );
-		final int height = bdvHandle.getViewerPanel().getHeight();
+		viewerTransform.preConcatenate( reflectY );
 
 		final FinalRealInterval bounds = viewerTransform.estimateBounds( scatterPlotInterval );
 
-		viewerTransform.translate( 0, - ( bounds.realMin( 1 ) ) , 0 ); // TODO: ??
+		final AffineTransform3D translate = new AffineTransform3D();
+		translate.translate( 0, - ( bounds.realMin( 1 ) ) , 0 ); // TODO: ??
+		viewerTransform.preConcatenate( translate );
+
+		final double plotHeight = Math.abs( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
+		final double plotWidth = Math.abs( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
+
+		final double aspectRatio = plotHeight / plotWidth;
+		if ( aspectRatio < 0.2 )
+		{
+			final AffineTransform3D scale = new AffineTransform3D();
+			scale.scale( 1.0, 1.0 / aspectRatio, 1.0  );
+			viewerTransform.preConcatenate( scale );
+			viewerAspectRatio = 1.0 / aspectRatio;
+		}
+		else
+		{
+			viewerAspectRatio = 1.0;
+		}
 
 		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
 	}
@@ -269,6 +313,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	{
 		createAndShowImage();
 
+		setWindowPosition( component );
+
+		installBdvBehaviours();
+	}
+
+	public void setWindowPosition( JComponent component )
+	{
 		if ( component != null )
 		{
 			JFrame topFrame = ( JFrame ) SwingUtilities.getWindowAncestor( component );

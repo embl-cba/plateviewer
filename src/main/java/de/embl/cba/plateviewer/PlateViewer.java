@@ -4,6 +4,7 @@ import bdv.viewer.ViewerPanel;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.SitesImage;
+import de.embl.cba.plateviewer.plot.ScatterPlotOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.table.SiteName;
@@ -72,7 +73,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, imageView.getPlateName(), "infected_median", "not_infected_median" );
+			final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, imageView.getPlateName(), "infected_median", "not_infected_median", ScatterPlotOverlay.X_Y );
 			scatterPlotView.show( bdvViewerPanel );
 
 		}

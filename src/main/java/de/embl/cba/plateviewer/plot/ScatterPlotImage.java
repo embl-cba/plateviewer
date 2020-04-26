@@ -75,9 +75,10 @@ public class ScatterPlotImage implements BdvViewable
 
 		realRandomAccessible = new FunctionRealRandomAccessible< UnsignedShortType >( 2, biConsumer, UnsignedShortType::new );
 
-		final BdvStackSource< UnsignedShortType > plot = BdvFunctions.show( realRandomAccessible, imageInterval, "scatter plot", BdvOptions.options().is2D() );
 		contrastLimits[ 0 ] = 0;
 		contrastLimits[ 1 ] = numPoints;
+
+		final BdvStackSource< UnsignedShortType > plot = BdvFunctions.show( realRandomAccessible, imageInterval, "", BdvOptions.options().is2D() );
 
 		plot.setDisplayRange( contrastLimits[ 0 ], contrastLimits[ 1 ] );
 
