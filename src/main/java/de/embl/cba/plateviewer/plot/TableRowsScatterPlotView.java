@@ -8,21 +8,26 @@ import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
 import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
 import de.embl.cba.plateviewer.view.PopupMenu;
+import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import net.imagej.DefaultDataset;
 import net.imglib2.*;
+import net.imglib2.display.RealARGBColorConverter;
+import net.imglib2.display.RealLUTARGBColorConverter;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.util.Intervals;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -150,12 +155,16 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		points = new ArrayList<>();
 		indices = new ArrayList<>();
 
-		double x,y,xMax=-Double.MAX_VALUE,yMax=-Double.MAX_VALUE,xMin=Double.MAX_VALUE,yMin=Double.MAX_VALUE;
+		Double x, y;
+		Double xMax=-Double.MAX_VALUE,yMax=-Double.MAX_VALUE,xMin=Double.MAX_VALUE,yMin=Double.MAX_VALUE;
 
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
 			x = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameX ) );
+			if ( x.isNaN() ) continue;
 			y = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameY ) );
+			if ( y.isNaN() ) continue;
+
 			points.add( new RealPoint( x, y ) );
 			indices.add( rowIndex );
 			if ( x > xMax ) xMax = x;
@@ -164,16 +173,18 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			if ( y < yMin ) yMin = y;
 		}
 
+		pointSize = ( xMax - xMin ) / 500.0; // TODO: ?
+
 		scatterPlotInterval = FinalInterval.createMinMax(
-				(int) ( 0.9 * xMin ), (int)( 0.9 * yMin ), 0,
-				(int) Math.ceil( 1.1 * xMax ), (int) Math.ceil( 1.1 * yMax ), 0 );
+				xMin.intValue(), yMin.intValue(), 0,
+				(int) Math.ceil( xMax ), (int) Math.ceil( yMax ), 0 );
+
+		scatterPlotInterval = Intervals.expand( scatterPlotInterval, (int) ( 10 * pointSize) );
 
 		// Give a copy because the order of the list is changed by the KDTree
 		final ArrayList< RealPoint > copy = new ArrayList<>( points );
 		final KDTree< Integer > kdTree = new KDTree<>( indices, copy );
 		search = new NearestNeighborSearchOnKDTree<>( kdTree );
-
-		pointSize = xMax / 500.0; // TODO: ?
 	}
 
 	public BiConsumer< RealLocalizable, IntType > createFunction()
@@ -203,8 +214,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void showSource()
 	{
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
 		final BdvStackSource< IntType > plot = BdvFunctions.show(
 				source,
 				BdvOptions.options()
@@ -229,10 +238,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		final RealRandomAccessibleIntervalSource scatterSource = new RealRandomAccessibleIntervalSource( rra, scatterPlotInterval, new IntType(  ), "scatterPlot" );
 
-		final ListItemsARGBConverter< DefaultSiteNameTableRow > argbConverter =
+
+		final ListItemsARGBConverter< T > converter =
 				new ListItemsARGBConverter( tableRows, coloringModel );
 
-		source = new ARGBConvertedRealSource( scatterSource, argbConverter );
+		converter.getIndexToColor().put( -1, ColorUtils.getARGBType( Color.LIGHT_GRAY ).get() );
+
+		source = new ARGBConvertedRealSource( scatterSource, converter );
 	}
 
 	public void fixViewerTransform()
@@ -248,47 +260,22 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		final FinalRealInterval bounds = viewerTransform.estimateBounds( scatterPlotInterval );
 
-		//final AffineTransform3D translation = getTranslation( bdvHandle, scatterPlotInterval );
-		//viewerTransform.preConcatenate( translation );
-		viewerTransform.translate( 0, -bounds.realMin( 1 ), 0 ); // TODO: ??
+		viewerTransform.translate( 0, - ( bounds.realMin( 1 ) ) , 0 ); // TODO: ??
 
 		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
 	}
-
-
-//	private AffineTransform3D getTranslation( BdvHandle bdvHandle, Interval interval )
-//	{
-//		final AffineTransform3D translation = new AffineTransform3D();
-//
-//		double[] shiftToImage = new double[ 3 ];
-//
-//		for ( int d = 0; d < 3; ++d )
-//			shiftToImage[ d ] = -( interval.min( d ) + interval.dimension( d ) / 2.0 );
-//
-//		translation.translate( shiftToImage );
-//
-//		int[] bdvWindowDimensions = new int[ 2 ];
-//		bdvWindowDimensions[ 0 ] = bdvHandle.getViewerPanel().getWidth();
-//		bdvWindowDimensions[ 1 ] = bdvHandle.getViewerPanel().getHeight();
-//
-//		double[] shiftToBdvWindowCenter = new double[ 3 ];
-//
-//		for ( int d = 0; d < 2; ++d )
-//			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
-//
-//		translation.translate( shiftToBdvWindowCenter );
-//
-//		return translation;
-//	}
 
 	public void show( JComponent component )
 	{
 		createAndShowImage();
 
-		JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(component);
+		if ( component != null )
+		{
+			JFrame topFrame = ( JFrame ) SwingUtilities.getWindowAncestor( component );
 
-		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
-				topFrame.getLocationOnScreen(  ).x + component.getWidth() + 10,
-				topFrame.getLocationOnScreen(  ).y  );
+			BdvUtils.getViewerFrame( bdvHandle ).setLocation(
+					topFrame.getLocationOnScreen().x + component.getWidth() + 10,
+					topFrame.getLocationOnScreen().y );
+		}
 	}
 }

@@ -72,27 +72,27 @@ public class ScatterPlotOverlay extends BdvOverlay
 		double[] max = new double[ 3 ];
 		globalToViewerTransform.apply( one, max );
 
-		g.setColor( Color.LIGHT_GRAY );
+		g.setColor( Color.WHITE );
 
 		g.drawLine(
 				(int) min[ 0 ], (int) min[ 1 ],
 				(int) max[ 0 ], (int) max[ 1 ] );
 
-		g.drawLine(
-				(int) min[ 0 ], (int) min[ 1 ],
-				(int) min[ 0 ], (int) max[ 1 ] );
-
-		g.drawLine(
-				(int) min[ 0 ], (int) min[ 1 ],
-				(int) max[ 0 ], (int) min[ 1 ] );
-
-		g.drawLine(
-				(int) min[ 0 ], (int) max[ 1 ],
-				(int) max[ 0 ], (int) max[ 1 ] );
-
-		g.drawLine(
-				(int) max[ 0 ], (int) min[ 1 ],
-				(int) max[ 0 ], (int) max[ 1 ] );
+//		g.drawLine(
+//				(int) min[ 0 ], (int) min[ 1 ],
+//				(int) min[ 0 ], (int) max[ 1 ] );
+//
+//		g.drawLine(
+//				(int) min[ 0 ], (int) min[ 1 ],
+//				(int) max[ 0 ], (int) min[ 1 ] );
+//
+//		g.drawLine(
+//				(int) min[ 0 ], (int) max[ 1 ],
+//				(int) max[ 0 ], (int) max[ 1 ] );
+//
+//		g.drawLine(
+//				(int) max[ 0 ], (int) min[ 1 ],
+//				(int) max[ 0 ], (int) max[ 1 ] );
 
 	}
 

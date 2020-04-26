@@ -7,6 +7,7 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 
+import java.util.HashMap;
 import java.util.List;
 
 // TODO: move to table-utils
@@ -18,6 +19,7 @@ public class ListItemsARGBConverter< T > implements LabelsARGBConverter
 	private ARGBType singleColor;
 	private int frame;
 	private int noColorArgbIndex; // default, background color
+	private final HashMap< Integer, Integer > indexToColor;
 
 	public ListItemsARGBConverter(
 			List< T > list,
@@ -26,6 +28,7 @@ public class ListItemsARGBConverter< T > implements LabelsARGBConverter
 		this.list = list;
 		this.coloringModel = coloringModel;
 		noColorArgbIndex = 0;
+		indexToColor = new HashMap< Integer, Integer >();
 	}
 
 	@Override
@@ -41,7 +44,15 @@ public class ListItemsARGBConverter< T > implements LabelsARGBConverter
 			}
 		}
 
-		if ( rowIndex.getRealDouble() == OUT_OF_BOUNDS_ROW_INDEX )
+		final int index = ( int ) rowIndex.getRealDouble();
+
+		if ( indexToColor.containsKey( index ))
+		{
+			color.set( indexToColor.get( index ) );
+			return;
+		}
+
+		if ( index == OUT_OF_BOUNDS_ROW_INDEX )
 		{
 			color.set( noColorArgbIndex );
 			color.setValid( true );
@@ -55,7 +66,7 @@ public class ListItemsARGBConverter< T > implements LabelsARGBConverter
 			return;
 		}
 
-		final T item = list.get( ( int ) rowIndex.getRealDouble() );
+		final T item = list.get( index );
 
 		if ( item == null )
 		{
@@ -84,5 +95,10 @@ public class ListItemsARGBConverter< T > implements LabelsARGBConverter
 	public void setSingleColor( ARGBType argbType )
 	{
 		singleColor = argbType;
+	}
+
+	public HashMap< Integer, Integer > getIndexToColor()
+	{
+		return indexToColor;
 	}
 }

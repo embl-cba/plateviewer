@@ -33,6 +33,6 @@ public class ExploreTableRowsScatterPlotView
 
 		final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, "title", "infected_median", "not_infected_median" );
 
-		scatterPlotView.setColumns( "infected_median", "not_infected_median" );
+		scatterPlotView.show( null );
 	}
 }
