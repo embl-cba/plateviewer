@@ -21,6 +21,7 @@ import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.util.Intervals;
+import net.imglib2.view.Views;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -34,7 +35,7 @@ import java.util.function.BiConsumer;
 public class TableRowsScatterPlotView< T extends TableRow >
 {
 	private final List< T > tableRows;
-	private FinalInterval scatterPlotInterval;
+	private Interval dataPlotInterval;
 	private int numTableRows;
 	private final SelectionColoringModel< T > coloringModel;
 	private final SelectionModel< T > selectionModel;
@@ -55,6 +56,9 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private String lineOverlay;
 	private double viewerAspectRatio = 1.0;
 	private RealRandomAccessibleIntervalSource indexSource;
+	private FinalRealInterval dataInterval;
+	private double[] dataRanges;
+	private double dataAspectRatio;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
@@ -85,10 +89,17 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void createAndShowImage()
 	{
-		setValuesAndSearch( columnNameX, columnNameY );
+		fetchDataPoints( columnNameX, columnNameY );
 
-		BiConsumer< RealLocalizable, IntType > biConsumer = createFunction();
+		createSearchTree();
 
+		setViewerAspectRatio();
+
+		setViewerPointSize();
+
+		BiConsumer< RealLocalizable, IntType > biConsumer = createPlotFunction();
+
+		// TODO: distinguish colors outside scatter plot range and background
 		createSource( biConsumer );
 
 		showSource();
@@ -96,6 +107,31 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		setViewerTransform();
 
 		showOverlays();
+	}
+
+	private void setViewerPointSize()
+	{
+		pointSize = ( dataRanges[ 0 ] ) / 500.0; // TODO: ?
+	}
+
+	private void setViewerAspectRatio()
+	{
+		if ( dataAspectRatio < 0.2  || dataAspectRatio > 1 / 0.2 )
+		{
+			viewerAspectRatio = 1 / dataAspectRatio;
+		}
+		else
+		{
+			viewerAspectRatio = 1.0;
+		}
+	}
+
+	private void createSearchTree()
+	{
+		// Give a copy because the order of the list is changed by the KDTree
+		final ArrayList< RealPoint > copy = new ArrayList<>( points );
+		final KDTree< Integer > kdTree = new KDTree<>( indices, copy );
+		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 	}
 
 	private void showOverlays()
@@ -116,7 +152,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void showFrameAndAxis()
 	{
-		ScatterPlotOverlay scatterPlotOverlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, scatterPlotInterval, lineOverlay );
+		ScatterPlotOverlay scatterPlotOverlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, dataPlotInterval, lineOverlay );
 
 		if ( scatterPlotOverlayBdvSource != null ) scatterPlotOverlayBdvSource.removeFromBdv();
 
@@ -181,7 +217,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		return new RealPoint( global3dLocation.getDoublePosition( 0 ), global3dLocation.getDoublePosition( 1 ) );
 	}
 
-	public void setValuesAndSearch( String columnNameX, String columnNameY )
+	public void fetchDataPoints( String columnNameX, String columnNameY )
 	{
 		points = new ArrayList<>();
 		indices = new ArrayList<>();
@@ -204,24 +240,22 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			if ( y < yMin ) yMin = y;
 		}
 
-		pointSize = ( xMax - xMin ) / 500.0; // TODO: ?
+		dataInterval = FinalRealInterval.createMinMax( xMin, yMin, 0, xMax, yMax, 0 );
 
-		scatterPlotInterval = FinalInterval.createMinMax(
-				xMin.intValue(), yMin.intValue(), 0,
-				(int) Math.ceil( xMax ), (int) Math.ceil( yMax ), 0 );
+		dataRanges = new double[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			dataRanges[ d ] = dataInterval.realMax( d ) - dataInterval.realMin( d );
+		}
 
-		scatterPlotInterval = Intervals.expand( scatterPlotInterval, (int) ( 10 * pointSize) );
+		dataAspectRatio = dataRanges[ 1 ] / dataRanges[ 0 ];
 
-		// Give a copy because the order of the list is changed by the KDTree
-		final ArrayList< RealPoint > copy = new ArrayList<>( points );
-		final KDTree< Integer > kdTree = new KDTree<>( indices, copy );
-		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 	}
 
-	public BiConsumer< RealLocalizable, IntType > createFunction()
+	public BiConsumer< RealLocalizable, IntType > createPlotFunction()
 	{
 		double squaredViewerPointSize = pointSize * pointSize;
-		//final double scaledPointSizeY = pointSize * viewerAspectRatio;
+		final double squaredViewerAspectRatio = viewerAspectRatio * viewerAspectRatio;
 
 		final double[] dxy = new double[ 2 ];
 
@@ -236,7 +270,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 					dxy[ d ] = search.getPosition().getDoublePosition( d ) - position.getDoublePosition( d );
 				}
 
-				if ( ( dxy[ 0 ] * dxy[ 0 ] + dxy[ 1 ] * dxy[ 1 ] * viewerAspectRatio * viewerAspectRatio ) < squaredViewerPointSize  )
+				if ( ( dxy[ 0 ] * dxy[ 0 ] + dxy[ 1 ] * dxy[ 1 ] * squaredViewerAspectRatio ) < squaredViewerPointSize  )
 				{
 					final Sampler< Integer > sampler = search.getSampler();
 					final Integer integer = sampler.get();
@@ -252,6 +286,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void showSource()
 	{
+		Prefs.showMultibox( false );
+
 		if ( scatterPlotBdvSource != null ) scatterPlotBdvSource.removeFromBdv();
 
 		scatterPlotBdvSource = BdvFunctions.show(
@@ -270,11 +306,24 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	public void createSource( BiConsumer< RealLocalizable, IntType > biConsumer )
 	{
+		dataPlotInterval = Intervals.smallestContainingInterval( dataInterval );
+		dataPlotInterval = Intervals.expand( dataPlotInterval, (int) ( 10 * pointSize) );
+
+		// make 3D
+		dataPlotInterval = FinalInterval.createMinMax(
+				dataPlotInterval.min( 0 ),
+				dataPlotInterval.min( 1 ),
+				0,
+				dataPlotInterval.max( 0 ),
+				dataPlotInterval.max( 1 ),
+				0 );
+
 		final FunctionRealRandomAccessible< IntType > fra = new FunctionRealRandomAccessible< IntType >( 2, biConsumer, IntType::new );
 
+		// make 3D
 		final RealRandomAccessible< IntType > rra = RealViews.addDimension( fra );
 
-		indexSource = new RealRandomAccessibleIntervalSource( rra, scatterPlotInterval, new IntType(  ), "scatterPlot" );
+		indexSource = new RealRandomAccessibleIntervalSource( rra, dataPlotInterval, new IntType(  ), "scatterPlot" );
 
 		//scatterSource.getInterpolatedSource(  )
 
@@ -295,28 +344,18 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		reflectY.set( -1.0, 1,1 );
 		viewerTransform.preConcatenate( reflectY );
 
-		final FinalRealInterval bounds = viewerTransform.estimateBounds( scatterPlotInterval );
+		final AffineTransform3D scale = new AffineTransform3D();
+		scale.scale( 1.0, viewerAspectRatio, 1.0  );
+		viewerTransform.preConcatenate( scale );
+
+		final FinalRealInterval bounds = viewerTransform.estimateBounds( dataInterval );
 
 		final AffineTransform3D translate = new AffineTransform3D();
-		translate.translate( 0, - ( bounds.realMin( 1 ) ) , 0 ); // TODO: ??
+		translate.translate(  - ( bounds.realMin( 0 ) ), - ( bounds.realMin( 1 ) ) , 0 ); // TODO: ??
 		viewerTransform.preConcatenate( translate );
 
-		final double plotHeight = Math.abs( bounds.realMax( 1 ) - bounds.realMin( 1 ) );
-		final double plotWidth = Math.abs( bounds.realMax( 0 ) - bounds.realMin( 0 ) );
 
-		final double aspectRatio = plotHeight / plotWidth;
-		if ( aspectRatio < 0.2 )
-		{
-			final AffineTransform3D scale = new AffineTransform3D();
-			final double yScale = 1.0 / aspectRatio;
-			scale.scale( 1.0, yScale, 1.0  );
-			viewerTransform.preConcatenate( scale );
-			viewerAspectRatio = yScale;
-		}
-		else
-		{
-			viewerAspectRatio = 1.0;
-		}
+		final FinalRealInterval bounds2 = viewerTransform.estimateBounds( dataInterval );
 
 		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
 	}

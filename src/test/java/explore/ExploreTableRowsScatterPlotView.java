@@ -32,7 +32,7 @@ public class ExploreTableRowsScatterPlotView
 				file.getAbsolutePath(),
 				NamingSchemes.PATTERN_NIKON_TI2_HDF5 );
 
-		final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, "title", "not_infected_median", "score1", ScatterPlotOverlay.Y_1 );
+		final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, "title", "not_infected_median", "infected_median", ScatterPlotOverlay.Y_1 );
 
 		scatterPlotView.show( null );
 	}

@@ -4,6 +4,7 @@ package de.embl.cba.plateviewer.plot;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOverlay;
 import net.imglib2.FinalInterval;
+import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import java.awt.*;
@@ -18,11 +19,11 @@ public class ScatterPlotOverlay extends BdvOverlay
 	private final BdvHandle bdvHandle;
 	private final String columnNameX;
 	private final String columnNameY;
-	private final FinalInterval scatterPlotInterval;
+	private final Interval scatterPlotInterval;
 	private final long max;
 	private final String lineOverlay;
 
-	public ScatterPlotOverlay( BdvHandle bdvHandle, String columnNameX, String columnNameY, FinalInterval scatterPlotInterval, String lineOverlay )
+	public ScatterPlotOverlay( BdvHandle bdvHandle, String columnNameX, String columnNameY, Interval scatterPlotInterval, String lineOverlay )
 	{
 		super();
 		this.bdvHandle = bdvHandle;

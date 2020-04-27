@@ -28,7 +28,7 @@ public class ListItemsARGBConverter< T > implements LabelsARGBConverter
 		this.list = list;
 		this.coloringModel = coloringModel;
 		noColorArgbIndex = 0;
-		indexToColor = new HashMap< Integer, Integer >();
+		indexToColor = new HashMap<>();
 	}
 
 	@Override

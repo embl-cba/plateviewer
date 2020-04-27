@@ -24,17 +24,8 @@ public class ARGBConvertedRealAccessibleSource< R extends RealType< R > > implem
 {
     private final Source source;
     private Converter< RealType, VolatileARGBType > converter;
-    final private InterpolatorFactory< VolatileARGBType, RandomAccessible< VolatileARGBType > >[] interpolatorFactories;
 
-    private AffineTransform3D[] mipmapTransforms;
     private VolatileARGBType outOfBoundsValue;
-
-    {
-        interpolatorFactories = new InterpolatorFactory[]{
-                new NearestNeighborInterpolatorFactory< VolatileARGBType >(),
-                new ClampingNLinearInterpolatorFactory< VolatileARGBType >()
-        };
-    }
 
     public ARGBConvertedRealAccessibleSource( Source< RealType > source,
 											  Converter< RealType, VolatileARGBType > converter,
