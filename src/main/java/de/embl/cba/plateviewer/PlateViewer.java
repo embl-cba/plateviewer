@@ -73,7 +73,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, imageView.getPlateName(), "infected_median", "not_infected_median", ScatterPlotOverlay.X_Y );
+			final TableRowsScatterPlotView< DefaultSiteNameTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, imageView.getPlateName(), "not_infected_median", "infected_median", ScatterPlotOverlay.Y_X_2X );
 			scatterPlotView.show( bdvViewerPanel );
 
 		}

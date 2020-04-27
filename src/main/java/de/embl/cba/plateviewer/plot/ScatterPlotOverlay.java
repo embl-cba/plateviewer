@@ -3,7 +3,6 @@ package de.embl.cba.plateviewer.plot;
 
 import bdv.util.BdvHandle;
 import bdv.util.BdvOverlay;
-import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform3D;
 
@@ -13,8 +12,8 @@ import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
 public class ScatterPlotOverlay extends BdvOverlay
 {
-	public static final String X_Y = "x = y";
-	public static final String Y_1 = "y = 1";
+	public static final String Y_X_2X = "y = x, y = 2 * x";
+	public static final String Y_1_2 = "y = 1, y = 2";
 
 	private final BdvHandle bdvHandle;
 	private final String columnNameX;
@@ -71,28 +70,43 @@ public class ScatterPlotOverlay extends BdvOverlay
 
 	private void drawDiagonalAndFrame( Graphics2D g, AffineTransform3D globalToViewerTransform )
 	{
-		double[] min = new double[ 3 ];
-		globalToViewerTransform.apply( new double[ 3 ], min );
+		double[] zero = new double[ 3 ];
+		globalToViewerTransform.apply( new double[ 3 ], zero );
 
 		double[] max = new double[ 3 ];
 		globalToViewerTransform.apply( new double[]{ this.max, this.max, 0 }, max );
 
+		double[] max2 = new double[ 3 ];
+		globalToViewerTransform.apply( new double[]{ this.max, 2 * this.max, 0 }, max2 );
+
 		double[] one = new double[ 3 ];
 		globalToViewerTransform.apply( new double[]{0,1,0}, one );
 
+		double[] two = new double[ 3 ];
+		globalToViewerTransform.apply( new double[]{0,2,0}, two );
+
+
 		g.setColor( Color.WHITE );
 
-		if ( lineOverlay.equals( X_Y ) )
+		if ( lineOverlay.equals( Y_X_2X ) )
 		{
 			g.drawLine(
-					( int ) min[ 0 ], ( int ) min[ 1 ],
+					( int ) zero[ 0 ], ( int ) zero[ 1 ],
 					( int ) max[ 0 ], ( int ) max[ 1 ] );
+
+			g.drawLine(
+					( int ) zero[ 0 ], ( int ) zero[ 1 ],
+					( int ) max2[ 0 ], ( int ) ( max2[ 1 ] ) );
+
 		}
-		else if ( lineOverlay.equals( Y_1 ) )
+		else if ( lineOverlay.equals( Y_1_2 ) )
 		{
 			g.drawLine(
-					( int ) min[ 0 ], ( int ) one[ 1 ],
+					( int ) zero[ 0 ], ( int ) one[ 1 ],
 					( int ) max[ 0 ], ( int ) one[ 1 ] );
+			g.drawLine(
+					( int ) zero[ 0 ], ( int ) two[ 1 ],
+					( int ) max[ 0 ], ( int ) two[ 1 ] );
 		}
 
 //		g.drawLine(

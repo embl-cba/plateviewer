@@ -21,23 +21,27 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 	private final List< T > tableRows;
 	private final SelectionModel< T > selectionModel;
 	private final ArrayList< RealPoint > points;
+	private final String columnNameX;
+	private final String columnNameY;
 	private RealPoint selectedPoint;
 	private int selectionCircleWidth;
 
-	public SelectedPointOverlay( BdvHandle bdvHandle, List< T > tableRows, SelectionModel< T > selectionModel, ArrayList< RealPoint > points )
+	public SelectedPointOverlay( BdvHandle bdvHandle, List< T > tableRows, SelectionModel< T > selectionModel, ArrayList< RealPoint > points, String columnNameX, String columnNameY )
 	{
 		super();
 		this.bdvHandle = bdvHandle;
 		this.tableRows = tableRows;
 		this.selectionModel = selectionModel;
 		this.points = points;
+		this.columnNameX = columnNameX;
+		this.columnNameY = columnNameY;
 
 		selectionCircleWidth = 10;
 
-		registerAsSelectionListener( selectionModel, points );
+		registerAsSelectionListener();
 	}
 
-	public void registerAsSelectionListener( SelectionModel< T > selectionModel, ArrayList< RealPoint > points )
+	public void registerAsSelectionListener()
 	{
 		selectionModel.listeners().add( new SelectionListener< T >()
 		{
@@ -51,7 +55,10 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 			public void focusEvent( T selection )
 			{
 				final int rowIndex = selection.rowIndex();
-				selectedPoint = points.get( rowIndex );
+				final double x = Double.parseDouble( selection.getCell( columnNameX ) );
+				final double y = Double.parseDouble( selection.getCell( columnNameY ) );
+				//selectedPoint = points.get( rowIndex );
+				selectedPoint = new RealPoint( x, y );
 				bdvHandle.getViewerPanel().requestRepaint();
 			}
 		} );

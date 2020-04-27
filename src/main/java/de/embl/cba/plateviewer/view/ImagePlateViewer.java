@@ -555,8 +555,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		final ArrayImg< BitType, LongArray > dummyImageForInitialisation
 				= ArrayImgs.bits( new long[]{ 100, 100 } );
 
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
 		BdvSource bdvTmpSource = BdvFunctions.show(
 				dummyImageForInitialisation,
 				"",
