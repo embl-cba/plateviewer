@@ -36,7 +36,7 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
 
-		selectionCircleWidth = 10;
+		selectionCircleWidth = 20;
 
 		registerAsSelectionListener();
 	}
@@ -54,10 +54,8 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 			@Override
 			public void focusEvent( T selection )
 			{
-				final int rowIndex = selection.rowIndex();
 				final double x = Double.parseDouble( selection.getCell( columnNameX ) );
 				final double y = Double.parseDouble( selection.getCell( columnNameY ) );
-				//selectedPoint = points.get( rowIndex );
 				selectedPoint = new RealPoint( x, y );
 				bdvHandle.getViewerPanel().requestRepaint();
 			}

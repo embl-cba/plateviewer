@@ -16,11 +16,14 @@ import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.volatiles.VolatileARGBType;
+import net.imglib2.ui.TransformListener;
 import net.imglib2.util.Intervals;
+import net.imglib2.util.LinAlgHelpers;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -58,6 +61,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private FinalRealInterval dataInterval;
 	private double[] dataRanges;
 	private double dataAspectRatio;
+	private ArrayList< RealPoint> viewerPoints;
+	private AffineTransform3D viewerTransform;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
@@ -103,6 +108,19 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		showSource();
 
+		bdvHandle.getViewerPanel().addTransformListener( new TransformListener< AffineTransform3D >()
+		{
+			@Override
+			public void transformChanged( AffineTransform3D affineTransform3D )
+			{
+				synchronized ( this )
+				{
+					viewerTransform = affineTransform3D;
+					createViewerSearchTree( viewerTransform );
+				}
+			}
+		} );
+
 		setViewerTransform();
 
 		installBdvBehaviours();
@@ -114,7 +132,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void setViewerPointSize()
 	{
-		viewerPointSize = ( dataRanges[ 0 ] ) / 100.0; // TODO: ?
+		viewerPointSize = 7; // TODO: ?
 	}
 
 	private void setViewerAspectRatio()
@@ -134,6 +152,17 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		// Give a copy because the order of the list is changed by the KDTree
 		final ArrayList< RealPoint > copy = new ArrayList<>( points );
 		final KDTree< Integer > kdTree = new KDTree<>( indices, copy );
+		search = new NearestNeighborSearchOnKDTree<>( kdTree );
+	}
+
+	private void createViewerSearchTree( AffineTransform3D transform3D )
+	{
+		for ( int i = 0; i < points.size(); i++ )
+		{
+			transform3D.apply( points.get( i ), viewerPoints.get( i ) );
+		}
+
+		final KDTree< Integer > kdTree = new KDTree<>( indices, viewerPoints );
 		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 	}
 
@@ -181,12 +210,10 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		popupMenu.addPopupAction( "Focus closest image", e ->
 		{
 			new Thread( () -> {
-				final RealPoint global2dLocation = getMouseGlobal2dLocation();
-				search.search( global2dLocation );
-				final Sampler< Integer > sampler = search.getSampler();
-				final Integer rowIndex = sampler.get();
+				final RealPoint mouse3d = getViewerMouse3dPosition();
+				search.search( mouse3d );
+				final Integer rowIndex = search.getSampler().get();
 				final T tableRow = tableRows.get( rowIndex );
-//				final String cell = tableRow.getCell( columnNameX );
 				selectionModel.focus( tableRow );
 			}).start();
 		} );
@@ -222,6 +249,18 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
 	}
 
+	private RealPoint getViewerMouse3dPosition()
+	{
+		final RealPoint mouse2d = new RealPoint( 0, 0 );
+		bdvHandle.getViewerPanel().getMouseCoordinates( mouse2d );
+		final RealPoint mouse3d = new RealPoint( 3 );
+		for ( int d = 0; d < 2; d++ )
+		{
+			mouse3d.setPosition( mouse2d.getDoublePosition( d ), d );
+		}
+		return mouse3d;
+	}
+
 	private RealPoint getMouseGlobal2dLocation()
 	{
 		final RealPoint global3dLocation = new RealPoint( 3 );
@@ -233,6 +272,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	public void fetchDataPoints( String columnNameX, String columnNameY )
 	{
 		points = new ArrayList<>();
+		viewerPoints = new ArrayList<>();
 		indices = new ArrayList<>();
 
 		Double x, y;
@@ -245,7 +285,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			y = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameY ) );
 			if ( y.isNaN() ) continue;
 
-			points.add( new RealPoint( x, y ) );
+			points.add( new RealPoint( x, y, 0 ) );
+			viewerPoints.add( new RealPoint( 0, 0, 0 ) );
 			indices.add( rowIndex );
 			if ( x > xMax ) xMax = x;
 			if ( y > yMax ) yMax = y;
@@ -267,27 +308,30 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	public BiConsumer< RealLocalizable, IntType > createPlotFunction()
 	{
-		double squaredViewerPointSize = viewerPointSize * viewerPointSize;
-		final double squaredViewerAspectRatio = viewerAspectRatio * viewerAspectRatio;
+		final double squaredViewerPointSize = viewerPointSize * viewerPointSize;
+		final RealPoint dataPoint = new RealPoint( 0, 0, 0 );
+		final RealPoint viewerPoint = new RealPoint( 0, 0, 0 );
 
-		final double[] dxy = new double[ 2 ];
-
-		return ( position, t ) ->
+		return ( p, t ) ->
 		{
 			synchronized ( this )
 			{
-				search.search( position );
+				if ( viewerTransform == null ) return;
 
 				for ( int d = 0; d < 2; d++ )
 				{
-					dxy[ d ] = search.getPosition().getDoublePosition( d ) - position.getDoublePosition( d );
+					dataPoint.setPosition( p.getDoublePosition( d ), d );
 				}
 
-				if ( ( dxy[ 0 ] * dxy[ 0 ] + dxy[ 1 ] * dxy[ 1 ] * squaredViewerAspectRatio ) < squaredViewerPointSize  )
+				viewerTransform.apply( dataPoint, viewerPoint );
+
+				search.search( viewerPoint );
+
+				final double sqrDistance = sqrDistance( viewerPoint, search.getPosition() );
+
+				if ( sqrDistance < squaredViewerPointSize  )
 				{
-					final Sampler< Integer > sampler = search.getSampler();
-					final Integer integer = sampler.get();
-					t.set( integer );
+					t.set( search.getSampler().get() );
 				}
 				else
 				{
@@ -296,6 +340,22 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			}
 		};
 	}
+
+	final public static double sqrDistance( final RealLocalizable position1, final RealLocalizable position2 )
+	{
+		double distSqr = 0;
+
+		final int n = position1.numDimensions();
+		for ( int d = 0; d < n; ++d )
+		{
+			final double pos = position2.getDoublePosition( d ) - position1.getDoublePosition( d );
+
+			distSqr += pos * pos;
+		}
+
+		return distSqr;
+	}
+
 
 	private void showSource()
 	{
@@ -348,8 +408,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	public void setViewerTransform()
 	{
-		AffineTransform3D viewerTransform = new AffineTransform3D();
-		bdvHandle.getViewerPanel().getState().getViewerTransform( viewerTransform  );
+		viewerTransform = new AffineTransform3D();
+		bdvHandle.getViewerPanel().getState().getViewerTransform( viewerTransform );
 
 		AffineTransform3D reflectY = new AffineTransform3D();
 		reflectY.set( -1.0, 1, 1 );
@@ -364,7 +424,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		final AffineTransform3D translate = new AffineTransform3D();
 		translate.translate(  - ( bounds.realMin( 0 ) ), - ( bounds.realMin( 1 ) ) , 0 ); // TODO: ??
 		viewerTransform.preConcatenate( translate );
-
 
 		final FinalRealInterval bounds2 = viewerTransform.estimateBounds( dataInterval );
 
