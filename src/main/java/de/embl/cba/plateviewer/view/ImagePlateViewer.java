@@ -16,7 +16,7 @@ import de.embl.cba.plateviewer.github.IssueRaiser;
 import de.embl.cba.plateviewer.github.PlateLocation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
-import de.embl.cba.plateviewer.image.well.OutlinesImage;
+import de.embl.cba.plateviewer.image.well.WellAndSiteOutlinesSource;
 import de.embl.cba.plateviewer.image.well.OverlayBdvViewable;
 import de.embl.cba.plateviewer.image.well.WellNamesOverlay;
 import de.embl.cba.plateviewer.io.FileUtils;
@@ -55,7 +55,6 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
-import java.awt.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -259,8 +258,10 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 	public void addWellOutlinesImages()
 	{
-		final OutlinesImage outlinesImage = new OutlinesImage( this, 0.01 );
-		addToPanelAndBdv( outlinesImage );
+		final WellAndSiteOutlinesSource wellAndSiteOutlinesSource =
+				new WellAndSiteOutlinesSource( this, 0.01, 0.005 );
+
+		addToPanelAndBdv( wellAndSiteOutlinesSource );
 	}
 
 	public String getFileNamingScheme()
@@ -409,6 +410,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 					}
 				}
 			}
+
+
 			wellNameToInterval.put( wellName, union );
 		}
 
@@ -523,7 +526,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		}
 
 		affineTransform3D.translate( shift );
-
 
 		final long minSize = Math.min( interval.dimension( 0 ), interval.dimension( 1 ) );
 

@@ -21,58 +21,49 @@ import net.imglib2.view.Views;
 import java.awt.*;
 import java.util.function.BiConsumer;
 
-public class OutlinesImage implements BdvViewable
+public class WellAndSiteOutlinesSource implements BdvViewable
 {
 	public static final String IMAGE_NAME = "plate outlines";
-	private Interval imageInterval;
+	private Interval plateInterval;
 	private RandomAccessibleInterval< FloatType > rai;
 	private double[] contrastLimits;
 	private final long[] wellDimensions;
 	private RandomAccessibleIntervalSource< FloatType > source;
 	private final double relativeWellBorderWidth;
+	private final long[] siteDimensions;
+	private final double relativeSiteBorderWidth;
 
-	public OutlinesImage( ImagePlateViewer imageView, double relativeWellBorderWidth )
+	public WellAndSiteOutlinesSource( ImagePlateViewer imageView, double relativeWellBorderWidth, double relativeSiteBorderWidth )
 	{
 		this.wellDimensions = imageView.getWellDimensions();
-		this.imageInterval = Intervals.expand(
+		this.siteDimensions = imageView.getSiteDimensions();
+		this.relativeWellBorderWidth = relativeWellBorderWidth;
+		this.relativeSiteBorderWidth = relativeSiteBorderWidth;
+		this.plateInterval = Intervals.expand(
 				imageView.getPlateInterval(),
 				(int) ( wellDimensions[ 0 ] * relativeWellBorderWidth ) );
-		this.relativeWellBorderWidth = relativeWellBorderWidth;
-
 		contrastLimits = new double[ 2 ];
-
-		createImage();
+		createBordersImage();
 	}
 
-	private void createImage( )
+	private void createBordersImage( )
 	{
 		BiConsumer< Localizable, UnsignedByteType > biConsumer = ( l, t ) ->
 		{
-			final double[] distances = new double[ 2 ];
-			for ( int d = 0; d < 2; d++ )
-			{
-				double ratio = 1.0 * l.getIntPosition( d ) / wellDimensions[ d ];
-				distances[ d ] = Math.abs( ratio - Math.round( ratio ) );
-			}
+			t.set( 0 );
 
-			final double distance = Math.min( distances[ 0 ], distances[ 1 ] );
+			final boolean drawSiteBorder = isDrawBorder( l, siteDimensions, relativeSiteBorderWidth );
+			if ( drawSiteBorder ) t.set( 180 );
 
-			if ( distance < relativeWellBorderWidth )
-			{
-				t.set( 255 );
-				//t.set( (int) ( 255.0 * ( relativeWellBorderWidth - distance ) / relativeWellBorderWidth ));
-				return;
-			}
-			else
-			{
-				t.set( 0 );
-			}
+			final boolean drawWellBorder = isDrawBorder( l, wellDimensions, relativeWellBorderWidth );
+			if ( drawWellBorder ) t.set( 255 );
+
 		};
 
 		final FunctionRandomAccessible< FloatType > randomAccessible =
 				new FunctionRandomAccessible( 2, biConsumer, UnsignedByteType::new );
 
-		rai = Views.interval( randomAccessible, imageInterval );
+		rai = Views.interval( randomAccessible, plateInterval );
 
 		rai = Views.addDimension( rai, 0, 0 );
 
@@ -80,6 +71,20 @@ public class OutlinesImage implements BdvViewable
 
 		contrastLimits[ 0 ] = 0;
 		contrastLimits[ 1 ] = 255;
+	}
+
+	private static boolean isDrawBorder( Localizable l, long[] wellDimensions, double relativeWellBorderWidth )
+	{
+		final double[] distances = new double[ 2 ];
+		for ( int d = 0; d < 2; d++ )
+		{
+			double ratio = 1.0 * l.getIntPosition( d ) / wellDimensions[ d ];
+			distances[ d ] = Math.abs( ratio - Math.round( ratio ) );
+		}
+
+		final double distance = Math.min( distances[ 0 ], distances[ 1 ] );
+
+		return distance < relativeWellBorderWidth;
 	}
 
 	@Override

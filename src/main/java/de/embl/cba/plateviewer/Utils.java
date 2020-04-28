@@ -9,11 +9,13 @@ import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.labeling.ConnectedComponents;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.ARGBType;
@@ -137,6 +139,51 @@ public class Utils
 		final ArrayList< String > sorted = new ArrayList<>( strings );
 		Collections.sort( sorted, new SortIgnoreCase() );
 		return sorted;
+	}
+
+	public static Font getAdaptedSizeFont( Graphics2D g, int pixelWidth, String text, int fontSize )
+	{
+		Font font;
+		final int stringWidth = g.getFontMetrics().stringWidth( text );
+		if ( stringWidth > pixelWidth )
+		{
+			fontSize *= 0.8 * pixelWidth / stringWidth;
+		}
+
+		font = new Font( "TimesRoman", Font.PLAIN, fontSize );
+		return font;
+	}
+
+	public static void setFont( Graphics2D g, int[] dimensions, String text )
+	{
+		int fontSize = Math.min( dimensions[ 0 ], dimensions[ 1 ] ) / 2;
+
+		Font font = new Font( "TimesRoman", Font.PLAIN, fontSize );
+		g.setFont( font );
+
+		font = getAdaptedSizeFont( g, dimensions[ 0 ], text, fontSize );
+		g.setFont( font );
+	}
+
+	public static Interval createViewerInterval( AffineTransform2D globalToViewerTransform, Interval globalInterval )
+	{
+		final long[] globalWellPosMin = new long[ 2 ];
+		final long[] globalWellPosMax = new long[ 2 ];
+		final double[] screenWellPosMin = new double[ 2 ];
+		final double[] screenWellPosMax = new double[ 2 ];
+
+		globalInterval.min( globalWellPosMin );
+		globalInterval.max( globalWellPosMax );
+
+		globalToViewerTransform.apply(
+				Arrays.stream( globalWellPosMin ).mapToDouble( x -> x ).toArray(),
+				screenWellPosMin );
+
+		globalToViewerTransform.apply(
+				Arrays.stream( globalWellPosMax ).mapToDouble( x -> x ).toArray(),
+				screenWellPosMax );
+
+		return Intervals.smallestContainingInterval( new FinalRealInterval( screenWellPosMin, screenWellPosMax ) );
 	}
 
 	public static class SortIgnoreCase implements Comparator<Object> {
