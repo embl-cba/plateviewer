@@ -1,7 +1,5 @@
-package de.embl.cba.plateviewer.image.well;
+package de.embl.cba.plateviewer.image.plate;
 
-
-import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
@@ -14,13 +12,11 @@ import java.util.HashMap;
 
 public class WellNamesOverlay extends BdvOverlay
 {
-	final Bdv bdv;
 	private final ImagePlateViewer< ?, ? > plateViewer;
 
 	public WellNamesOverlay( ImagePlateViewer< ?, ? > plateViewer )
 	{
 		super();
-		this.bdv = plateViewer.getBdvHandle();
 		this.plateViewer = plateViewer;
 	}
 
@@ -40,10 +36,10 @@ public class WellNamesOverlay extends BdvOverlay
 
 			final Interval viewerInterval = Utils.createViewerInterval( globalToViewerTransform, globalInterval );
 
-			final int[] viewerWellSize = Intervals.dimensionsAsIntArray( viewerInterval );
-			Utils.setFont( g, viewerWellSize, wellName );
+			final int[] dimensions = Intervals.dimensionsAsIntArray( viewerInterval );
+			Utils.setFont( g, dimensions, wellName );
 
-			final int offset = viewerWellSize[ 0 ] / 10;
+			final int offset = dimensions[ 0 ] / 10;
 
 			g.drawString( wellName,
 					viewerInterval.min( 0 ) + offset,

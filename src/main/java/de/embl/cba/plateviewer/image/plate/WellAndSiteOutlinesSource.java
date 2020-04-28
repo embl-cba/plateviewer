@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.image.well;
+package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
 import bdv.util.RandomAccessibleIntervalSource;

@@ -16,12 +16,13 @@ import de.embl.cba.plateviewer.github.IssueRaiser;
 import de.embl.cba.plateviewer.github.PlateLocation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
-import de.embl.cba.plateviewer.image.well.WellAndSiteOutlinesSource;
-import de.embl.cba.plateviewer.image.well.OverlayBdvViewable;
-import de.embl.cba.plateviewer.image.well.WellNamesOverlay;
+import de.embl.cba.plateviewer.image.plate.SiteQCOverlay;
+import de.embl.cba.plateviewer.image.plate.WellAndSiteOutlinesSource;
+import de.embl.cba.plateviewer.image.plate.OverlayBdvViewable;
+import de.embl.cba.plateviewer.image.plate.WellNamesOverlay;
 import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.bdv.BdvSiteAndWellNamesOverlay;
+import de.embl.cba.plateviewer.bdv.BdvSiteAndWellInformationOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
@@ -83,6 +84,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private HashMap< String, MultiWellImg< ? > > channelToMultiWellImg;
 	private MultiWellImg referenceWellImg;
 	private Map< String, ChannelProperties > channelNamesToProperties;
+	private HashMap< String, Boolean > siteNameToQC;
 
 	public ImagePlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -115,13 +117,25 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		configPlateDimensions();
 
+
+
 		addWellOutlinesImages();
 
-		addSiteAndWellNamesOverlay( referenceWellImg );
+		addOverlays( referenceWellImg );
 
 		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		installBdvBehaviours();
+	}
+
+	private void mapSiteNamesToQC( )
+	{
+		siteNameToQC = new HashMap< String, Boolean >();
+
+		for ( String siteName : siteNameToInterval.keySet() )
+		{
+			siteNameToQC.put( siteName, true );
+		}
 	}
 
 	public PlateViewerMainPanel getMainPanel()
@@ -269,19 +283,23 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return fileNamingScheme;
 	}
 
-	private void addSiteAndWellNamesOverlay( MultiWellImg multiWellImg )
+	private void addOverlays( MultiWellImg multiWellImg )
 	{
 		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( this );
+		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "plate names" ) );
 
-		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "well names" ) );
+		final SiteQCOverlay siteQCOverlay = new SiteQCOverlay( this );
+		addToPanelAndBdv( new OverlayBdvViewable( siteQCOverlay, "image QC" ) );
 
-		BdvOverlay bdvOverlay = new BdvSiteAndWellNamesOverlay(
+
+		// Add overlay showing the site and well information in the bottom
+		//
+		BdvOverlay bdvOverlay = new BdvSiteAndWellInformationOverlay(
 				bdvHandle,
 				multiWellImg.getLoader() );
-
 		BdvFunctions.showOverlay(
 				bdvOverlay,
-				"site and well names mouse hover",
+				"site and plate information",
 				BdvOptions.options().addTo( bdvHandle ) );
 	}
 
@@ -446,14 +464,14 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles =
 				referenceWellImg.getLoader().getSingleSiteChannelFiles();
 
-		final ArrayList< String > imageNames = new ArrayList<>();
+		final ArrayList< String > siteNames = new ArrayList<>();
 
 		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
 		{
-			imageNames.add( singleSiteChannelFile.getSiteName() );
+			siteNames.add( singleSiteChannelFile.getSiteName() );
 		}
 
-		return imageNames;
+		return siteNames;
 	}
 
 	public ArrayList< String > getWellNames ( )
@@ -469,6 +487,16 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	public HashMap< String, Interval > getWellNameToInterval()
 	{
 		return wellNameToInterval;
+	}
+
+	public HashMap< String, Boolean > getSiteNameToQC()
+	{
+		return siteNameToQC;
+	}
+
+	public HashMap< String, Interval > getSiteNameToInterval()
+	{
+		return siteNameToInterval;
 	}
 
 	public void zoomToSite( String siteName )

@@ -14,7 +14,7 @@ import java.awt.*;
 import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
 
-public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotionListener
+public class BdvSiteAndWellInformationOverlay extends BdvOverlay implements MouseMotionListener
 {
 	final int numDimensions;
 	final Bdv bdv;
@@ -22,7 +22,7 @@ public class BdvSiteAndWellNamesOverlay extends BdvOverlay implements MouseMotio
 	private String wellName;
 	private String siteName;
 
-	public BdvSiteAndWellNamesOverlay(
+	public BdvSiteAndWellInformationOverlay(
 			Bdv bdv,
 			MultiSiteLoader multiSiteLoader )
 	{

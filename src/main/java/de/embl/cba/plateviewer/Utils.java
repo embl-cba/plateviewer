@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public class Utils
 {
 
-	public static final String WELL_PLATE_96 = "96 well plate";
+	public static final String WELL_PLATE_96 = "96 plate plate";
 	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	public static final String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

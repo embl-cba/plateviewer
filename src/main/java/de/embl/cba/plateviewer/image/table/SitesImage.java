@@ -120,7 +120,7 @@ public class SitesImage implements BdvViewable
 	@Override
 	public String getName()
 	{
-		return "table values";
+		return "image table values";
 	}
 
 	@Override
