@@ -1,19 +1,25 @@
 package de.embl.cba.plateviewer.plot;
 
+import bdv.util.Bdv;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOverlay;
+import bdv.viewer.animate.SimilarityTransformAnimator;
+import bdv.viewer.animate.TranslationAnimator;
+import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.plateviewer.bdv.RelativeTranslationAnimator;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import net.imglib2.RealPoint;
+import net.imglib2.ops.parse.token.Real;
+import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.LinAlgHelpers;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.List;
-
-import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
 public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 {
@@ -54,12 +60,38 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 			@Override
 			public void focusEvent( T selection )
 			{
+				if ( bdvHandle == null ) return;
+
 				final double x = Double.parseDouble( selection.getCell( columnNameX ) );
 				final double y = Double.parseDouble( selection.getCell( columnNameY ) );
 				selectedPoint = new RealPoint( x, y );
-				bdvHandle.getViewerPanel().requestRepaint();
+
+				centerViewer( selectedPoint, 2000 );
 			}
 		} );
+	}
+
+
+	private void centerViewer( RealPoint selectedPoint, long durationMillis )
+	{
+		final AffineTransform3D currentViewerTransform = new AffineTransform3D();
+		getCurrentTransform3D( currentViewerTransform );
+
+		final double[] globalLocation = { selectedPoint.getDoublePosition( 0 ), selectedPoint.getDoublePosition( 1 ), 0 };
+		final double[] currentViewerLocation = new double[ 3 ];
+		currentViewerTransform.apply( globalLocation, currentViewerLocation );
+
+		final double[] bdvWindowCenter = BdvUtils.getBdvWindowCenter( bdvHandle );
+
+		final double[] translation = new double[ 3 ];
+		LinAlgHelpers.subtract( bdvWindowCenter, currentViewerLocation, translation );
+
+		final RelativeTranslationAnimator animator = new RelativeTranslationAnimator(
+				currentViewerTransform.copy(),
+				translation,
+				durationMillis );
+
+		bdvHandle.getViewerPanel().setTransformAnimator( animator );
 	}
 
 	@Override
@@ -68,13 +100,8 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 		if ( selectedPoint == null ) return;
 
 		g.setColor( Color.WHITE );
-		final AffineTransform3D globalToViewerTransform = new AffineTransform3D();
-		getCurrentTransform3D( globalToViewerTransform );
 
-		final RealPoint viewerPoint = new RealPoint( 0, 0, 0 );
-		final RealPoint globalPoint = new RealPoint( selectedPoint.getDoublePosition( 0 ), selectedPoint.getDoublePosition( 1 ), 0 );
-		globalToViewerTransform.apply( globalPoint, viewerPoint );
-
+		final RealPoint viewerPoint = getViewerPoint( selectedPoint );
 
 		final Ellipse2D.Double circle = new Ellipse2D.Double(
 				viewerPoint.getDoublePosition( 0 ) - selectionCircleWidth / 2,
@@ -83,6 +110,16 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 				selectionCircleWidth );
 
 		g.draw( circle );
+	}
+
+	public RealPoint getViewerPoint( RealPoint globalPoint2D )
+	{
+		final AffineTransform2D globalToViewerTransform = new AffineTransform2D();
+		getCurrentTransform2D( globalToViewerTransform );
+
+		final RealPoint viewerPoint2D = new RealPoint( 0, 0 );
+		globalToViewerTransform.apply( globalPoint2D, viewerPoint2D );
+		return viewerPoint2D;
 	}
 }
 

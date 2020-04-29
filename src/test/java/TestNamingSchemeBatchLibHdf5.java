@@ -17,13 +17,15 @@ public class TestNamingSchemeBatchLibHdf5
 //				1, false);
 
 		final PlateViewer plateViewer = new PlateViewer(
-				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/20200420_164920_764_IgA" ),
+				new File( "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/plate7rep1_20200426_103425_693_IgA" ),
 				".*.h5",
 				true,
 				1,
 				false );
 
-//
+
+//		"/Users/tischer/Documents/mnt/hci/data-processed-multiscale/20200420_164920_764_IgA"
+
 	}
 
 }

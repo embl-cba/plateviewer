@@ -456,7 +456,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
 
-		bdvHandle.getViewerPanel().setCurrentViewerTransform( affineTransform3D );
+		BdvUtils.changeBdvViewerTransform( bdvHandle, affineTransform3D, 2000 );
 	}
 
 	public ArrayList< String > getSiteNames ( )

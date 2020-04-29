@@ -394,7 +394,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		// make 3D
 		final RealRandomAccessible< IntType > rra = RealViews.addDimension( fra );
 
-		indexSource = new RealRandomAccessibleIntervalSource( rra, dataPlotInterval, new IntType(  ), "scatterPlot" );
+		indexSource = new RealRandomAccessibleIntervalSource( rra, dataPlotInterval, new IntType(  ), "" );
 
 		//scatterSource.getInterpolatedSource(  )
 
