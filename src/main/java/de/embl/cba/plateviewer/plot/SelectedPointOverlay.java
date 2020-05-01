@@ -30,10 +30,11 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 	private final ArrayList< RealPoint > points;
 	private final String columnNameX;
 	private final String columnNameY;
+	private final String columnNameQC;
 	private RealPoint selectedPoint;
 	private int selectionCircleWidth;
 
-	public SelectedPointOverlay( BdvHandle bdvHandle, List< T > tableRows, SelectionModel< T > selectionModel, ArrayList< RealPoint > points, String columnNameX, String columnNameY )
+	public SelectedPointOverlay( BdvHandle bdvHandle, List< T > tableRows, SelectionModel< T > selectionModel, ArrayList< RealPoint > points, String columnNameX, String columnNameY, String columnNameQC )
 	{
 		super();
 		this.bdvHandle = bdvHandle;
@@ -42,6 +43,7 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 		this.points = points;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
+		this.columnNameQC = columnNameQC;
 
 		selectionCircleWidth = 20;
 
@@ -62,7 +64,13 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 			public void focusEvent( T selection )
 			{
 				if ( bdvHandle == null ) return;
-				
+
+				if ( columnNameQC != null )
+				{
+					if ( Integer.parseInt( selection.getCell( columnNameQC ) ) != 0)
+						return;
+				}
+
 				final double x = Utils.parseDouble( selection.getCell( columnNameX ));
 				final double y = Utils.parseDouble( selection.getCell( columnNameY ) );
 				selectedPoint = new RealPoint( x, y );

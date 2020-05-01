@@ -187,7 +187,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				selectionModel,
 				points,
 				columnNameX,
-				columnNameY);
+				columnNameY,
+				columnNameQC);
 
 		selectedPointOverlayBdvSource = BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}

@@ -42,7 +42,7 @@ public class QCOverlay extends BdvOverlay
 			final Interval viewerInterval = Utils.createViewerInterval( globalToViewerTransform, globalInterval );
 
 			g.setColor( Color.RED );
-			Graphics.drawCross( g, viewerInterval, 0.1, 3 );
+			Graphics.drawCross( g, viewerInterval, 0.1, 2 );
 
 //			final int fontSize = Utils.setFont( g, dimensions, "X" );
 //			final int offset = ( dimensions[ 0 ] - fontSize ) / 2;
