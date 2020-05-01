@@ -5,10 +5,12 @@ import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.plateviewer.bdv.RawDataFetcher;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.channel.ChannelProperties;
 import de.embl.cba.plateviewer.channel.Channels;
@@ -35,6 +37,7 @@ import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
+import ij.CompositeImage;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import net.imglib2.FinalInterval;
@@ -221,7 +224,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			}).start();
 		} );
 
-		popupMenu.addPopupAction( "Focus image", e -> {
+		popupMenu.addPopupAction( "Focus site", e -> {
 			zoomToSite( siteName );
 		} );
 
@@ -238,6 +241,12 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			if ( gd.wasCanceled() ) return;
 			final double radius = gd.getNextNumber();
 			logRegionStatistics( plateLocation, radius );
+		} );
+
+		popupMenu.addPopupAction( "Fetch raw data", e -> {
+			//zoomToSite( siteName );
+			final CompositeImage compositeImage = new RawDataFetcher( bdvHandle ).fetchRawData( 0 );
+			compositeImage.show();
 		} );
 
 		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
@@ -315,7 +324,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( this );
 		this.overlays.add( wellNamesOverlay  );
-		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "plate names" ) );
+		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "well names" ) );
 	}
 
 	public static String getImageNamingScheme( List< File > fileList )

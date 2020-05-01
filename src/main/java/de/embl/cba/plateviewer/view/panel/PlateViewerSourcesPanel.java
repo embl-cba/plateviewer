@@ -6,7 +6,9 @@ import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
+import de.embl.cba.plateviewer.image.channel.MultiWellImg;
 import de.embl.cba.plateviewer.image.table.SitesImage;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -52,7 +54,6 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         colors.add( Color.CYAN );
         colors.add( Color.ORANGE );
         colors.add( Color.PINK );
-
     }
 
     public void addToPanel( BdvViewable bdvViewable, BdvSource bdvSource )
