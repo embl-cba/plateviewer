@@ -43,7 +43,8 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		this.numIoThreads = numIoThreads;
 		this.includeSubFolders = includeSubFolders;
 
-		final ImagePlateViewer< R, T > imageView = new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
+		final ImagePlateViewer< R, T > imageView =
+				new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
 
 		if ( loadImageTable )
 		{

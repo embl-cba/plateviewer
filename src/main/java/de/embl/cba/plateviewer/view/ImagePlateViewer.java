@@ -16,7 +16,7 @@ import de.embl.cba.plateviewer.github.IssueRaiser;
 import de.embl.cba.plateviewer.github.PlateLocation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
-import de.embl.cba.plateviewer.image.plate.SiteQCOverlay;
+import de.embl.cba.plateviewer.image.plate.QCOverlay;
 import de.embl.cba.plateviewer.image.plate.WellAndSiteOutlinesSource;
 import de.embl.cba.plateviewer.image.plate.OverlayBdvViewable;
 import de.embl.cba.plateviewer.image.plate.WellNamesOverlay;
@@ -84,7 +84,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private HashMap< String, MultiWellImg< ? > > channelToMultiWellImg;
 	private MultiWellImg referenceWellImg;
 	private Map< String, ChannelProperties > channelNamesToProperties;
-	private HashMap< String, Boolean > siteNameToQC;
+	private HashMap< String, Integer > siteNameToQC;
+	private Set< BdvOverlay > overlays;
 
 	public ImagePlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -96,6 +97,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		this.plateName = new File( inputDirectory ).getName();
 		//this.multiWellImgs = new ArrayList<>();
 		channelToMultiWellImg = new HashMap<>();
+
+		overlays = new HashSet<>(  );
 
 		this.loadingQueue = new SharedQueue( numIoThreads );
 
@@ -117,25 +120,32 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		configPlateDimensions();
 
-
-
 		addWellOutlinesImages();
 
-		addOverlays( referenceWellImg );
+		addWellNamesOverlay();
+
+		addWellAndSiteInformationOverlay( referenceWellImg );
 
 		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		installBdvBehaviours();
 	}
 
-	private void mapSiteNamesToQC( )
+	private void mapSiteNamesToQC( List< DefaultSiteTableRow > tableRows, String siteNameColumnName, String outlierColumnName )
 	{
-		siteNameToQC = new HashMap< String, Boolean >();
+		siteNameToQC = new HashMap<>();
 
-		for ( String siteName : siteNameToInterval.keySet() )
+		for ( DefaultSiteTableRow tableRow : tableRows )
 		{
-			siteNameToQC.put( siteName, true );
+			final String siteName = tableRow.getCell( siteNameColumnName );
+			final Integer outlier = Integer.parseInt( tableRow.getCell( outlierColumnName ) );
+			siteNameToQC.put( siteName, outlier );
 		}
+	}
+
+	public Set< BdvOverlay > getOverlays()
+	{
+		return overlays;
 	}
 
 	public PlateViewerMainPanel getMainPanel()
@@ -202,7 +212,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		popupMenu.addPopupAction( "Report issue...", e ->
 		{
 			new Thread( () -> {
-				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot( bdvHandle.getViewerPanel() );
+				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot(
+						bdvHandle.getViewerPanel(),
+						getOverlays() );
 				screenShot.setTitle( plateName + "-"  + siteName  );
 				final IssueRaiser issueRaiser = new IssueRaiser();
 				issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
@@ -283,24 +295,27 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return fileNamingScheme;
 	}
 
-	private void addOverlays( MultiWellImg multiWellImg )
+	private void addWellAndSiteInformationOverlay( MultiWellImg multiWellImg )
 	{
-		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( this );
-		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "plate names" ) );
-
-		final SiteQCOverlay siteQCOverlay = new SiteQCOverlay( this );
-		addToPanelAndBdv( new OverlayBdvViewable( siteQCOverlay, "image QC" ) );
-
-
 		// Add overlay showing the site and well information in the bottom
 		//
 		BdvOverlay bdvOverlay = new BdvSiteAndWellInformationOverlay(
 				bdvHandle,
 				multiWellImg.getLoader() );
+
+		overlays.add( bdvOverlay );
+
 		BdvFunctions.showOverlay(
 				bdvOverlay,
 				"site and plate information",
 				BdvOptions.options().addTo( bdvHandle ) );
+	}
+
+	private void addWellNamesOverlay()
+	{
+		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( this );
+		this.overlays.add( wellNamesOverlay  );
+		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "plate names" ) );
 	}
 
 	public static String getImageNamingScheme( List< File > fileList )
@@ -489,7 +504,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return wellNameToInterval;
 	}
 
-	public HashMap< String, Boolean > getSiteNameToQC()
+	public HashMap< String, Integer > getSiteNameToQC()
 	{
 		return siteNameToQC;
 	}
@@ -786,6 +801,18 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	public void registerTableView( TableRowsTableView< DefaultSiteTableRow > tableView )
 	{
 		this.tableView = tableView;
+
+		addSiteQCOverlay( tableView );
+	}
+
+	private void addSiteQCOverlay( TableRowsTableView< DefaultSiteTableRow > tableView )
+	{
+		// TODO: where do the column names come from? Maybe some BatchLibHDF5 helper class?
+		mapSiteNamesToQC( tableView.getTableRows(), "site_name", "marked_as_outlier" );
+
+		final QCOverlay siteQCOverlay = new QCOverlay( this.getSiteNameToQC(), this.getSiteNameToInterval() );
+		overlays.add( siteQCOverlay );
+		addToPanelAndBdv( new OverlayBdvViewable( siteQCOverlay, "image QC" ) );
 	}
 
 	public TableRowsTableView< DefaultSiteTableRow > getTableView()

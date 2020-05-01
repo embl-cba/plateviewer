@@ -372,7 +372,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		return distSqr;
 	}
 
-
 	private void showSource()
 	{
 		Prefs.showMultibox( false );

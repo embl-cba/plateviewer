@@ -1,11 +1,5 @@
 package de.embl.cba.plateviewer;
 
-import bdv.util.Bdv;
-import bdv.util.BdvFunctions;
-import bdv.util.BdvSource;
-import ch.systemsx.cisd.hdf5.HDF5Factory;
-import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
@@ -154,7 +148,7 @@ public class Utils
 		return font;
 	}
 
-	public static void setFont( Graphics2D g, int[] dimensions, String text )
+	public static int setFont( Graphics2D g, int[] dimensions, String text )
 	{
 		int fontSize = Math.min( dimensions[ 0 ], dimensions[ 1 ] ) / 2;
 
@@ -163,6 +157,8 @@ public class Utils
 
 		font = getAdaptedSizeFont( g, dimensions[ 0 ], text, fontSize );
 		g.setFont( font );
+
+		return font.getSize();
 	}
 
 	public static Interval createViewerInterval( AffineTransform2D globalToViewerTransform, Interval globalInterval )

@@ -95,7 +95,8 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		final JButton button = new JButton( "Make Screenshot" );
 
 		button.addActionListener( e -> {
-			SimpleScreenShotMaker.getSimpleScreenShot( imagePlateViewer.getBdvHandle().getViewerPanel() ).show();
+			SimpleScreenShotMaker.getSimpleScreenShot(
+					imagePlateViewer.getBdvHandle().getViewerPanel(), imagePlateViewer.getOverlays() ).show();
 //			BdvViewCaptures.captureView(
 //					bdv.getBdvHandle(),
 //					1.0,

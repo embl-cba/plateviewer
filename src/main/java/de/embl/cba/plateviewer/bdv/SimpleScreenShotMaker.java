@@ -1,6 +1,7 @@
 package de.embl.cba.plateviewer.bdv;
 
 import bdv.cache.CacheControl;
+import bdv.util.BdvOverlay;
 import bdv.util.Prefs;
 import bdv.viewer.ViewerPanel;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
@@ -13,15 +14,16 @@ import net.imglib2.ui.RenderTarget;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Set;
 
 public class SimpleScreenShotMaker
 {
-	public static ImagePlus getSimpleScreenShot( ViewerPanel viewer )
+	public static ImagePlus getSimpleScreenShot( ViewerPanel viewer, Set< BdvOverlay > overlays )
 	{
-		return getSimpleScreenShot( viewer, viewer.getWidth(), viewer.getHeight() );
+		return getSimpleScreenShot( viewer, viewer.getWidth(), viewer.getHeight(), overlays );
 	}
 
-	public static ImagePlus getSimpleScreenShot( ViewerPanel viewer, int width, int height )
+	private static ImagePlus getSimpleScreenShot( ViewerPanel viewer, int width, int height, Set< BdvOverlay > overlays )
 	{
 		final ViewerState renderState = viewer.getState();
 
@@ -75,6 +77,15 @@ public class SimpleScreenShotMaker
 			g2.setClip( 0, 0, width, height );
 			scalebar.setViewerState( renderState );
 			scalebar.paint( g2 );
+		}
+
+		if ( overlays != null )
+		{
+			final Graphics2D g = target.bi.createGraphics();
+			for ( BdvOverlay overlay : overlays )
+			{
+				overlay.drawOverlays( g );
+			}
 		}
 
 		return new ImagePlus( "ScreenShot", target.bi );
