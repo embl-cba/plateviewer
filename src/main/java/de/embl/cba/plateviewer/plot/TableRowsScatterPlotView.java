@@ -16,14 +16,12 @@ import ij.gui.GenericDialog;
 import net.imglib2.*;
 import net.imglib2.neighborsearch.NearestNeighborSearchOnKDTree;
 import net.imglib2.position.FunctionRealRandomAccessible;
-import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.realtransform.RealViews;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.ui.TransformListener;
 import net.imglib2.util.Intervals;
-import net.imglib2.util.LinAlgHelpers;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -52,6 +50,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private String columnNameY;
 	private BdvStackSource< VolatileARGBType > scatterPlotBdvSource;
 	private final String[] columnNames;
+	private final String columnNameQC;
 	private BdvOverlaySource< SelectedPointOverlay > selectedPointOverlayBdvSource;
 	private BdvOverlaySource< ScatterPlotOverlay > scatterPlotOverlayBdvSource;
 	private String[] lineChoices;
@@ -71,8 +70,9 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			String plateName,
 			String columnNameX,
 			String columnNameY,
+			String columnNameQC,
 			String lineOverlay
-			)
+	)
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
@@ -80,6 +80,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		this.plateName = plateName;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
+		this.columnNameQC = columnNameQC;
 
 		numTableRows = tableRows.size();
 		columnNames = tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new );
@@ -108,6 +109,19 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		showSource();
 
+		registerAsViewerTransformListener();
+
+		setViewerTransform();
+
+		installBdvBehaviours();
+
+		setWindowPosition( x, y );
+
+		showOverlays();
+	}
+
+	private void registerAsViewerTransformListener()
+	{
 		bdvHandle.getViewerPanel().addTransformListener( new TransformListener< AffineTransform3D >()
 		{
 			@Override
@@ -120,14 +134,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				}
 			}
 		} );
-
-		setViewerTransform();
-
-		installBdvBehaviours();
-
-		setWindowPosition( x, y );
-
-		showOverlays();
 	}
 
 	private void setViewerPointSize()
@@ -276,14 +282,24 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		indices = new ArrayList<>();
 
 		Double x, y;
+
 		Double xMax=-Double.MAX_VALUE,yMax=-Double.MAX_VALUE,xMin=Double.MAX_VALUE,yMin=Double.MAX_VALUE;
 
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
 			x = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameX ) );
 			if ( x.isNaN() ) continue;
+
 			y = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameY ) );
 			if ( y.isNaN() ) continue;
+
+			if ( columnNameQC != null )
+			{
+				if ( Integer.parseInt(  tableRows.get( rowIndex ).getCell( columnNameQC ) ) != 0 )
+				{
+					continue;
+				};
+			}
 
 			points.add( new RealPoint( x, y, 0 ) );
 			viewerPoints.add( new RealPoint( 0, 0, 0 ) );
@@ -416,16 +432,23 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		viewerTransform.preConcatenate( reflectY );
 
 		final AffineTransform3D scale = new AffineTransform3D();
-		scale.scale( 1.0, viewerAspectRatio, 1.0  );
+		scale.scale( 0.8, 0.8 * viewerAspectRatio, 1.0  );
 		viewerTransform.preConcatenate( scale );
 
-		final FinalRealInterval bounds = viewerTransform.estimateBounds( dataInterval );
+		FinalRealInterval bounds = viewerTransform.estimateBounds( dataInterval );
 
 		final AffineTransform3D translate = new AffineTransform3D();
-		translate.translate(  - ( bounds.realMin( 0 ) ), - ( bounds.realMin( 1 ) ) , 0 ); // TODO: ??
+		translate.translate( - ( bounds.realMin( 0 ) ), - ( bounds.realMin( 1 ) ), 0 );
 		viewerTransform.preConcatenate( translate );
+		bounds = viewerTransform.estimateBounds( dataInterval );
 
-		final FinalRealInterval bounds2 = viewerTransform.estimateBounds( dataInterval );
+		final double[] translation = new double[ 2 ];
+		translation[ 0 ] = 0.5 * ( BdvUtils.getBdvWindowWidth( bdvHandle ) - bounds.realMax( 0 ) );
+		translation[ 1 ] = 0.5 * ( BdvUtils.getBdvWindowHeight( bdvHandle ) - bounds.realMax( 1 ));
+
+		final AffineTransform3D translate2 = new AffineTransform3D();
+		translate2.translate( translation[ 0 ], translation[ 1 ], 0 );
+		viewerTransform.preConcatenate( translate2 );
 
 		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
 	}

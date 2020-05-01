@@ -6,6 +6,7 @@ import bdv.util.BdvOverlay;
 import bdv.viewer.animate.SimilarityTransformAnimator;
 import bdv.viewer.animate.TranslationAnimator;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.RelativeTranslationAnimator;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
@@ -61,9 +62,9 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 			public void focusEvent( T selection )
 			{
 				if ( bdvHandle == null ) return;
-
-				final double x = Double.parseDouble( selection.getCell( columnNameX ) );
-				final double y = Double.parseDouble( selection.getCell( columnNameY ) );
+				
+				final double x = Utils.parseDouble( selection.getCell( columnNameX ));
+				final double y = Utils.parseDouble( selection.getCell( columnNameY ) );
 				selectedPoint = new RealPoint( x, y );
 
 				centerViewer( selectedPoint, 2000 );

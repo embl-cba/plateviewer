@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.table;
 
-public interface SiteName
+public interface Site
 {
 	String getSiteName();
 }

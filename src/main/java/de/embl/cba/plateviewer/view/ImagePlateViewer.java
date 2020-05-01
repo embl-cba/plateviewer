@@ -26,8 +26,8 @@ import de.embl.cba.plateviewer.bdv.BdvSiteAndWellInformationOverlay;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
-import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
-import de.embl.cba.plateviewer.table.SiteName;
+import de.embl.cba.plateviewer.table.DefaultSiteTableRow;
+import de.embl.cba.plateviewer.table.Site;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
@@ -60,7 +60,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T extends SiteName >
+public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T extends Site >
 {
 	private final SharedQueue loadingQueue;
 
@@ -78,7 +78,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private long[] siteDimensions;
 	private long[] wellDimensions;
 	private String plateName;
-	private TableRowsTableView< DefaultSiteNameTableRow > tableView;
+	private TableRowsTableView< DefaultSiteTableRow > tableView;
 	private BdvSource dummySource;
 	private List< File > fileList;
 	private HashMap< String, MultiWellImg< ? > > channelToMultiWellImg;
@@ -783,12 +783,12 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 	// TODO: what minimal type is needed here? DefaultSiteNameTableRow?
 	// TODO: maybe this is not needed?
-	public void registerTableView( TableRowsTableView< DefaultSiteNameTableRow > tableView )
+	public void registerTableView( TableRowsTableView< DefaultSiteTableRow > tableView )
 	{
 		this.tableView = tableView;
 	}
 
-	public TableRowsTableView< DefaultSiteNameTableRow > getTableView()
+	public TableRowsTableView< DefaultSiteTableRow > getTableView()
 	{
 		return tableView;
 	}

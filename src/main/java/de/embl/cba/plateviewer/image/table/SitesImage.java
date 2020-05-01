@@ -6,9 +6,8 @@ import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.table.DefaultSiteNameTableRow;
+import de.embl.cba.plateviewer.table.DefaultSiteTableRow;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
-import de.embl.cba.tables.Tables;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import net.imglib2.Interval;
@@ -17,11 +16,9 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
@@ -29,21 +26,21 @@ import java.util.function.BiConsumer;
 
 public class SitesImage implements BdvViewable
 {
-	private final List< DefaultSiteNameTableRow > tableRows;
-	private final SelectionColoringModel< DefaultSiteNameTableRow > coloringModel;
+	private final List< DefaultSiteTableRow > tableRows;
+	private final SelectionColoringModel< DefaultSiteTableRow > coloringModel;
 	private final ImagePlateViewer imagePlateViewer;
 	private Interval plateInterval;
 	private final long[] siteDimensions;
 	private RandomAccessibleInterval< IntType > rai;
 	private double[] contrastLimits;
 	private final String[][] siteNameMatrix;
-	private HashMap< String, DefaultSiteNameTableRow > siteNameToTableRow;
+	private HashMap< String, DefaultSiteTableRow > siteNameToTableRow;
 	private HashMap< String, Integer > siteNameToTableRowIndex;
 	private ARGBConvertedRealSource argbSource;
 
 	public SitesImage(
-			List< DefaultSiteNameTableRow > tableRows,
-			SelectionColoringModel< DefaultSiteNameTableRow > coloringModel,
+			List< DefaultSiteTableRow > tableRows,
+			SelectionColoringModel< DefaultSiteTableRow > coloringModel,
 			ImagePlateViewer imagePlateViewer )
 	{
 		this.tableRows = tableRows;
@@ -62,13 +59,13 @@ public class SitesImage implements BdvViewable
 		createImage();
 	}
 
-	public void createSiteNameToTableRowMap( List< DefaultSiteNameTableRow > tableRows )
+	public void createSiteNameToTableRowMap( List< DefaultSiteTableRow > tableRows )
 	{
 		siteNameToTableRow = new HashMap<>();
 		siteNameToTableRowIndex = new HashMap();
 
 		int rowIndex = 0;
-		for ( DefaultSiteNameTableRow tableRow : tableRows )
+		for ( DefaultSiteTableRow tableRow : tableRows )
 		{
 			siteNameToTableRow.put( tableRow.getSiteName(), tableRow );
 			siteNameToTableRowIndex.put( tableRow.getSiteName(), rowIndex++ );
@@ -108,7 +105,7 @@ public class SitesImage implements BdvViewable
 		final RandomAccessibleIntervalSource< IntType > tableRowIndexSource
 				= new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), "table row index" );
 
-		final ListItemsARGBConverter< DefaultSiteNameTableRow > argbConverter =
+		final ListItemsARGBConverter< DefaultSiteTableRow > argbConverter =
 				new ListItemsARGBConverter<>( tableRows, coloringModel );
 
 		argbSource = new ARGBConvertedRealSource( tableRowIndexSource , argbConverter );

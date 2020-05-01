@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultSiteNameTableRow implements SiteNameTableRow
+public class DefaultSiteTableRow implements SiteTableRow
 {
 	private final Map< String, List< String > > columns;
 	private final String siteName;
 	private final int rowIndex;
 
-	public DefaultSiteNameTableRow( String siteName, Map< String, List< String > > columns, int rowIndex )
+	public DefaultSiteTableRow( String siteName, Map< String, List< String > > columns, int rowIndex )
 	{
 		this.siteName = siteName;
 		this.columns = columns;
