@@ -7,6 +7,7 @@ import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.source.ARGBConvertedRealAccessibleSource;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
+import de.embl.cba.plateviewer.table.Outlier;
 import de.embl.cba.plateviewer.view.PopupMenu;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -50,7 +51,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private String columnNameY;
 	private BdvStackSource< VolatileARGBType > scatterPlotBdvSource;
 	private final String[] columnNames;
-	private final String outlierColumnName;
 	private String[] lineChoices;
 	private String lineOverlay;
 	private double viewerAspectRatio = 1.0;
@@ -70,9 +70,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			String plateName,
 			String columnNameX,
 			String columnNameY,
-			String outlierColumnName,
-			String lineOverlay
-	)
+			String lineOverlay )
 	{
 		this.tableRows = tableRows;
 		this.name = name;
@@ -81,7 +79,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		this.plateName = plateName;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
-		this.outlierColumnName = outlierColumnName;
 
 		numTableRows = tableRows.size();
 		columnNames = tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new );
@@ -182,14 +179,14 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void showSelectedPoints()
 	{
-		SelectedPointOverlay selectedPointOverlay = new SelectedPointOverlay(
-				bdvHandle,
-				tableRows,
-				selectionModel,
-				points,
-				columnNameX,
-				columnNameY,
-				outlierColumnName );
+		SelectedPointOverlay selectedPointOverlay =
+				new SelectedPointOverlay(
+					bdvHandle,
+					tableRows,
+					selectionModel,
+					points,
+					columnNameX,
+					columnNameY );
 
 		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
@@ -289,15 +286,18 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
-			x = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameX ) );
+			final T tableRow = tableRows.get( rowIndex );
+
+			x = Utils.parseDouble( tableRow.getCell( columnNameX ) );
 			if ( x.isNaN() ) continue;
 
-			y = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameY ) );
+			y = Utils.parseDouble( tableRow.getCell( columnNameY ) );
 			if ( y.isNaN() ) continue;
 
-			if ( outlierColumnName != null )
+
+			if ( tableRow instanceof Outlier )
 			{
-				if ( isOutlier( rowIndex ) )
+				if ( ( ( Outlier ) tableRow ).isOutlier() )
 				{
 					continue;
 				}
@@ -322,11 +322,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		dataAspectRatio = dataRanges[ 1 ] / dataRanges[ 0 ];
 
-	}
-
-	private boolean isOutlier( int rowIndex )
-	{
-		return Integer.parseInt(  tableRows.get( rowIndex ).getCell( outlierColumnName ) ) == 0;
 	}
 
 	public BiConsumer< RealLocalizable, IntType > createPlotFunction()

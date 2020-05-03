@@ -8,6 +8,7 @@ import bdv.viewer.animate.TranslationAnimator;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.bdv.RelativeTranslationAnimator;
+import de.embl.cba.plateviewer.table.Outlier;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
@@ -30,11 +31,10 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 	private final ArrayList< RealPoint > points;
 	private final String columnNameX;
 	private final String columnNameY;
-	private final String columnNameQC;
 	private RealPoint selectedPoint;
 	private int selectionCircleWidth;
 
-	public SelectedPointOverlay( BdvHandle bdvHandle, List< T > tableRows, SelectionModel< T > selectionModel, ArrayList< RealPoint > points, String columnNameX, String columnNameY, String columnNameQC )
+	public SelectedPointOverlay( BdvHandle bdvHandle, List< T > tableRows, SelectionModel< T > selectionModel, ArrayList< RealPoint > points, String columnNameX, String columnNameY )
 	{
 		super();
 		this.bdvHandle = bdvHandle;
@@ -43,7 +43,6 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 		this.points = points;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
-		this.columnNameQC = columnNameQC;
 
 		selectionCircleWidth = 20;
 
@@ -65,10 +64,12 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 			{
 				if ( bdvHandle == null ) return;
 
-				if ( columnNameQC != null )
+				if ( selection instanceof Outlier )
 				{
-					if ( Integer.parseInt( selection.getCell( columnNameQC ) ) != 0)
+					if ( ( ( Outlier ) selection ).isOutlier() )
+					{
 						return;
+					}
 				}
 
 				final double x = Utils.parseDouble( selection.getCell( columnNameX ));

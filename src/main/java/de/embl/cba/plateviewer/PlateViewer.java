@@ -87,7 +87,6 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 							imageView.getPlateName(),
 							NamingSchemes.ColumnNamesBatchLibHdf5.getDefaultColumnNameX( siteTableRows ),
 							NamingSchemes.ColumnNamesBatchLibHdf5.getDefaultColumnNameY(),
-							NamingSchemes.ColumnNamesBatchLibHdf5.COLUMN_NAME_OUTLIER,
 							ScatterPlotOverlay.Y_NX );
 
 			scatterPlotView.show( bdvViewerPanel );

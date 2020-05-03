@@ -4,6 +4,7 @@ import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.DoubleStatistics;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
@@ -12,14 +13,18 @@ import ij.ImagePlus;
 import ij.gui.YesNoCancelDialog;
 import ij.plugin.Duplicator;
 import ij.process.LUT;
+import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealPoint;
 import net.imglib2.algorithm.util.Grids;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.roi.IterableRegion;
+import net.imglib2.roi.RealMaskRealInterval;
+import net.imglib2.roi.Regions;
+import net.imglib2.roi.geom.GeomMasks;
+import net.imglib2.type.logic.BoolType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.Intervals;
@@ -27,10 +32,8 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static de.embl.cba.bdv.utils.BdvUtils.*;
 
@@ -50,26 +53,54 @@ public class PlateChannelRawDataFetcher
 		viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
 	}
 
-	public HashMap< Integer, PixelValueStatistics > computePixelValueStatistics( RealPoint globalLocation, double radius, int t )
+	public Map< String, PixelValueStatistics > computePixelValueStatistics( RealPoint globalPoint, double radius, int t )
 	{
-		return null;
+		final HashMap< String, PixelValueStatistics > nameToStatistics = new HashMap<>();
+
+		for ( Source< ? > source : sourceToBdvStackSource.keySet() )
+		{
+			final int level = 0; // getLevel( source, viewerVoxelSpacing );
+
+			final double[] doublePosition = getSourceDoublePosition( globalPoint, t, source, level );
+			RealMaskRealInterval mask = GeomMasks.closedSphere( doublePosition, radius );
+			IterableRegion< BoolType > iterableRegion = toIterableRegion(mask, source.getSource( t, level ));
+			IterableInterval< ? extends RealType<?>> iterable = ( IterableInterval< ? extends RealType< ? > > ) Regions.sample(iterableRegion, source.getSource( t, level ));
+
+			final ArrayList< Double > values = new ArrayList<>();
+			for( RealType<?> pixel : iterable )
+			{
+				values.add( pixel.getRealDouble() );
+			}
+
+			final DoubleStatistics summaryStatistics = values.stream().collect(
+					DoubleStatistics::new,
+					DoubleStatistics::accept,
+					DoubleStatistics::combine );
+
+			final PixelValueStatistics statistics = new PixelValueStatistics();
+			statistics.numVoxels = summaryStatistics.getCount();
+			statistics.mean = summaryStatistics.getAverage();
+			statistics.sdev = summaryStatistics.getStandardDeviation();
+
+			nameToStatistics.put( source.getName(), statistics );
+		}
+
+		return nameToStatistics;
 	}
+
+
+
 
 	public Map< String, Double > fetchPixelValues( RealPoint globalPoint, int t )
 	{
 		final HashMap< String, Double > sourceNameToPixelValue = new HashMap<>();
-		AffineTransform3D sourceTransform = new AffineTransform3D();
-		double[] globalPosition = new double[ 3 ];
-		globalPoint.localize( globalPosition );
-		double[] sourceRealPosition = new double[ 3 ];
-		int[] sourceIntegerPosition = new int[ 3 ];
 
 		for ( Source< ? > source : sourceToBdvStackSource.keySet() )
 		{
 			final int level = getLevel( source, viewerVoxelSpacing );
-			source.getSourceTransform( t, level, sourceTransform );
-			sourceTransform.inverse().apply( globalPosition, sourceRealPosition );
-			setIntegerPosition( sourceRealPosition, sourceIntegerPosition );
+
+			int[] sourceIntegerPosition = getSourceIntegerPosition( globalPoint, t, source, level );
+
 			final RandomAccess< ? extends RealType > randomAccess = ( RandomAccess< ? extends RealType > ) source.getSource( t, level ).randomAccess();
 			randomAccess.setPosition( sourceIntegerPosition );
 			final double realDouble = randomAccess.get().getRealDouble();
@@ -77,6 +108,25 @@ public class PlateChannelRawDataFetcher
 		}
 
 		return sourceNameToPixelValue;
+	}
+
+	private int[] getSourceIntegerPosition( RealPoint globalPoint, int t, Source< ? > source, int level )
+	{
+		double[] sourceRealPosition = getSourceDoublePosition( globalPoint, t, source, level );
+		int[] sourceIntegerPosition = new int[ 3 ];
+		setIntegerPosition( sourceRealPosition, sourceIntegerPosition );
+		return sourceIntegerPosition;
+	}
+
+	private double[] getSourceDoublePosition( RealPoint globalPoint, int t, Source< ? > source, int level )
+	{
+		AffineTransform3D sourceTransform = new AffineTransform3D();
+		double[] globalPosition = new double[ 3 ];
+		globalPoint.localize( globalPosition );
+		double[] sourceRealPosition = new double[ 3 ];
+		source.getSourceTransform( t, level, sourceTransform );
+		sourceTransform.inverse().apply( globalPosition, sourceRealPosition );
+		return sourceRealPosition;
 	}
 
 	public CompositeImage captureCurrentView( int level )
