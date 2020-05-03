@@ -213,7 +213,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		setComboBoxDimensions( siteNamesComboBox );
 
-		final ArrayList< String > siteNames = imagePlateViewer.getSiteNames();
+		final ArrayList< String > siteNames = imagePlateViewer.getSites();
 
 		for ( String siteName : siteNames )
 		{

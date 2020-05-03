@@ -5,13 +5,12 @@ import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.bdv.utils.capture.BdvViewCaptures;
 import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.bdv.RawDataFetcher;
-import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
+import de.embl.cba.plateviewer.bdv.*;
+import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.channel.ChannelProperties;
 import de.embl.cba.plateviewer.channel.Channels;
 import de.embl.cba.plateviewer.github.IssueRaiser;
@@ -22,14 +21,13 @@ import de.embl.cba.plateviewer.image.plate.QCOverlay;
 import de.embl.cba.plateviewer.image.plate.WellAndSiteOutlinesSource;
 import de.embl.cba.plateviewer.image.plate.OverlayBdvViewable;
 import de.embl.cba.plateviewer.image.plate.WellNamesOverlay;
+import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.bdv.BdvSiteAndWellInformationOverlay;
-import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
-import de.embl.cba.plateviewer.table.DefaultSiteTableRow;
-import de.embl.cba.plateviewer.table.Site;
+import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
@@ -63,14 +61,14 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T extends Site >
+public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T extends AnnotatedInterval >
 {
 	private final SharedQueue loadingQueue;
 
 	private BdvHandle bdvHandle;
 	private PlateViewerMainPanel mainPanel;
-	private List< T > siteNames;
-	private SelectionModel< T > selectionModel;
+	private List< T > sites;
+	private SelectionModel< T > siteSelectionModel;
 	private final String fileNamingScheme;
 	private Interval plateInterval;
 	private HashMap< String, Interval > wellNameToInterval;
@@ -81,14 +79,14 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private long[] siteDimensions;
 	private long[] wellDimensions;
 	private String plateName;
-	private TableRowsTableView< DefaultSiteTableRow > tableView;
+	private TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView;
 	private BdvSource dummySource;
 	private List< File > fileList;
-	private HashMap< String, MultiWellImg< ? > > channelToMultiWellImg;
+	private Map< String, MultiWellImg< ? > > channelToMultiWellImg;
 	private MultiWellImg referenceWellImg;
 	private Map< String, ChannelProperties > channelNamesToProperties;
-	private HashMap< String, Integer > siteNameToQC;
 	private Set< BdvOverlay > overlays;
+	private Map< String, BdvViewable > nameToBdvViewable;
 
 	public ImagePlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -100,6 +98,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		this.plateName = new File( inputDirectory ).getName();
 		//this.multiWellImgs = new ArrayList<>();
 		channelToMultiWellImg = new HashMap<>();
+		nameToBdvViewable = new HashMap<>();
 
 		overlays = new HashSet<>(  );
 
@@ -132,18 +131,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		zoomToWell( wellNameToInterval.keySet().iterator().next());
 
 		installBdvBehaviours();
-	}
-
-	private void mapSiteNamesToQC( List< DefaultSiteTableRow > tableRows, String siteNameColumnName, String outlierColumnName )
-	{
-		siteNameToQC = new HashMap<>();
-
-		for ( DefaultSiteTableRow tableRow : tableRows )
-		{
-			final String siteName = tableRow.getCell( siteNameColumnName );
-			final Integer outlier = Integer.parseInt( tableRow.getCell( outlierColumnName ) );
-			siteNameToQC.put( siteName, outlier );
-		}
 	}
 
 	public Set< BdvOverlay > getOverlays()
@@ -228,25 +215,37 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			zoomToSite( siteName );
 		} );
 
+		popupMenu.addPopupAction( "Mark site as outlier", e -> {
+			final T site = getSite( siteName );
+			site.setOutlier( true );
+		} );
+
+		popupMenu.addPopupAction( "Mark site as no outlier", e -> {
+			final T site = getSite( siteName );
+			site.setOutlier( false );
+		} );
 
 		popupMenu.addPopupAction( "Measure pixel values", e -> {
 			logPixelValues( plateLocation );
 		} );
 
-		popupMenu.addPopupAction( "Measure pixel values statistics...", e -> {
-			// TODO out everything below in own class (in bdv-utils repo) and improve UI
-			final GenericDialog gd = new GenericDialog( "Radius" );
-			gd.addNumericField( "Radius", 5.0, 1 );
-			gd.showDialog();
-			if ( gd.wasCanceled() ) return;
-			final double radius = gd.getNextNumber();
-			logRegionStatistics( plateLocation, radius );
-		} );
+//		popupMenu.addPopupAction( "Measure pixel values statistics...", e -> {
+//			// TODO out everything below in own class (in bdv-utils repo) and improve UI
+//			final GenericDialog gd = new GenericDialog( "Radius" );
+//			gd.addNumericField( "Radius", 5.0, 1 );
+//			gd.showDialog();
+//			if ( gd.wasCanceled() ) return;
+//			final double radius = gd.getNextNumber();
+//			logRegionStatistics( plateLocation, radius );
+//		} );
 
-		popupMenu.addPopupAction( "Fetch raw data", e -> {
-			//zoomToSite( siteName );
-			final CompositeImage compositeImage = new RawDataFetcher( bdvHandle ).fetchRawData( 0 );
-			compositeImage.show();
+		popupMenu.addPopupAction( "View raw data", e -> {
+			new Thread( () -> {
+				Logger.info( "Fetching raw data, please wait..." );
+				final CompositeImage compositeImage = new PlateChannelRawDataFetcher( nameToBdvViewable ).captureCurrentView( 0 );
+				if ( compositeImage != null )
+					compositeImage.show();
+			}).start();
 		} );
 
 		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
@@ -255,40 +254,38 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private void logPixelValues( PlateLocation plateLocation )
 	{
 		Utils.log( "Pixel values at " + plateLocation );
-		final RealPoint realPoint = new RealPoint( 3 );
-		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
+		final RealPoint globalLocation = new RealPoint( 3 );
+		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
+		final int t = bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
 
-		final int currentTimepoint =
-				bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
+		final PlateChannelRawDataFetcher rawDataFetcher = new PlateChannelRawDataFetcher( nameToBdvViewable );
+		final Map< String, Double > pixelValuesOfActiveSources = rawDataFetcher.fetchPixelValues( globalLocation, t );
 
-		final Map< Integer, Double > pixelValuesOfActiveSources =
-				BdvUtils.getPixelValuesOfActiveSources(
-						bdvHandle, realPoint, currentTimepoint );
-
-		for ( Map.Entry< Integer, Double > entry : pixelValuesOfActiveSources.entrySet() )
+		for ( Map.Entry< String, Double > entry : pixelValuesOfActiveSources.entrySet() )
 		{
-			final String name = BdvUtils.getSource( bdvHandle, entry.getKey() ).getName();
-			Utils.log( name + ": " + entry.getValue() );
+			Utils.log( entry.getKey() + ": " + entry.getValue() );
 		}
 	}
 
 	private void logRegionStatistics( PlateLocation plateLocation, double radius )
 	{
-		Utils.log( "Region (r=" + (int) radius + ") statistics at " + plateLocation );
-
-		final RealPoint realPoint = new RealPoint( 3 );
-	 	bdvHandle.getViewerPanel().getGlobalMouseCoordinates( realPoint );
-		final int currentTimepoint =
-				bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
-
-		final HashMap< Integer, PixelValueStatistics > statistics =
-				BdvUtils.getPixelValueStatisticsOfActiveSources( bdvHandle, realPoint, radius, currentTimepoint );
-
-		for ( Map.Entry< Integer, PixelValueStatistics > entry : statistics.entrySet() )
-		{
-			final String name = BdvUtils.getSource( bdvHandle, entry.getKey() ).getName();
-			Utils.log( name + ": " + entry.getValue() );
-		}
+//		Utils.log( "Region (r=" + (int) radius + ") statistics at " + plateLocation );
+//
+//		final RealPoint globalLocation = new RealPoint( 3 );
+//	 	bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
+//
+//		final RawDataFetcher rawDataFetcher = new RawDataFetcher( bdvHandle );
+//		final HashMap< Integer, PixelValueStatistics > statistics =
+//				rawDataFetcher.computePixelValueStatistics( globalLocation, radius, 0 );
+//
+//
+//		//		BdvUtils.getPixelValueStatisticsOfActiveSources( bdvHandle, globalLocation, radius, currentTimepoint );
+//
+//		for ( Map.Entry< Integer, PixelValueStatistics > entry : statistics.entrySet() )
+//		{
+//			final String name = BdvUtils.getSource( bdvHandle, entry.getKey() ).getName();
+//			Utils.log( name + ": " + entry.getValue() );
+//		}
 	}
 
 	public void addWellOutlinesImages()
@@ -483,7 +480,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		BdvUtils.changeBdvViewerTransform( bdvHandle, affineTransform3D, 2000 );
 	}
 
-	public ArrayList< String > getSiteNames ( )
+	public ArrayList< String > getSites( )
 	{
 		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles =
 				referenceWellImg.getLoader().getSingleSiteChannelFiles();
@@ -508,17 +505,12 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		zoomToInterval( wellNameToInterval.get( wellName ) );
 	}
 
-	public HashMap< String, Interval > getWellNameToInterval()
+	public Map< String, Interval > getWellNameToInterval()
 	{
 		return wellNameToInterval;
 	}
 
-	public HashMap< String, Integer > getSiteNameToQC()
-	{
-		return siteNameToQC;
-	}
-
-	public HashMap< String, Interval > getSiteNameToInterval()
+	public Map< String, Interval > getSiteNameToInterval()
 	{
 		return siteNameToInterval;
 	}
@@ -527,7 +519,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		zoomToInterval( siteNameToInterval.get( siteName ) );
 
-		if ( selectionModel != null )
+		if ( siteSelectionModel != null )
 			notifyImageSelectionModel( siteName );
 	}
 
@@ -541,19 +533,22 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return null;
 	}
 
-	public void notifyImageSelectionModel ( String selectedSiteName )
+	public void notifyImageSelectionModel ( String siteName )
 	{
-		/**
-		 * We need to find the selectable object that corresponds to the the siteName
-		 * // TODO: This should be taken care of by an adaptor
-		 *
-		 */
-		for ( T name : siteNames )
+		T selectedSite = getSite( siteName );
+		if ( selectedSite != null )
+			siteSelectionModel.focus( selectedSite );
+	}
+
+	private T getSite( String siteName )
+	{
+		T selectedSite = null;
+		for ( T site : sites )
 		{
-			final String siteName = name.getSiteName();
-			if ( siteName.equals( selectedSiteName ) )
-				selectionModel.focus( name );
+			if ( site.getName().equals( siteName ) )
+				selectedSite = site;
 		}
+		return selectedSite;
 	}
 
 	public boolean isImageExisting ( final SingleCellArrayImg< R, ? > cell )
@@ -648,6 +643,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		BdvSource bdvSource = addToBdv( bdvViewable );
 
+		bdvViewable.setBdvSource( bdvSource );
+
 		bdvSource.setActive( bdvViewable.isInitiallyVisible() );
 
 		bdvSource.setDisplayRange( bdvViewable.getContrastLimits()[ 0 ], bdvViewable.getContrastLimits()[ 1 ] );
@@ -656,7 +653,14 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		mainPanel.getSourcesPanel().addToPanel( bdvViewable, bdvSource );
 
+		nameToBdvViewable.put( bdvViewable.getName(), bdvViewable );
+
 		removeDummySource();
+	}
+
+	public Map< String, BdvViewable > getNameToBdvViewable()
+	{
+		return nameToBdvViewable;
 	}
 
 	public void removeDummySource()
@@ -681,6 +685,11 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		else if ( bdvViewable.getSource() != null )
 		{
 			Source< ? > source = bdvViewable.getSource();
+
+			if ( source instanceof RandomAccessibleIntervalPlateViewerSource )
+			{
+				source = (( RandomAccessibleIntervalPlateViewerSource ) source ).asVolatile( new SharedQueue( 1 ) );
+			}
 
 			if ( bdvViewable.getType().equals( Metadata.Type.Segmentation ) )
 			{
@@ -758,11 +767,14 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return cellPos;
 	}
 
-	public void installImageSelectionModel ( List < T > siteNames, SelectionModel < T > selectionModel )
+	public void addSiteImageIntervals(
+			List < T > annotatedSiteIntervals,
+			SelectionModel < T > selectionModel )
 	{
-		this.siteNames = siteNames;
-		this.selectionModel = selectionModel;
-		registerAsImageSelectionListener( selectionModel );
+		this.sites = annotatedSiteIntervals;
+		this.siteSelectionModel = selectionModel;
+		registerAsSiteSelectionListener( selectionModel );
+		addSiteQCOverlay( sites );
 	}
 
 	public void registerAsColoringListener( SelectionColoringModel< T > selectionColoringModel )
@@ -770,9 +782,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
 	}
 
-	private void registerAsImageSelectionListener ( SelectionModel < T > selectionModel )
+	private void registerAsSiteSelectionListener( SelectionModel < T > siteSelectionModel )
 	{
-		selectionModel.listeners().add( new SelectionListener< T >()
+		siteSelectionModel.listeners().add( new SelectionListener< T >()
 		{
 			@Override
 			public void selectionChanged()
@@ -783,11 +795,11 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			@Override
 			public void focusEvent( T selection )
 			{
-				final SingleSiteChannelFile singleSiteChannelFile = referenceWellImg.getLoader().getChannelSource( selection.getSiteName() );
+				final SingleSiteChannelFile singleSiteChannelFile = referenceWellImg.getLoader().getChannelSource( selection.getName() );
 
 				if ( singleSiteChannelFile == null )
 				{
-					throw new UnsupportedOperationException( "Could not find image sources for site " + selection.getSiteName() );
+					throw new UnsupportedOperationException( "Could not find image sources for site " + selection.getName() );
 				}
 
 				zoomToInterval( singleSiteChannelFile.getInterval() );
@@ -805,26 +817,21 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return wellDimensions;
 	}
 
-	// TODO: what minimal type is needed here? DefaultSiteNameTableRow?
 	// TODO: maybe this is not needed?
-	public void registerTableView( TableRowsTableView< DefaultSiteTableRow > tableView )
+	public void registerTableView( TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
 	{
 		this.tableView = tableView;
-
-		addSiteQCOverlay( tableView );
 	}
 
-	private void addSiteQCOverlay( TableRowsTableView< DefaultSiteTableRow > tableView )
+	private void addSiteQCOverlay( List< T > sites )
 	{
-		// TODO: where do the column names come from? Maybe some BatchLibHDF5 helper class?
-		mapSiteNamesToQC( tableView.getTableRows(), "site_name", "marked_as_outlier" );
-
-		final QCOverlay siteQCOverlay = new QCOverlay( this.getSiteNameToQC(), this.getSiteNameToInterval() );
+		final QCOverlay siteQCOverlay = new QCOverlay( sites );
 		overlays.add( siteQCOverlay );
 		addToPanelAndBdv( new OverlayBdvViewable( siteQCOverlay, "image QC" ) );
 	}
 
-	public TableRowsTableView< DefaultSiteTableRow > getTableView()
+	// TODO: this should not be here!
+	public TableRowsTableView< DefaultAnnotatedIntervalTableRow > getTableView()
 	{
 		return tableView;
 	}
@@ -874,7 +881,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return multiWellImg;
 	}
 
-	public HashMap< String, MultiWellImg< ? > > getChannelToMultiWellImg()
+	public Map< String, MultiWellImg< ? > > getChannelToMultiWellImg()
 	{
 		return channelToMultiWellImg;
 	}

@@ -11,8 +11,8 @@ public class TestNamingSchemeBatchLibHdf5
 		imageJ.ui().showUI();
 
 		String pathname;
-		pathname = "/Users/tischer/Documents/mnt/hci/data-processed-multiscale/plate7rep1_20200426_103425_693_IgA";
-		pathname ="/g/kreshuk/data/covid/sandbox/h5-tables2/titration_plate_20200403_154849";
+		pathname = "/Users/tischer/Documents/mnt/hci/data-processed/plateK14rep1_20200430_194338_941_IgG";
+		pathname ="/g/kreshuk/data/covid/data-processed/20200405_test_images";
 
 		final PlateViewer plateViewer = new PlateViewer(
 				new File( pathname ),

@@ -50,9 +50,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private String columnNameY;
 	private BdvStackSource< VolatileARGBType > scatterPlotBdvSource;
 	private final String[] columnNames;
-	private final String columnNameQC;
-	private BdvOverlaySource< SelectedPointOverlay > selectedPointOverlayBdvSource;
-	private BdvOverlaySource< ScatterPlotOverlay > scatterPlotOverlayBdvSource;
+	private final String outlierColumnName;
 	private String[] lineChoices;
 	private String lineOverlay;
 	private double viewerAspectRatio = 1.0;
@@ -62,25 +60,28 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private double dataAspectRatio;
 	private ArrayList< RealPoint> viewerPoints;
 	private AffineTransform3D viewerTransform;
+	private String name;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
+			String name,
 			SelectionColoringModel< T > coloringModel,
 			SelectionModel< T > selectionModel,
 			String plateName,
 			String columnNameX,
 			String columnNameY,
-			String columnNameQC,
+			String outlierColumnName,
 			String lineOverlay
 	)
 	{
 		this.tableRows = tableRows;
+		this.name = name;
 		this.coloringModel = coloringModel;
 		this.selectionModel = selectionModel;
 		this.plateName = plateName;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
-		this.columnNameQC = columnNameQC;
+		this.outlierColumnName = outlierColumnName;
 
 		numTableRows = tableRows.size();
 		columnNames = tableRows.get( 0 ).getColumnNames().stream().toArray( String[]::new );
@@ -188,16 +189,16 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				points,
 				columnNameX,
 				columnNameY,
-				columnNameQC);
+				outlierColumnName );
 
-		selectedPointOverlayBdvSource = BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void showFrameAndAxis()
 	{
 		ScatterPlotOverlay scatterPlotOverlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, dataPlotInterval, lineOverlay );
 
-		scatterPlotOverlayBdvSource = BdvFunctions.showOverlay( scatterPlotOverlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		BdvFunctions.showOverlay( scatterPlotOverlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void installBdvBehaviours()
@@ -214,7 +215,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	{
 		final PopupMenu popupMenu = new PopupMenu();
 
-		popupMenu.addPopupAction( "Focus closest image", e ->
+		popupMenu.addPopupAction( "Focus closest point", e ->
 		{
 			new Thread( () -> {
 				final RealPoint mouse3d = getViewerMouse3dPosition();
@@ -227,13 +228,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		popupMenu.addPopupAction( "Change columns...", e ->
 		{
-			lineChoices = new String[]{ ScatterPlotOverlay.Y_X_2X, ScatterPlotOverlay.Y_1_2 };
+			lineChoices = new String[]{ ScatterPlotOverlay.Y_NX, ScatterPlotOverlay.Y_1_2 };
 
 			new Thread( () -> {
 				final GenericDialog gd = new GenericDialog( "Column selection" );
 				gd.addChoice( "Column X", columnNames, columnNameX );
 				gd.addChoice( "Column Y", columnNames, columnNameY );
-				gd.addChoice( "Add line", lineChoices, ScatterPlotOverlay.Y_X_2X );
+				gd.addChoice( "Add line", lineChoices, ScatterPlotOverlay.Y_NX );
 				gd.showDialog();
 
 				if ( gd.wasCanceled() ) return;
@@ -294,12 +295,12 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			y = Utils.parseDouble( tableRows.get( rowIndex ).getCell( columnNameY ) );
 			if ( y.isNaN() ) continue;
 
-			if ( columnNameQC != null )
+			if ( outlierColumnName != null )
 			{
-				if ( Integer.parseInt(  tableRows.get( rowIndex ).getCell( columnNameQC ) ) != 0 )
+				if ( isOutlier( rowIndex ) )
 				{
 					continue;
-				};
+				}
 			}
 
 			points.add( new RealPoint( x, y, 0 ) );
@@ -321,6 +322,11 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		dataAspectRatio = dataRanges[ 1 ] / dataRanges[ 0 ];
 
+	}
+
+	private boolean isOutlier( int rowIndex )
+	{
+		return Integer.parseInt(  tableRows.get( rowIndex ).getCell( outlierColumnName ) ) == 0;
 	}
 
 	public BiConsumer< RealLocalizable, IntType > createPlotFunction()
@@ -410,7 +416,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		// make 3D
 		final RealRandomAccessible< IntType > rra = RealViews.addDimension( fra );
 
-		indexSource = new RealRandomAccessibleIntervalSource( rra, dataPlotInterval, new IntType(  ), "" );
+		indexSource = new RealRandomAccessibleIntervalSource( rra, dataPlotInterval, new IntType(  ), name );
 
 		//scatterSource.getInterpolatedSource(  )
 

@@ -12,7 +12,7 @@ import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
 public class ScatterPlotOverlay extends BdvOverlay
 {
-	public static final String Y_X_2X = "y = x, y = 2 * x";
+	public static final String Y_NX = "y = n * x";
 	public static final String Y_1_2 = "y = 1, y = 2";
 
 	private final BdvHandle bdvHandle;
@@ -73,40 +73,36 @@ public class ScatterPlotOverlay extends BdvOverlay
 		double[] zero = new double[ 3 ];
 		globalToViewerTransform.apply( new double[ 3 ], zero );
 
-		double[] max = new double[ 3 ];
-		globalToViewerTransform.apply( new double[]{ this.max, this.max, 0 }, max );
-
-		double[] max2 = new double[ 3 ];
-		globalToViewerTransform.apply( new double[]{ this.max, 2 * this.max, 0 }, max2 );
-
-		double[] one = new double[ 3 ];
-		globalToViewerTransform.apply( new double[]{0,1,0}, one );
-
-		double[] two = new double[ 3 ];
-		globalToViewerTransform.apply( new double[]{0,2,0}, two );
-
-
 		g.setColor( Color.WHITE );
 
-		if ( lineOverlay.equals( Y_X_2X ) )
+		if ( lineOverlay.equals( Y_NX ) )
 		{
-			g.drawLine(
-					( int ) zero[ 0 ], ( int ) zero[ 1 ],
-					( int ) max[ 0 ], ( int ) max[ 1 ] );
+			double[] n = new double[ 3 ];
 
-			g.drawLine(
-					( int ) zero[ 0 ], ( int ) zero[ 1 ],
-					( int ) max2[ 0 ], ( int ) ( max2[ 1 ] ) );
+			for ( int i = 0; i < 4; i++ )
+			{
+				globalToViewerTransform.apply( new double[]{ this.max, ( i + 1 ) * this.max, 0 }, n );
 
+				g.drawLine(
+						( int ) zero[ 0 ], ( int ) zero[ 1 ],
+						( int ) n[ 0 ], ( int ) n[ 1 ] );
+			}
 		}
 		else if ( lineOverlay.equals( Y_1_2 ) )
 		{
-			g.drawLine(
-					( int ) zero[ 0 ], ( int ) one[ 1 ],
-					( int ) max[ 0 ], ( int ) one[ 1 ] );
-			g.drawLine(
-					( int ) zero[ 0 ], ( int ) two[ 1 ],
-					( int ) max[ 0 ], ( int ) two[ 1 ] );
+
+			double[] max = new double[ 3 ];
+			globalToViewerTransform.apply( new double[]{ this.max, this.max, 0 }, max );
+
+			for ( int i = 0; i < 4; i++ )
+			{
+				double[] n = new double[ 3 ];
+				globalToViewerTransform.apply( new double[]{ 0, ( i + 1 ), 0 }, n );
+
+				g.drawLine(
+						( int ) zero[ 0 ], ( int ) n[ 1 ],
+						( int ) max[ 0 ], ( int ) n[ 1 ] );
+			}
 		}
 
 //		g.drawLine(

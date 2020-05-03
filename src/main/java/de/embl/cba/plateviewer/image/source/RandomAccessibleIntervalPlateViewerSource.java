@@ -32,9 +32,6 @@ package de.embl.cba.plateviewer.image.source;
 import java.util.function.Supplier;
 
 import bdv.util.AbstractSource;
-import bdv.util.RandomAccessibleIntervalMipmapSource;
-import bdv.util.RandomAccessibleIntervalSource;
-import bdv.util.VolatileRandomAccessibleIntervalMipmapSource;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileTypeMatcher;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -44,7 +41,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 
-public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericType< T > > extends AbstractSource< T >
+public class RandomAccessibleIntervalPlateViewerSource< T extends NumericType< T > > extends AbstractSource< T >
 {
 	protected final RandomAccessibleInterval< T >[] mipmapSources;
 
@@ -52,7 +49,7 @@ public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericTy
 
 	protected final VoxelDimensions voxelDimensions;
 
-	public RandomAccessibleIntervalMipmapWithOffsetSource(
+	public RandomAccessibleIntervalPlateViewerSource(
 			final RandomAccessibleInterval< T >[] rais,
 			final T type,
 			final double[][] mipmapScales,
@@ -87,7 +84,7 @@ public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericTy
 		this.voxelDimensions = voxelDimensions;
 	}
 
-	public RandomAccessibleIntervalMipmapWithOffsetSource(
+	public RandomAccessibleIntervalPlateViewerSource(
 			final RandomAccessibleInterval< T >[] imgs,
 			final T type,
 			final double[][] mipmapScales,
@@ -122,22 +119,22 @@ public class RandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericTy
 		return mipmapSources.length;
 	}
 
-	public < V extends Volatile< T > & NumericType< V > > VolatileRandomAccessibleIntervalMipmapWithOffsetSource asVolatile( final V vType, final SharedQueue queue )
+	public < V extends Volatile< T > & NumericType< V > > VolatileRandomAccessibleIntervalPlateViewerSource asVolatile( final V vType, final SharedQueue queue )
 	{
-		return new VolatileRandomAccessibleIntervalMipmapWithOffsetSource( this, vType, queue );
+		return new VolatileRandomAccessibleIntervalPlateViewerSource( this, vType, queue );
 	}
 
-	public < V extends Volatile< T > & NumericType< V > > VolatileRandomAccessibleIntervalMipmapWithOffsetSource< T, V > asVolatile( final Supplier< V > vTypeSupplier, final SharedQueue queue )
+	public < V extends Volatile< T > & NumericType< V > > VolatileRandomAccessibleIntervalPlateViewerSource< T, V > asVolatile( final Supplier< V > vTypeSupplier, final SharedQueue queue )
 	{
-		return new VolatileRandomAccessibleIntervalMipmapWithOffsetSource<>( this, vTypeSupplier, queue );
+		return new VolatileRandomAccessibleIntervalPlateViewerSource<>( this, vTypeSupplier, queue );
 	}
 
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	public < V extends Volatile< T > & NumericType< V > > VolatileRandomAccessibleIntervalMipmapWithOffsetSource< T, V > asVolatile( final SharedQueue queue )
+	public < V extends Volatile< T > & NumericType< V > > VolatileRandomAccessibleIntervalPlateViewerSource< T, V > asVolatile( final SharedQueue queue )
 	{
 		final T t = getType();
 		if ( t instanceof NativeType )
-			return new VolatileRandomAccessibleIntervalMipmapWithOffsetSource<>( this, ( V )VolatileTypeMatcher.getVolatileTypeForType( ( NativeType )getType() ), queue );
+			return new VolatileRandomAccessibleIntervalPlateViewerSource<>( this, ( V )VolatileTypeMatcher.getVolatileTypeForType( ( NativeType )getType() ), queue );
 		else
 			throw new UnsupportedOperationException( "This method only works for sources of NativeType." );
 	}

@@ -5,33 +5,48 @@ import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderBatchLibHdf5;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.tables.TableColumns;
+import net.imglib2.Interval;
 
 import java.util.*;
 
 public class Tables
 {
-	public static List< DefaultSiteTableRow > createSiteNameTableRowsFromColumns(
+
+	public static List< DefaultAnnotatedIntervalTableRow > createSiteNameTableRowsFromColumns(
 			final Map< String, List< String > > columns,
-			final String siteNameColumnName )
+			final String siteNameColumnName,
+			Map< String, Interval > siteNameToInterval,
+			final String outlierColumnName )
 	{
-		final List< DefaultSiteTableRow > siteNameTableRows = new ArrayList<>();
+		final List< DefaultAnnotatedIntervalTableRow > siteNameTableRows = new ArrayList<>();
 
 		final int numRows = columns.values().iterator().next().size();
 
 		for ( int row = 0; row < numRows; row++ )
 		{
+			final String siteName = columns.get( siteNameColumnName ).get( row );
+
+			Interval interval = null;
+			if ( siteNameToInterval != null )
+				interval = siteNameToInterval.get( siteName );
+
 			siteNameTableRows.add(
-					new DefaultSiteTableRow(
-						columns.get( siteNameColumnName ).get( row ),
-						columns,
-						row )
+					new DefaultAnnotatedIntervalTableRow(
+							siteName,
+							interval,
+							outlierColumnName,
+							columns,
+							row )
 			);
 		}
 
 		return siteNameTableRows;
 	}
 
-	public static List< DefaultSiteTableRow > createSiteTableRowsFromFile( String filePath, String imageNamingScheme )
+	public static List< DefaultAnnotatedIntervalTableRow > createSiteTableRowsFromFile(
+			String filePath,
+			String imageNamingScheme,
+			Map< String, Interval > siteNameToInterval )
 	{
 		final Map< String, List< String > > columnNameToColumn;
 
@@ -50,8 +65,13 @@ public class Tables
 
 		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final String siteNameColumn = addSiteNameColumn( columnNameToColumn );
-			return createSiteNameTableRowsFromColumns( columnNameToColumn, siteNameColumn );
+			final String siteNameColumnName = ensureSiteNameColumn( columnNameToColumn );
+
+			return createSiteNameTableRowsFromColumns(
+						columnNameToColumn,
+						siteNameColumnName,
+						siteNameToInterval,
+						NamingSchemes.ColumnNamesBatchLibHdf5.COLUMN_NAME_OUTLIER );
 		}
 		else
 		{
@@ -59,11 +79,15 @@ public class Tables
 		}
 	}
 
-	public static String addSiteNameColumn( Map< String, List< String > > columnNameToColumn )
+	public static String ensureSiteNameColumn( Map< String, List< String > > columnNameToColumn )
 	{
 		if ( columnNameToColumn.keySet().contains( "site_name" ) )
 		{
 			return "site_name";
+		}
+		else if ( columnNameToColumn.keySet().contains( "site-name" ) )
+		{
+			return "site-name";
 		}
 		else
 		{

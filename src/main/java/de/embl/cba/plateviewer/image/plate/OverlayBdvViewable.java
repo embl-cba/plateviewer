@@ -1,8 +1,10 @@
 package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
+import bdv.util.BdvSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.plateviewer.image.channel.AbstractBdvViewable;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.RandomAccessibleInterval;
@@ -10,7 +12,7 @@ import net.imglib2.type.numeric.ARGBType;
 
 import java.awt.*;
 
-public class OverlayBdvViewable implements BdvViewable
+public class OverlayBdvViewable extends AbstractBdvViewable
 {
 	private final BdvOverlay overlay;
 	private final String name;

@@ -1,6 +1,7 @@
 package de.embl.cba.plateviewer.image.channel;
 
 import bdv.util.BdvOverlay;
+import bdv.util.BdvSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import net.imglib2.RandomAccessibleInterval;
@@ -23,4 +24,8 @@ public interface BdvViewable
 	boolean isInitiallyVisible();
 
 	Metadata.Type getType();
+
+	void setBdvSource( BdvSource bdvSource );
+
+	BdvSource getBdvSource();
 }

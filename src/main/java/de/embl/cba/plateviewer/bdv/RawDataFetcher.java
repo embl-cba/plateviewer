@@ -3,6 +3,7 @@ package de.embl.cba.plateviewer.bdv;
 import bdv.util.BdvHandle;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
+import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
@@ -12,6 +13,7 @@ import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.algorithm.util.Grids;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -24,20 +26,28 @@ import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static de.embl.cba.bdv.utils.BdvUtils.*;
 
+@Deprecated
 public class RawDataFetcher
 {
 	private final BdvHandle bdvHandle;
 
+
+	@Deprecated
 	public RawDataFetcher( BdvHandle bdvHandle )
 	{
 		this.bdvHandle = bdvHandle;
 	}
 
-	public CompositeImage fetchRawData( int level )
+
+
+	@Deprecated
+	public CompositeImage createRawDataImage( int level )
 	{
 		final List< Integer > visibleSourceIndices = getVisibleSourceIndices( bdvHandle );
 		final int t = bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
@@ -154,7 +164,7 @@ public class RawDataFetcher
 		return dxy;
 	}
 
-	public static CompositeImage createCompositeImage(
+	private static CompositeImage createCompositeImage(
 			ArrayList< RandomAccessibleInterval< UnsignedShortType > > rais,
 			ArrayList< double[] > displayRanges )
 	{
@@ -180,4 +190,5 @@ public class RawDataFetcher
 		compositeImage.setTitle( "Raw" );
 		return compositeImage;
 	}
+
 }

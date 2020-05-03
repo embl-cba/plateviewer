@@ -4,7 +4,7 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.plot.ScatterPlotOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
-import de.embl.cba.plateviewer.table.DefaultSiteTableRow;
+import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
@@ -20,19 +20,19 @@ public class ExploreTableRowsScatterPlotView
 	{
 		final File file = new File( "/Users/tischer/Desktop/analysis.csv" );
 
-		final DefaultSelectionModel< DefaultSiteTableRow > selectionModel = new DefaultSelectionModel<>();
+		final DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel = new DefaultSelectionModel<>();
 
-		final LazyCategoryColoringModel< DefaultSiteTableRow > coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
+		final LazyCategoryColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
 
-		final SelectionColoringModel< DefaultSiteTableRow > selectionColoringModel = new SelectionColoringModel(
+		final SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel = new SelectionColoringModel(
 				coloringModel,
 				selectionModel );
 
-		final List< DefaultSiteTableRow > tableRows = createSiteTableRowsFromFile(
+		final List< DefaultAnnotatedIntervalTableRow > tableRows = createSiteTableRowsFromFile(
 				file.getAbsolutePath(),
-				NamingSchemes.PATTERN_NIKON_TI2_HDF5 );
+				NamingSchemes.PATTERN_NIKON_TI2_HDF5, null );
 
-		final TableRowsScatterPlotView< DefaultSiteTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, "title", "not_infected_median", "infected_median", null, ScatterPlotOverlay.Y_1_2 );
+		final TableRowsScatterPlotView< DefaultAnnotatedIntervalTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, "sites scatter plot", selectionColoringModel, selectionModel, "title", "not_infected_median", "infected_median", null, ScatterPlotOverlay.Y_1_2 );
 
 		scatterPlotView.show( null );
 	}

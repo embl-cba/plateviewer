@@ -3,6 +3,7 @@ package de.embl.cba.plateviewer.plot;
 import bdv.util.*;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
+import de.embl.cba.plateviewer.image.channel.AbstractBdvViewable;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.*;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.function.BiConsumer;
 
-public class ScatterPlotImage implements BdvViewable
+public class ScatterPlotImage extends AbstractBdvViewable
 {
 	public static final String IMAGE_NAME = "plate outlines";
 	private Interval imageInterval;
@@ -131,6 +132,5 @@ public class ScatterPlotImage implements BdvViewable
 	{
 		return Metadata.Type.Image;
 	}
-
 
 }

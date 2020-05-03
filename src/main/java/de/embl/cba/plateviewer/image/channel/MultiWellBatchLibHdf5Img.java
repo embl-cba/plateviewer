@@ -1,5 +1,6 @@
 package de.embl.cba.plateviewer.image.channel;
 
+import bdv.util.BdvSource;
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
@@ -137,5 +138,4 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 		else
 			throw new UnsupportedOperationException( "Hdf5 datatype not supported: " + dataType );
 	}
-
 }

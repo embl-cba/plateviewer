@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > > implements BdvViewable
+public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > > extends AbstractBdvViewable
 {
 	protected long[] plateDimensions;
 	protected int[] imageDimensions;
@@ -70,16 +70,6 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	{
 		return argbType;
 	}
-
-//	public BdvSource getBdvSource()
-//	{
-//		return bdvSource;
-//	}
-//
-//	public void setBdvSource( BdvSource bdvSource )
-//	{
-//		this.bdvSource = bdvSource;
-//	}
 
 	public String getName()
 	{

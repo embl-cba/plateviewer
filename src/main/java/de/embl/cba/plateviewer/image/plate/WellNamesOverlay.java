@@ -9,6 +9,7 @@ import net.imglib2.util.Intervals;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class WellNamesOverlay extends BdvOverlay
 {
@@ -28,7 +29,7 @@ public class WellNamesOverlay extends BdvOverlay
 		final AffineTransform2D globalToViewerTransform = new AffineTransform2D();
 		getCurrentTransform2D( globalToViewerTransform );
 
-		final HashMap< String, Interval > wellNameToInterval = plateViewer.getWellNameToInterval();
+		final Map< String, Interval > wellNameToInterval = plateViewer.getWellNameToInterval();
 
 		for ( String wellName : wellNameToInterval.keySet() )
 		{

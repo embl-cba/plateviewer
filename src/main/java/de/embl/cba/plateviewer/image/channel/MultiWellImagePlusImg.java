@@ -1,5 +1,6 @@
 package de.embl.cba.plateviewer.image.channel;
 
+import bdv.util.BdvSource;
 import de.embl.cba.plateviewer.image.cellloader.MultiSiteImagePlusLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderFactory;
 import de.embl.cba.tables.color.ColorUtils;
@@ -149,5 +150,4 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 		imageDimensions[ 0 ] = imagePlus.getWidth();
 		imageDimensions[ 1 ] = imagePlus.getHeight();
 	}
-
 }

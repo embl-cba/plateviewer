@@ -3,89 +3,107 @@ package de.embl.cba.plateviewer;
 import bdv.viewer.ViewerPanel;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.image.table.SitesImage;
+import de.embl.cba.plateviewer.image.table.TableRowsSitesImage;
 import de.embl.cba.plateviewer.plot.ScatterPlotOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
-import de.embl.cba.plateviewer.table.DefaultSiteTableRow;
-import de.embl.cba.plateviewer.table.Site;
+import de.embl.cba.plateviewer.table.AnnotatedInterval;
+import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
-import de.embl.cba.tables.color.*;
+import de.embl.cba.tables.color.ColoringLuts;
+import de.embl.cba.tables.color.LazyCategoryColoringModel;
+import de.embl.cba.tables.color.NumericColoringModelDialog;
+import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
 import ij.IJ;
+import net.imglib2.Interval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static de.embl.cba.plateviewer.table.Tables.createSiteTableRowsFromFile;
 
-public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends Site >
+public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends AnnotatedInterval >
 {
 	private final File imagesDirectory;
-	private final String filePattern;
-	private final boolean loadImageTable;
-	private final int numIoThreads;
-	private final boolean includeSubFolders;
-	private DefaultSelectionModel< DefaultSiteTableRow > selectionModel;
-	private LazyCategoryColoringModel< DefaultSiteTableRow > coloringModel;
-	private SelectionColoringModel< DefaultSiteTableRow > selectionColoringModel;
-	private List< DefaultSiteTableRow > tableRows;
+	private DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
+	private LazyCategoryColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
+	private SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel;
+	private List< DefaultAnnotatedIntervalTableRow > siteTableRows;
 
-	public PlateViewer( File imagesDirectory, String filePattern, boolean loadImageTable, int numIoThreads, boolean includeSubFolders )
+	public PlateViewer( File imagesDirectory, String filePattern, boolean loadSiteTable, int numIoThreads, boolean includeSubFolders )
 	{
 		this.imagesDirectory = imagesDirectory;
-		this.filePattern = filePattern;
-		this.loadImageTable = loadImageTable;
-		this.numIoThreads = numIoThreads;
-		this.includeSubFolders = includeSubFolders;
 
-		final ImagePlateViewer< R, T > imageView =
-				new ImagePlateViewer( imagesDirectory.toString(), filePattern, numIoThreads, includeSubFolders );
+		final ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView =
+				new ImagePlateViewer(
+						imagesDirectory.toString(),
+						filePattern,
+						numIoThreads,
+						includeSubFolders );
 
-		if ( loadImageTable )
+		if ( loadSiteTable )
 		{
-			showTable( imageView );
+			addSiteTable( imageView );
 		}
 	}
 
-	public void showTable( ImagePlateViewer imageView )
+	public void addSiteTable( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView )
 	{
 		final String fileNamingScheme = imageView.getFileNamingScheme();
 		final ViewerPanel bdvViewerPanel = imageView.getBdvHandle().getViewerPanel();
 
-		loadTable( fileNamingScheme );
+		createSiteTableRows( fileNamingScheme, imageView.getSiteNameToInterval() );
 
 		initColoringAndSelectionModels();
 
-		imageView.installImageSelectionModel( tableRows, selectionModel );
+		imageView.addSiteImageIntervals( siteTableRows, selectionModel );
 		imageView.registerAsColoringListener( selectionColoringModel );
 
-		final TableRowsTableView< DefaultSiteTableRow > tableView = showTable( bdvViewerPanel );
+		final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView = createTableView( bdvViewerPanel );
 
 		imageView.registerTableView( tableView );
 
-		final SitesImage sitesImage = createTableColoredSiteImage( imageView, fileNamingScheme, tableView );
+		final TableRowsSitesImage tableRowsSitesImage = createTableColoredSiteImage(
+					imageView,
+					fileNamingScheme,
+					tableView );
 
-		imageView.addToPanelAndBdv( sitesImage );
+		imageView.addToPanelAndBdv( tableRowsSitesImage );
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final TableRowsScatterPlotView< DefaultSiteTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, selectionColoringModel, selectionModel, imageView.getPlateName(), "not_infected_median", "infected_median", "marked_as_outlier", ScatterPlotOverlay.Y_X_2X );
-			scatterPlotView.show( bdvViewerPanel );
+			final TableRowsScatterPlotView< DefaultAnnotatedIntervalTableRow > scatterPlotView =
+					new TableRowsScatterPlotView(
+							siteTableRows,
+							"sites scatter plot",
+							selectionColoringModel,
+							selectionModel,
+							imageView.getPlateName(),
+							NamingSchemes.ColumnNamesBatchLibHdf5.getDefaultColumnNameX( siteTableRows ),
+							NamingSchemes.ColumnNamesBatchLibHdf5.getDefaultColumnNameY(),
+							NamingSchemes.ColumnNamesBatchLibHdf5.COLUMN_NAME_OUTLIER,
+							ScatterPlotOverlay.Y_NX );
 
+			scatterPlotView.show( bdvViewerPanel );
 		}
 	}
 
-	public SitesImage createTableColoredSiteImage(
+	public TableRowsSitesImage createTableColoredSiteImage(
 			ImagePlateViewer imageView,
 			String fileNamingScheme,
-			TableRowsTableView< DefaultSiteTableRow > tableView )
+			TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
 	{
-		final SitesImage sitesImage = new SitesImage( tableRows, selectionColoringModel, imageView );
+		final TableRowsSitesImage tableRowsSitesImage =
+				new TableRowsSitesImage(
+						siteTableRows,
+						selectionColoringModel,
+						imageView );
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
@@ -101,15 +119,15 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		}
 
-		return sitesImage;
+		return tableRowsSitesImage;
 	}
 
-	public TableRowsTableView< DefaultSiteTableRow > showTable( ViewerPanel bdvViewerPanel )
+	public TableRowsTableView< DefaultAnnotatedIntervalTableRow > createTableView( Component component )
 	{
-		final TableRowsTableView< DefaultSiteTableRow > tableView =
-				new TableRowsTableView<>( tableRows, selectionModel, selectionColoringModel );
-		tableView.showTableAndMenu( bdvViewerPanel );
+		final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView =
+				new TableRowsTableView<>( siteTableRows, selectionModel, selectionColoringModel );
 		tableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
+		tableView.showTableAndMenu( component );
 		return tableView;
 	}
 
@@ -124,13 +142,14 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 				selectionModel );
 	}
 
-	public void loadTable( String fileNamingScheme )
+	public void createSiteTableRows( String fileNamingScheme, Map< String, Interval > siteNameToInterval )
 	{
 		File tableFile = getTableFile( fileNamingScheme );
 
-		tableRows = createSiteTableRowsFromFile(
-					tableFile.getAbsolutePath(),
-					fileNamingScheme );
+		siteTableRows = createSiteTableRowsFromFile(
+						tableFile.getAbsolutePath(),
+						fileNamingScheme,
+						siteNameToInterval);
 	}
 
 	public File getTableFile( String fileNamingScheme )
@@ -142,6 +161,9 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 			// try all the different conventions
 			//
+			tableFile = new File( imagesDirectory, plateName + "_table_serum_IgG_corrected.hdf5" );
+			if ( tableFile.exists() ) return tableFile;
+
 			tableFile = new File( imagesDirectory, plateName + "_analysis.csv" );
 			if ( tableFile.exists() ) return tableFile;
 

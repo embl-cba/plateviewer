@@ -6,10 +6,8 @@ import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
-import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.image.channel.MultiWellImg;
-import de.embl.cba.plateviewer.image.table.SitesImage;
+import de.embl.cba.plateviewer.image.table.TableRowsSitesImage;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
@@ -80,13 +78,13 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
             if ( ! ( bdvSource instanceof BdvOverlaySource ) &&
                     ! ( bdvViewable.getType().equals( Metadata.Type.Segmentation )) &&
-                    ! ( bdvViewable instanceof SitesImage ) )
+                    ! ( bdvViewable instanceof TableRowsSitesImage ) )
             {
                 final JButton colorButton = createColorButtonWithColoredBackground( buttonDimensions, bdvSource, Utils.asColor( bdvViewable.getColor() ) );
                 //colorButton.setHorizontalAlignment( SwingConstants.RIGHT );
                 panel.add( colorButton );
             }
-            else if ( bdvViewable instanceof SitesImage )
+            else if ( bdvViewable instanceof TableRowsSitesImage )
             {
                 final JButton colorButton = createColorByColumnButton( panel, buttonDimensions, bdvSource );
                 //colorButton.setHorizontalAlignment( SwingConstants.RIGHT );

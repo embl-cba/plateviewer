@@ -1,5 +1,9 @@
 package de.embl.cba.plateviewer.image;
 
+import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
+
+import java.util.List;
+
 public abstract class NamingSchemes
 {
 	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_s(.*)_w([0-9]{1}).*.tif";
@@ -10,4 +14,22 @@ public abstract class NamingSchemes
 	public static final String PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL = ".*--W([0-9]{5})--P([0-9]{5}).*--.*--(.*)\\..*";
 	public static final String PATTERN_SCANR_WELLNAME_WELLNUM = "(.*--W[0-9]{5})--.*\\..*";
 	public static final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
+
+	public static abstract class ColumnNamesBatchLibHdf5
+	{
+		public static final String COLUMN_NAME_OUTLIER = "is_outlier";
+
+		public static String getDefaultColumnNameX( List< DefaultAnnotatedIntervalTableRow > siteTableRows )
+		{
+			String defaultColumnNameX = "not_infected_median";
+			if ( siteTableRows.get( 0 ).getColumnNames().contains( "control_median" ) )
+				defaultColumnNameX = "control_median";
+			return defaultColumnNameX;
+		}
+
+		public static String getDefaultColumnNameY()
+		{
+			return "infected_median";
+		}
+	}
 }

@@ -22,7 +22,7 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 	private final String namingScheme;
 	private final String channelName;
 	private final List< File > channelFiles;
-	private RandomAccessibleIntervalMipmapWithOffsetSource< R > source;
+	private RandomAccessibleIntervalPlateViewerSource< R > source;
 	private MultiWellBatchLibHdf5Img< R > multiWellHdf5CachedCellImage;
 
 	public MultiResolutionBatchLibHdf5ChannelSourceCreator( String namingScheme,
@@ -77,7 +77,7 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 			}
 		}
 
-		source = new RandomAccessibleIntervalMipmapWithOffsetSource<>(
+		source = new RandomAccessibleIntervalPlateViewerSource<>(
 				rais,
 				Util.getTypeFromInterval( rais[ 0 ] ),
 				mipmapScales,

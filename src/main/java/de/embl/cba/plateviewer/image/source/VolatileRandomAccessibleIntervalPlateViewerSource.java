@@ -1,7 +1,6 @@
 package de.embl.cba.plateviewer.image.source;
 
 import bdv.util.AbstractSource;
-import bdv.util.RandomAccessibleIntervalMipmapSource;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import mpicbg.spim.data.sequence.VoxelDimensions;
@@ -14,14 +13,14 @@ import net.imglib2.type.numeric.NumericType;
 
 import java.util.function.Supplier;
 
-public class VolatileRandomAccessibleIntervalMipmapWithOffsetSource< T extends NumericType< T >, V extends Volatile< T > & NumericType< V > > extends AbstractSource< V >
+public class VolatileRandomAccessibleIntervalPlateViewerSource< T extends NumericType< T >, V extends Volatile< T > & NumericType< V > > extends AbstractSource< V >
 {
-	private final RandomAccessibleIntervalMipmapWithOffsetSource< T > source;
+	private final RandomAccessibleIntervalPlateViewerSource< T > source;
 
 	private SharedQueue queue;
 
-	public VolatileRandomAccessibleIntervalMipmapWithOffsetSource(
-			final RandomAccessibleIntervalMipmapWithOffsetSource< T > source,
+	public VolatileRandomAccessibleIntervalPlateViewerSource(
+			final RandomAccessibleIntervalPlateViewerSource< T > source,
 			final V type,
 			final SharedQueue queue )
 	{
@@ -30,8 +29,8 @@ public class VolatileRandomAccessibleIntervalMipmapWithOffsetSource< T extends N
 		this.queue = queue;
 	}
 
-	public VolatileRandomAccessibleIntervalMipmapWithOffsetSource(
-			final RandomAccessibleIntervalMipmapWithOffsetSource< T > source,
+	public VolatileRandomAccessibleIntervalPlateViewerSource(
+			final RandomAccessibleIntervalPlateViewerSource< T > source,
 			final Supplier< V > typeSupplier,
 			final SharedQueue queue )
 	{
