@@ -15,8 +15,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 {
 	private final File imagesDirectory;
 
-
-	public PlateViewer( File imagesDirectory, String filePattern, boolean loadSiteTable, int numIoThreads, boolean includeSubFolders )
+	public PlateViewer( File imagesDirectory, String filePattern, boolean loadSiteTable, boolean loadWellTable, int numIoThreads, boolean includeSubFolders )
 	{
 		this.imagesDirectory = imagesDirectory;
 
@@ -29,11 +28,16 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		if ( loadSiteTable )
 		{
-			addSiteTable( imageView );
+			addTable( imageView, "tables/images/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Sites );
+		}
+
+		if ( loadWellTable )
+		{
+			addTable( imageView, "tables/wells/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Wells );
 		}
 	}
 
-	public void addSiteTable( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView )
+	public void addTable( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView, String tableName, AnnotatedIntervalCreatorAndAdder.IntervalType intervalType )
 	{
 		final String fileNamingScheme = imageView.getFileNamingScheme();
 		File tableFile = getTableFile( fileNamingScheme );
@@ -41,9 +45,8 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		final AnnotatedIntervalCreatorAndAdder intervalCreatorAndAdder =
 				new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableFile );
 
-		intervalCreatorAndAdder.createAndAddAnnotatedIntervals( AnnotatedIntervalCreatorAndAdder.IntervalType.Sites, "tables/images/default" );
+		intervalCreatorAndAdder.createAndAddAnnotatedIntervals( intervalType, tableName );
 	}
-
 
 	public File getTableFile( String fileNamingScheme )
 	{

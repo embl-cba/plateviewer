@@ -225,7 +225,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		{
 			SwingUtilities.invokeLater( () ->
 			{
-				imagePlateViewer.zoomToSite( ( String ) siteNamesComboBox.getSelectedItem() );
+				imagePlateViewer.focusSite( ( String ) siteNamesComboBox.getSelectedItem() );
 				updateBdv( 1000 );
 			} );
 		} );
@@ -260,7 +260,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		{
 			SwingUtilities.invokeLater( () ->
 			{
-				imagePlateViewer.zoomToWell( ( String ) wellNamesComboBox.getSelectedItem() );
+				imagePlateViewer.focusWell( ( String ) wellNamesComboBox.getSelectedItem() );
 				updateBdv( 1000 );
 			} );
 		} );

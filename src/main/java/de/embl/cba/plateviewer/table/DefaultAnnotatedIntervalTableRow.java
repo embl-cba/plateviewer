@@ -44,6 +44,8 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 	@Override
 	public boolean isOutlier()
 	{
+		if ( ! columns.containsKey( outlierColumnName  ) ) return false;
+
 		final String s = columns.get( outlierColumnName ).get( rowIndex );
 		return s.equals( "1" ) ? true : false;
 	}
@@ -52,13 +54,14 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 	public void setOutlier( boolean isOutlier )
 	{
 		final String s = isOutlier ? "1" : "0";
-		setCell( outlierColumnName, s );
+		if ( columns.containsKey( outlierColumnName ))
+			setCell( outlierColumnName, s );
 	}
 
 	@Override
 	public String getAnnotation()
 	{
-		return null;
+		return "Not annotated";
 	}
 
 	@Override

@@ -37,12 +37,14 @@ public class TableRowsIntervalImage extends AbstractBdvViewable
 	private HashMap< String, DefaultAnnotatedIntervalTableRow > nameToTableRow;
 	private HashMap< String, Integer > nameToTableRowIndex;
 	private ARGBConvertedRealSource argbSource;
+	private String name;
 
 	public TableRowsIntervalImage(
 			List< DefaultAnnotatedIntervalTableRow > tableRows,
 			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel,
 			TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView,
-			Interval plateInterval, long[] siteDimensions )
+			Interval plateInterval,
+			long[] siteDimensions, String name )
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
@@ -50,6 +52,7 @@ public class TableRowsIntervalImage extends AbstractBdvViewable
 		this.plateInterval = plateInterval;
 		this.intervalDimensions = siteDimensions;
 		this.tableView = tableView;
+		this.name = name;
 
 		createSiteNameToTableRowMap( tableRows );
 
@@ -129,7 +132,7 @@ public class TableRowsIntervalImage extends AbstractBdvViewable
 	@Override
 	public String getName()
 	{
-		return "image table values";
+		return name;
 	}
 
 	@Override

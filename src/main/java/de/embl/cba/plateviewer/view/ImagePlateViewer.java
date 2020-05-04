@@ -34,7 +34,6 @@ import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
-import de.embl.cba.tables.view.TableRowsTableView;
 import ij.CompositeImage;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -71,14 +70,14 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private SelectionModel< T > siteSelectionModel;
 	private final String fileNamingScheme;
 	private Interval plateInterval;
-	private HashMap< String, Interval > wellNameToInterval;
-	private HashMap< String, Interval > siteNameToInterval;
-	private HashMap< Interval, String > intervalToSiteName;
+	private Map< String, Interval > wellNameToInterval;
+	private Map< String, Interval > siteNameToInterval;
+	private Map< Interval, String > intervalToSiteName;
+	private Map< Interval, String > intervalToWellName;
 
 	private long[] siteDimensions;
 	private long[] wellDimensions;
 	private String plateName;
-	private TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView;
 	private BdvSource dummySource;
 	private List< File > fileList;
 	private Map< String, MultiWellImg< ? > > channelToMultiWellImg;
@@ -86,6 +85,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private Map< String, ChannelProperties > channelNamesToProperties;
 	private Set< BdvOverlay > overlays;
 	private Map< String, BdvViewable > nameToBdvViewable;
+	private List< T > wells;
+	private SelectionModel< T > wellSelectionModel;
+
 
 	public ImagePlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -127,7 +129,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		addWellAndSiteInformationOverlay( referenceWellImg );
 
-		zoomToWell( wellNameToInterval.keySet().iterator().next());
+		focusWell( wellNameToInterval.keySet().iterator().next());
 
 		installBdvBehaviours();
 	}
@@ -188,7 +190,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		final RealPoint globalLocation = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
-		final String siteName = getSiteName( globalLocation );
+		final String siteName = getIntervalName( globalLocation, intervalToSiteName );
+		final String wellName = getIntervalName( globalLocation, intervalToWellName );
+
 		if ( siteName == null ) return;
 
 		final double[] location = new double[ 3 ];
@@ -210,19 +214,31 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			}).start();
 		} );
 
+		popupMenu.addPopupAction( "Focus well", e -> {
+			focusWell( siteName );
+		} );
+
 		popupMenu.addPopupAction( "Focus site", e -> {
-			zoomToSite( siteName );
+			focusSite( siteName );
 		} );
 
-		popupMenu.addPopupAction( "Mark site as outlier", e -> {
-			final T site = getSite( siteName );
-			site.setOutlier( true );
-		} );
+		if ( sites != null )
+		{
+			final T site = getAnnotatedInterval( sites, siteName );
 
-		popupMenu.addPopupAction( "Mark site as no outlier", e -> {
-			final T site = getSite( siteName );
-			site.setOutlier( false );
-		} );
+			popupMenu.addPopupAction( "Modify site annotations...", e -> {
+				showIntervalAnnotationDialog( site );
+			} );
+		}
+
+		if ( wells != null )
+		{
+			final T well = getAnnotatedInterval( wells, wellName );
+
+			popupMenu.addPopupAction( "Modify well annotations...", e -> {
+				showIntervalAnnotationDialog( well );
+			} );
+		}
 
 		popupMenu.addPopupAction( "Measure pixel values", e -> {
 			logPixelValues( plateLocation );
@@ -248,6 +264,17 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		} );
 
 		popupMenu.show( bdvHandle.getViewerPanel().getDisplay(), x, y );
+	}
+
+	private void showIntervalAnnotationDialog( T interval )
+	{
+		final GenericDialog gd = new GenericDialog( "Annotations" );
+		gd.addCheckbox( "Is outlier", interval.isOutlier() );
+		gd.addStringField( "Annotation", interval.getAnnotation() );
+		gd.showDialog();
+		if ( gd.wasCanceled() ) return;
+		interval.setOutlier( gd.getNextBoolean() );
+		interval.setAnnotation( gd.getNextString() );
 	}
 
 	private void logPixelValues( PlateLocation plateLocation )
@@ -408,8 +435,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		{
 			numSites[ d ] = (int) (( plateInterval.max( d ) - plateInterval.min( d ) ) / siteInterval.dimension( d )) + 1;
 		}
-
-
 	}
 
 	public void mapWellNamesToIntervals( MultiWellImg< R > multiWellImg )
@@ -439,8 +464,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 				}
 			}
 
-
 			wellNameToInterval.put( wellName, union );
+			intervalToWellName.put( union, wellName );
 		}
 
 		wellDimensions = Intervals.dimensionsAsLongArray( wellNameToInterval.values().iterator().next() );
@@ -483,9 +508,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return referenceWellImg.getWellNames();
 	}
 
-	public void zoomToWell ( String wellName )
+	public void focusWell( String wellName )
 	{
-		zoomToInterval( wellNameToInterval.get( wellName ) );
+		focusInterval( wellName, wellNameToInterval, wells, wellSelectionModel );
 	}
 
 	public Map< String, Interval > getWellNameToInterval()
@@ -498,19 +523,32 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return siteNameToInterval;
 	}
 
-	public void zoomToSite( String siteName )
+	public void focusSite( String siteName )
 	{
-		zoomToInterval( siteNameToInterval.get( siteName ) );
-
-		if ( siteSelectionModel != null )
-			notifySiteSelectionModel( siteName );
+		focusInterval( siteName, siteNameToInterval, sites, siteSelectionModel );
 	}
 
-	public String getSiteName( RealPoint point )
+	public void focusInterval( String siteName, Map< String, Interval > nameToInterval, List< T > sites, SelectionModel< T > selectionModel )
 	{
-		for ( Interval interval : intervalToSiteName.keySet() )
+		zoomToInterval( nameToInterval.get( siteName ) );
+		notifySelectionModel( siteName, sites, selectionModel );
+	}
+
+	private void notifySelectionModel( String siteName, List< T > sites, SelectionModel< T > siteSelectionModel )
+	{
+		if ( sites != null )
 		{
-			if ( Intervals.contains( interval, point ) ) return intervalToSiteName.get( interval );
+			T selectedSite = getAnnotatedInterval( this.sites, siteName );
+			if ( selectedSite != null && siteSelectionModel != null )
+				this.siteSelectionModel.focus( selectedSite );
+		}
+	}
+
+	public String getIntervalName( RealPoint point, Map< Interval, String > intervalToName )
+	{
+		for ( Interval interval : intervalToName.keySet() )
+		{
+			if ( Intervals.contains( interval, point ) ) return intervalToName.get( interval );
 		}
 
 		return null;
@@ -518,20 +556,19 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 	public void notifySiteSelectionModel( String siteName )
 	{
-		T selectedSite = getSite( siteName );
-		if ( selectedSite != null )
+		T selectedSite = getAnnotatedInterval( sites, siteName );
+		if ( selectedSite != null && siteSelectionModel != null )
 			siteSelectionModel.focus( selectedSite );
 	}
 
-	private T getSite( String siteName )
+	private T getAnnotatedInterval( List< T > annotatedIntervals, String name )
 	{
-		T selectedSite = null;
-		for ( T site : sites )
+		for ( T interval : annotatedIntervals )
 		{
-			if ( site.getName().equals( siteName ) )
-				selectedSite = site;
+			if ( interval.getName().equals( name ) )
+				return interval;
 		}
-		return selectedSite;
+		return null;
 	}
 
 	public boolean isImageExisting ( final SingleCellArrayImg< R, ? > cell )
@@ -757,9 +794,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		this.sites = annotatedIntervals;
 		this.siteSelectionModel = selectionModel;
-		registerAsSiteSelectionListener( selectionModel );
+		registerAsIntervalSelectionListener( selectionModel );
 		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
-		addSiteQCOverlay( sites );
+		addAnnotatedIntervalQCOverlay( sites, "site QC" );
 	}
 
 	// TODO: Do we really need both site and well or can we unify in a list
@@ -768,11 +805,29 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			SelectionModel< T > selectionModel,
 			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel )
 	{
-//		this.sites = annotatedIntervals;
-//		this.siteSelectionModel = selectionModel;
-//		registerAsSiteSelectionListener( selectionModel );
-//		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
-//		addSiteQCOverlay( sites );
+		this.wells = annotatedIntervals;
+		this.wellSelectionModel = selectionModel;
+		registerAsIntervalSelectionListener( selectionModel );
+		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
+		addAnnotatedIntervalQCOverlay( wells, "well QC" );
+	}
+
+	private void registerAsIntervalSelectionListener( SelectionModel< T > selectionModel )
+	{
+		selectionModel.listeners().add( new SelectionListener< T >()
+		{
+			@Override
+			public void selectionChanged()
+			{
+				//
+			}
+
+			@Override
+			public void focusEvent( T selection )
+			{
+				zoomToInterval( selection.getInterval() );
+			}
+		} );
 	}
 
 	private void registerAsSiteSelectionListener( SelectionModel < T > siteSelectionModel )
@@ -810,23 +865,11 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return wellDimensions;
 	}
 
-	// TODO: maybe this is not needed?
-	public void registerTableView( TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
+	private void addAnnotatedIntervalQCOverlay( List< T > intervals, String name )
 	{
-		this.tableView = tableView;
-	}
-
-	private void addSiteQCOverlay( List< T > sites )
-	{
-		final QCOverlay siteQCOverlay = new QCOverlay( sites );
-		overlays.add( siteQCOverlay );
-		addToPanelAndBdv( new OverlayBdvViewable( siteQCOverlay, "image QC" ) );
-	}
-
-	// TODO: this should not be here!
-	public TableRowsTableView< DefaultAnnotatedIntervalTableRow > getTableView()
-	{
-		return tableView;
+		final QCOverlay overlay = new QCOverlay( intervals );
+		overlays.add( overlay );
+		addToPanelAndBdv( new OverlayBdvViewable( overlay, name ) );
 	}
 
 	public void addToPanelAndBdv( String channel )

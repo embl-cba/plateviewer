@@ -18,6 +18,7 @@ public class TestNamingSchemeBatchLibHdf5
 				new File( pathname ),
 				".*.h5",
 				true,
+				true,
 				1,
 				false );
 	}

@@ -22,9 +22,13 @@ public class PlateViewerCommand implements Command
 	@Parameter (label = "Load image table")
 	public boolean loadImageTable;
 
+	@Parameter (label = "Load well table")
+	public boolean loadWellTable;
+
+
 	public void run()
 	{
-		new PlateViewer( imagesDirectory, filePattern, loadImageTable, 4, includeSubFolders );
+		new PlateViewer( imagesDirectory, filePattern, loadImageTable, loadWellTable,4, includeSubFolders );
 	}
 
 }

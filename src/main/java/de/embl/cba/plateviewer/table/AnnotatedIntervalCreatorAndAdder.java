@@ -12,11 +12,13 @@ import de.embl.cba.tables.color.NumericColoringModelDialog;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
+import net.imglib2.Interval;
 import net.imglib2.util.Intervals;
 
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableRowsFromFile;
@@ -49,11 +51,13 @@ public class AnnotatedIntervalCreatorAndAdder
 
 	public void createAndAddAnnotatedIntervals( IntervalType intervalType, String hdf5Group )
 	{
+		Map< String, Interval > nameToInterval = getNameToInterval( intervalType );
+
 		tableRows = createAnnotatedIntervalTableRowsFromFile(
-					tableFile.getAbsolutePath(),
-					fileNamingScheme,
-					imageView.getSiteNameToInterval(),
-					hdf5Group );
+						tableFile.getAbsolutePath(),
+						fileNamingScheme,
+						nameToInterval,
+						hdf5Group );
 
 		selectionModel = new DefaultSelectionModel<>();
 		coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
@@ -67,15 +71,14 @@ public class AnnotatedIntervalCreatorAndAdder
 		final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView
 				= createTableView( imageView.getBdvHandle().getViewerPanel() );
 
-		imageView.registerTableView( tableView );
-
 		final TableRowsIntervalImage tableRowsIntervalImage =
 				new TableRowsIntervalImage(
 						tableRows,
 						selectionColoringModel,
 						tableView,
 						imageView.getPlateInterval(),
-						Intervals.dimensionsAsLongArray( tableRows.get( 0 ).getInterval() ) );
+						Intervals.dimensionsAsLongArray( tableRows.get( 0 ).getInterval() ),
+						intervalType.toString().toLowerCase() + " table values" );
 
 		imageView.addToPanelAndBdv( tableRowsIntervalImage );
 
@@ -97,6 +100,16 @@ public class AnnotatedIntervalCreatorAndAdder
 
 
 		colorByDefaultColumn( tableView );
+	}
+
+	private Map< String, Interval > getNameToInterval( IntervalType intervalType )
+	{
+		Map< String, Interval > nameToInterval = null;
+		if ( intervalType.equals( IntervalType.Sites ))
+			nameToInterval= imageView.getSiteNameToInterval();
+		else if ( intervalType.equals( IntervalType.Wells ))
+			nameToInterval= imageView.getWellNameToInterval();
+		return nameToInterval;
 	}
 
 	private void colorByDefaultColumn( TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
