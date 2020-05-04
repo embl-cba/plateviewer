@@ -440,6 +440,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	public void mapWellNamesToIntervals( MultiWellImg< R > multiWellImg )
 	{
 		wellNameToInterval = new HashMap<>();
+		intervalToWellName = new HashMap<>();
 
 		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles =
 				multiWellImg.getLoader().getSingleSiteChannelFiles();
