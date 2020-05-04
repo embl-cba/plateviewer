@@ -13,7 +13,7 @@ import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 public class ScatterPlotOverlay extends BdvOverlay
 {
 	public static final String Y_NX = "y = n * x";
-	public static final String Y_1_2 = "y = 1, y = 2";
+	public static final String Y_1_2 = "y = n";
 
 	private final BdvHandle bdvHandle;
 	private final String columnNameX;

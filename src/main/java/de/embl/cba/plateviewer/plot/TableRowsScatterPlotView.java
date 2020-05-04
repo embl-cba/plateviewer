@@ -23,13 +23,14 @@ import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.ui.TransformListener;
 import net.imglib2.util.Intervals;
+import org.apache.commons.lang.mutable.MutableDouble;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -281,27 +282,26 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		indices = new ArrayList<>();
 
 		Double x, y;
-
 		Double xMax=-Double.MAX_VALUE,yMax=-Double.MAX_VALUE,xMin=Double.MAX_VALUE,yMin=Double.MAX_VALUE;
+
+		final HashMap< String, Double > xColumnEntryToDouble = new HashMap<>();
+		MutableDouble xCategoricalIndex = new MutableDouble( 0.0 );
+
+		final HashMap< String, Double > yColumnEntryToDouble = new HashMap<>();
+		MutableDouble yCategoricalIndex = new MutableDouble( 0.0 );
 
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
 			final T tableRow = tableRows.get( rowIndex );
 
-			x = Utils.parseDouble( tableRow.getCell( columnNameX ) );
-			if ( x.isNaN() ) continue;
-
-			y = Utils.parseDouble( tableRow.getCell( columnNameY ) );
-			if ( y.isNaN() ) continue;
-
-
 			if ( tableRow instanceof Outlier )
-			{
 				if ( ( ( Outlier ) tableRow ).isOutlier() )
-				{
 					continue;
-				}
-			}
+
+			x = getDouble( tableRow.getCell( columnNameX ), xColumnEntryToDouble, xCategoricalIndex );
+			if ( x == null ) continue;
+			y = getDouble( tableRow.getCell( columnNameY ), yColumnEntryToDouble, yCategoricalIndex );
+			if ( y == null ) continue;
 
 			points.add( new RealPoint( x, y, 0 ) );
 			viewerPoints.add( new RealPoint( 0, 0, 0 ) );
@@ -322,6 +322,26 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		dataAspectRatio = dataRanges[ 1 ] / dataRanges[ 0 ];
 
+	}
+
+	private Double getDouble( String cell, HashMap< String, Double > stringToDouble, MutableDouble nextIndex )
+	{
+		try
+		{
+			Double x = Utils.parseDouble( cell );
+			if ( x.isNaN() ) return null;
+			return x;
+		}
+		catch ( Exception e )
+		{
+			if ( ! stringToDouble.containsKey( cell ) )
+			{
+				stringToDouble.put( cell, nextIndex.doubleValue() );
+				nextIndex.increment();
+			}
+
+			return stringToDouble.get( cell );
+		}
 	}
 
 	public BiConsumer< RealLocalizable, IntType > createPlotFunction()
