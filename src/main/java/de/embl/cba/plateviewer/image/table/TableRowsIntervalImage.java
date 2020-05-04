@@ -7,15 +7,16 @@ import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.AbstractBdvViewable;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
-import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
+import de.embl.cba.tables.view.TableRowsTableView;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.position.FunctionRandomAccessible;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.Views;
 
@@ -24,32 +25,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsSitesImage extends AbstractBdvViewable
+public class TableRowsIntervalImage extends AbstractBdvViewable
 {
 	private final List< DefaultAnnotatedIntervalTableRow > tableRows;
 	private final SelectionColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
-	private final ImagePlateViewer imagePlateViewer;
 	private Interval plateInterval;
-	private final long[] siteDimensions;
+	private final long[] intervalDimensions;
 	private RandomAccessibleInterval< IntType > rai;
 	private double[] contrastLimits;
-	private final String[][] siteNameMatrix;
-	private HashMap< String, DefaultAnnotatedIntervalTableRow > siteNameToTableRow;
-	private HashMap< String, Integer > siteNameToTableRowIndex;
+	private final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView;
+	private HashMap< String, DefaultAnnotatedIntervalTableRow > nameToTableRow;
+	private HashMap< String, Integer > nameToTableRowIndex;
 	private ARGBConvertedRealSource argbSource;
 
-	public TableRowsSitesImage(
+	public TableRowsIntervalImage(
 			List< DefaultAnnotatedIntervalTableRow > tableRows,
 			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel,
-			ImagePlateViewer imagePlateViewer )
+			TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView,
+			Interval plateInterval, long[] siteDimensions )
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
-		this.imagePlateViewer = imagePlateViewer;
 
-		plateInterval = imagePlateViewer.getPlateInterval();
-		siteDimensions = imagePlateViewer.getSiteDimensions();
-		siteNameMatrix = imagePlateViewer.getSiteNameMatrix();
+		this.plateInterval = plateInterval;
+		this.intervalDimensions = siteDimensions;
+		this.tableView = tableView;
 
 		createSiteNameToTableRowMap( tableRows );
 
@@ -58,40 +58,53 @@ public class TableRowsSitesImage extends AbstractBdvViewable
 		createImage();
 	}
 
+	public TableRowsTableView< DefaultAnnotatedIntervalTableRow > getTableView()
+	{
+		return tableView;
+	}
+
 	public void createSiteNameToTableRowMap( List< DefaultAnnotatedIntervalTableRow > tableRows )
 	{
-		siteNameToTableRow = new HashMap<>();
-		siteNameToTableRowIndex = new HashMap();
+		nameToTableRow = new HashMap<>();
+		nameToTableRowIndex = new HashMap();
 
 		int rowIndex = 0;
 		for ( DefaultAnnotatedIntervalTableRow tableRow : tableRows )
 		{
-			siteNameToTableRow.put( tableRow.getName(), tableRow );
-			siteNameToTableRowIndex.put( tableRow.getName(), rowIndex++ );
+			nameToTableRow.put( tableRow.getName(), tableRow );
+			nameToTableRowIndex.put( tableRow.getName(), rowIndex++ );
 		}
 	}
 
 	private void createImage( )
 	{
-		// TODO: below code could be optimised by precomputing a tableRowIndexMatrix
 		BiConsumer< Localizable, IntType > biConsumer = ( l, t ) ->
 		{
 			t.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
 
-			final int siteRowIndex = ( int ) ( l.getIntPosition( 0 ) / siteDimensions[ 0 ] );
-			final int siteColumnIndex = ( int ) ( l.getIntPosition( 1 ) / siteDimensions[ 1 ] );
+			// TODO: think about a more preformant version of this
+			for ( DefaultAnnotatedIntervalTableRow tableRow : tableRows )
+			{
+				if ( Intervals.contains( tableRow.getInterval(), l ) )
+				{
+					t.setInteger( tableRow.rowIndex() );
+				}
+			}
 
-			if ( siteRowIndex < 0
-					|| siteRowIndex >= siteNameMatrix.length
-					|| siteColumnIndex < 0
-					|| siteColumnIndex >= siteNameMatrix[ 0 ].length )
-				return;
+//			final int siteRowIndex = ( int ) ( l.getIntPosition( 0 ) / intervalDimensions[ 0 ] );
+//			final int siteColumnIndex = ( int ) ( l.getIntPosition( 1 ) / intervalDimensions[ 1 ] );
+//
+//			if ( siteRowIndex < 0
+//					|| siteRowIndex >= nameMatrix.length
+//					|| siteColumnIndex < 0
+//					|| siteColumnIndex >= nameMatrix[ 0 ].length )
+//				return;
+//
+//			final String siteName = nameMatrix[ siteRowIndex ][ siteColumnIndex ];
+//
+//			if ( siteName == null ) return;
 
-			final String siteName = siteNameMatrix[ siteRowIndex ][ siteColumnIndex ];
-
-			if ( siteName == null ) return;
-
-			t.setInteger( siteNameToTableRowIndex.get( siteName ) );
+//			t.setInteger( nameToTableRowIndex.get( siteName ) );
 		};
 
 		final FunctionRandomAccessible< IntType > randomAccessible =

@@ -2,7 +2,7 @@ package de.embl.cba.plateviewer.table;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.image.table.TableRowsSitesImage;
+import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
 import de.embl.cba.plateviewer.plot.ScatterPlotOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
@@ -12,6 +12,7 @@ import de.embl.cba.tables.color.NumericColoringModelDialog;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
+import net.imglib2.util.Intervals;
 
 import java.awt.*;
 import java.io.File;
@@ -22,6 +23,12 @@ import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableR
 
 public class AnnotatedIntervalCreatorAndAdder
 {
+	public enum IntervalType
+	{
+		Sites,
+		Wells
+	}
+
 	private final ImagePlateViewer< ?, DefaultAnnotatedIntervalTableRow > imageView;
 	private final String fileNamingScheme;
 	private final File tableFile;
@@ -40,7 +47,7 @@ public class AnnotatedIntervalCreatorAndAdder
 		this.tableFile = tableFile;
 	}
 
-	public void createAndAddAnnotatedIntervals( String hdf5Group )
+	public void createAndAddAnnotatedIntervals( IntervalType intervalType, String hdf5Group )
 	{
 		tableRows = createAnnotatedIntervalTableRowsFromFile(
 					tableFile.getAbsolutePath(),
@@ -52,21 +59,25 @@ public class AnnotatedIntervalCreatorAndAdder
 		coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
 		selectionColoringModel = new SelectionColoringModel( coloringModel, selectionModel );
 
-		imageView.addAnnotatedSiteIntervals( tableRows, selectionModel, selectionColoringModel );
-
+		if ( intervalType.equals( IntervalType.Sites ) )
+			imageView.addAnnotatedSiteIntervals( tableRows, selectionModel, selectionColoringModel );
+		else if ( intervalType.equals( IntervalType.Wells ) )
+			imageView.addAnnotatedWellIntervals( tableRows, selectionModel, selectionColoringModel );
 
 		final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView
 				= createTableView( imageView.getBdvHandle().getViewerPanel() );
 
 		imageView.registerTableView( tableView );
 
-		final TableRowsSitesImage tableRowsSitesImage =
-				createTableColoredSiteImage(
-					imageView,
-					fileNamingScheme,
-					tableView );
+		final TableRowsIntervalImage tableRowsIntervalImage =
+				new TableRowsIntervalImage(
+						tableRows,
+						selectionColoringModel,
+						tableView,
+						imageView.getPlateInterval(),
+						Intervals.dimensionsAsLongArray( tableRows.get( 0 ).getInterval() ) );
 
-		imageView.addToPanelAndBdv( tableRowsSitesImage );
+		imageView.addToPanelAndBdv( tableRowsIntervalImage );
 
 		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
@@ -83,6 +94,26 @@ public class AnnotatedIntervalCreatorAndAdder
 
 			scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );
 		}
+
+
+		colorByDefaultColumn( tableView );
+	}
+
+	private void colorByDefaultColumn( TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
+	{
+		NumericColoringModelDialog.dialogLocation = new Point( 10, imageView.getMainPanel().getLocationOnScreen().y + imageView.getMainPanel().getHeight() + 80 );
+
+		final Set< String > columnNames = tableView.getTableRows().get( 0 ).getColumnNames();
+		if ( columnNames.contains( "ratio_of_median_of_sums" ) )
+			tableView.colorByColumn( "ratio_of_median_of_sums", ColoringLuts.VIRIDIS );
+		if ( columnNames.contains( "ratio_of_q0.5_of_sums" ) )
+			tableView.colorByColumn( "ratio_of_q0.5_of_sums", ColoringLuts.VIRIDIS );
+		else if ( columnNames.contains( "cell_based_score" ) )
+			tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
+		else if ( columnNames.contains( "score1" ) )
+			tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
+		else if ( columnNames.contains( "score" ) )
+			tableView.colorByColumn( "score", ColoringLuts.VIRIDIS );
 	}
 
 	public TableRowsTableView< DefaultAnnotatedIntervalTableRow > createTableView( Component component )
@@ -93,33 +124,4 @@ public class AnnotatedIntervalCreatorAndAdder
 		tableView.showTableAndMenu( component );
 		return tableView;
 	}
-
-	public TableRowsSitesImage createTableColoredSiteImage(
-			ImagePlateViewer imageView,
-			String fileNamingScheme,
-			TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
-	{
-		final TableRowsSitesImage tableRowsSitesImage =
-				new TableRowsSitesImage(
-						tableRows,
-						selectionColoringModel,
-						imageView );
-
-		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
-		{
-			NumericColoringModelDialog.dialogLocation = new Point( 10, imageView.getMainPanel().getLocationOnScreen().y + imageView.getMainPanel().getHeight() + 80 );
-
-			final Set< String > columnNames = tableView.getTableRows().get( 0 ).getColumnNames();
-			if ( columnNames.contains( "cell_based_score" ) )
-				tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
-			else if ( columnNames.contains( "score1" ) )
-				tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
-			else if ( columnNames.contains( "score" ) )
-				tableView.colorByColumn( "score", ColoringLuts.VIRIDIS );
-
-		}
-
-		return tableRowsSitesImage;
-	}
-
 }

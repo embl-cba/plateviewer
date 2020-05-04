@@ -1,22 +1,15 @@
 package de.embl.cba.plateviewer;
 
-import bdv.viewer.ViewerPanel;
 import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.image.table.TableRowsSitesImage;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import de.embl.cba.plateviewer.table.AnnotatedIntervalCreatorAndAdder;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
-import de.embl.cba.tables.color.ColoringLuts;
-import de.embl.cba.tables.color.NumericColoringModelDialog;
-import de.embl.cba.tables.view.TableRowsTableView;
 import ij.IJ;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
-import java.awt.*;
 import java.io.File;
-import java.util.Set;
 
 public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends AnnotatedInterval >
 {
@@ -48,7 +41,7 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		final AnnotatedIntervalCreatorAndAdder intervalCreatorAndAdder =
 				new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableFile );
 
-		intervalCreatorAndAdder.createAndAddAnnotatedIntervals( "tables/images/default" );
+		intervalCreatorAndAdder.createAndAddAnnotatedIntervals( AnnotatedIntervalCreatorAndAdder.IntervalType.Sites, "tables/images/default" );
 	}
 
 

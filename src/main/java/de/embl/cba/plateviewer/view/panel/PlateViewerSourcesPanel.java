@@ -7,7 +7,9 @@ import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.image.table.TableRowsSitesImage;
+import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
+import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.tables.view.TableRowsTableView;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
@@ -78,16 +80,14 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
             if ( ! ( bdvSource instanceof BdvOverlaySource ) &&
                     ! ( bdvViewable.getType().equals( Metadata.Type.Segmentation )) &&
-                    ! ( bdvViewable instanceof TableRowsSitesImage ) )
+                    ! ( bdvViewable instanceof TableRowsIntervalImage ) )
             {
                 final JButton colorButton = createColorButtonWithColoredBackground( buttonDimensions, bdvSource, Utils.asColor( bdvViewable.getColor() ) );
-                //colorButton.setHorizontalAlignment( SwingConstants.RIGHT );
                 panel.add( colorButton );
             }
-            else if ( bdvViewable instanceof TableRowsSitesImage )
+            else if ( bdvViewable instanceof TableRowsIntervalImage )
             {
-                final JButton colorButton = createColorByColumnButton( panel, buttonDimensions, bdvSource );
-                //colorButton.setHorizontalAlignment( SwingConstants.RIGHT );
+                final JButton colorButton = createColorByColumnButton( buttonDimensions, ( ( TableRowsIntervalImage ) bdvViewable ).getTableView() );
                 panel.add( colorButton );
             }
             else
@@ -99,7 +99,6 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
             {
                 JButton brightnessButton = getBrightnessButton(
                         channelName, ( BdvStackSource ) bdvSource, buttonDimensions );
-                //brightnessButton.setHorizontalAlignment( SwingConstants.RIGHT );
                 panel.add( brightnessButton );
             }
             else
@@ -160,9 +159,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         panel.add( jButton );
     }
 
-    private JButton createColorByColumnButton( JPanel panel,
-                                             int[] buttonDimensions,
-                                             BdvSource bdvSource )
+    private JButton createColorByColumnButton( int[] buttonDimensions, TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
     {
         JButton colorButton;
         colorButton = new JButton( "C" );
@@ -170,8 +167,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
                 new Dimension( buttonDimensions[ 0 ], buttonDimensions[ 1 ] ) );
 
         colorButton.addActionListener( e -> {
-            // TODO: think about who knows about what
-            mainPanel.getImagePlateViewer().getTableView().showColorByColumnDialog();
+            tableView.showColorByColumnDialog();
         } );
 
         return colorButton;

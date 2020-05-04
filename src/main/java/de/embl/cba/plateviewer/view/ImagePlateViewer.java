@@ -74,7 +74,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	private HashMap< String, Interval > wellNameToInterval;
 	private HashMap< String, Interval > siteNameToInterval;
 	private HashMap< Interval, String > intervalToSiteName;
-	private String[][] siteNameMatrix;
 
 	private long[] siteDimensions;
 	private long[] wellDimensions;
@@ -388,6 +387,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		plateInterval = wellImg.getRAI();
 	}
 
+	// TODO: base this on the list of sites rather than the multiWellImg?
 	public void mapSiteNamesToIntervals( MultiWellImg multiWellImg )
 	{
 		siteNameToInterval = new HashMap<>();
@@ -409,14 +409,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			numSites[ d ] = (int) (( plateInterval.max( d ) - plateInterval.min( d ) ) / siteInterval.dimension( d )) + 1;
 		}
 
-		siteNameMatrix = new String[ numSites[ 0 ] ][ numSites[ 1 ] ];
 
-		for ( SingleSiteChannelFile channelFile : siteChannelFiles )
-		{
-			final int rowIndex = (int) (channelFile.getInterval().min( 0 ) / siteInterval.dimension( 0 ));
-			final int colIndex = (int) (channelFile.getInterval().min( 1 ) / siteInterval.dimension( 1 ));
-			siteNameMatrix[ rowIndex ][ colIndex ] = channelFile.getSiteName();
-		}
 	}
 
 	public void mapWellNamesToIntervals( MultiWellImg< R > multiWellImg )
@@ -451,12 +444,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		}
 
 		wellDimensions = Intervals.dimensionsAsLongArray( wellNameToInterval.values().iterator().next() );
-	}
-
-
-	public String[][] getSiteNameMatrix()
-	{
-		return siteNameMatrix;
 	}
 
 	public BdvHandle getBdvHandle( )
@@ -764,15 +751,28 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	}
 
 	public void addAnnotatedSiteIntervals(
-			List< T > annotatedSiteIntervals,
+			List< T > annotatedIntervals,
 			SelectionModel< T > selectionModel,
 			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel )
 	{
-		this.sites = annotatedSiteIntervals;
+		this.sites = annotatedIntervals;
 		this.siteSelectionModel = selectionModel;
 		registerAsSiteSelectionListener( selectionModel );
 		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
 		addSiteQCOverlay( sites );
+	}
+
+	// TODO: Do we really need both site and well or can we unify in a list
+	public void addAnnotatedWellIntervals(
+			List< T > annotatedIntervals,
+			SelectionModel< T > selectionModel,
+			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel )
+	{
+//		this.sites = annotatedIntervals;
+//		this.siteSelectionModel = selectionModel;
+//		registerAsSiteSelectionListener( selectionModel );
+//		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
+//		addSiteQCOverlay( sites );
 	}
 
 	private void registerAsSiteSelectionListener( SelectionModel < T > siteSelectionModel )

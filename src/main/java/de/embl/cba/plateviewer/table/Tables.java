@@ -62,22 +62,24 @@ public class Tables
 
 			// remove some columns to make it easier to look at
 			// TODO: remove this at some point...
-			for ( Map.Entry< String, List< String > > entry : columnNameToColumn.entrySet() )
+
+			final Set< String > columnNames = new HashSet<>( columnNameToColumn.keySet() );
+			for ( String columnName : columnNames )
 			{
-				if ( entry.getKey().contains( "_mean_" ) )
-					columnNameToColumn.remove( entry.getKey() );
+				if ( columnName.contains( "_mean_" ) )
+					columnNameToColumn.remove( columnName );
 
-				if ( entry.getKey().contains( "_q0.7" ) )
-					columnNameToColumn.remove( entry.getKey() );
+				if ( columnName.contains( "_q0.7" ) )
+					columnNameToColumn.remove( columnName );
 
-				if ( entry.getKey().contains( "_q0.3" ) )
-					columnNameToColumn.remove( entry.getKey() );
+				if ( columnName.contains( "_q0.3" ) )
+					columnNameToColumn.remove( columnName );
 
-				if ( entry.getKey().contains( "_q0.1" ) )
-					columnNameToColumn.remove( entry.getKey() );
+				if ( columnName.contains( "_q0.1" ) )
+					columnNameToColumn.remove( columnName );
 
-				if ( entry.getKey().contains( "_q0.9" ) )
-					columnNameToColumn.remove( entry.getKey() );
+				if ( columnName.contains( "_q0.9" ) )
+					columnNameToColumn.remove( columnName );
 			}
 		}
 		else
