@@ -763,19 +763,16 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		return cellPos;
 	}
 
-	public void addSiteImageIntervals(
-			List < T > annotatedSiteIntervals,
-			SelectionModel < T > selectionModel )
+	public void addAnnotatedSiteIntervals(
+			List< T > annotatedSiteIntervals,
+			SelectionModel< T > selectionModel,
+			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel )
 	{
 		this.sites = annotatedSiteIntervals;
 		this.siteSelectionModel = selectionModel;
 		registerAsSiteSelectionListener( selectionModel );
-		addSiteQCOverlay( sites );
-	}
-
-	public void registerAsColoringListener( SelectionColoringModel< T > selectionColoringModel )
-	{
 		selectionColoringModel.listeners().add( () -> BdvUtils.repaint( bdvHandle ) );
+		addSiteQCOverlay( sites );
 	}
 
 	private void registerAsSiteSelectionListener( SelectionModel < T > siteSelectionModel )

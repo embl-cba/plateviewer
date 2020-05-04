@@ -11,26 +11,25 @@ import java.util.*;
 
 public class Tables
 {
-
-	public static List< DefaultAnnotatedIntervalTableRow > createSiteNameTableRowsFromColumns(
+	public static List< DefaultAnnotatedIntervalTableRow > createAnnotatedIntervalTableRowsFromColumns(
 			final Map< String, List< String > > columns,
-			final String siteNameColumnName,
-			Map< String, Interval > siteNameToInterval,
+			final String intervalNameColumnName,
+			final Map< String, Interval > nameToInterval,
 			final String outlierColumnName )
 	{
-		final List< DefaultAnnotatedIntervalTableRow > siteNameTableRows = new ArrayList<>();
+		final List< DefaultAnnotatedIntervalTableRow > tableRows = new ArrayList<>();
 
 		final int numRows = columns.values().iterator().next().size();
 
 		for ( int row = 0; row < numRows; row++ )
 		{
-			final String siteName = columns.get( siteNameColumnName ).get( row );
+			final String siteName = columns.get( intervalNameColumnName ).get( row );
 
 			Interval interval = null;
-			if ( siteNameToInterval != null )
-				interval = siteNameToInterval.get( siteName );
+			if ( nameToInterval != null )
+				interval = nameToInterval.get( siteName );
 
-			siteNameTableRows.add(
+			tableRows.add(
 					new DefaultAnnotatedIntervalTableRow(
 							siteName,
 							interval,
@@ -40,13 +39,14 @@ public class Tables
 			);
 		}
 
-		return siteNameTableRows;
+		return tableRows;
 	}
 
-	public static List< DefaultAnnotatedIntervalTableRow > createSiteTableRowsFromFile(
+	public static List< DefaultAnnotatedIntervalTableRow > createAnnotatedIntervalTableRowsFromFile(
 			String filePath,
 			String imageNamingScheme,
-			Map< String, Interval > siteNameToInterval )
+			Map< String, Interval > nameToInterval,
+			String hdf5Group )
 	{
 		final Map< String, List< String > > columnNameToColumn;
 
@@ -56,7 +56,29 @@ public class Tables
 		}
 		else if ( filePath.endsWith( ".hdf5" ) || filePath.endsWith( ".h5" ) )
 		{
-			columnNameToColumn = Tables.stringColumnsFromHDF5( filePath, "tables/images/default" );
+			columnNameToColumn = Tables.stringColumnsFromHDF5(
+					filePath,
+					hdf5Group );
+
+			// remove some columns to make it easier to look at
+			// TODO: remove this at some point...
+			for ( Map.Entry< String, List< String > > entry : columnNameToColumn.entrySet() )
+			{
+				if ( entry.getKey().contains( "_mean_" ) )
+					columnNameToColumn.remove( entry.getKey() );
+
+				if ( entry.getKey().contains( "_q0.7" ) )
+					columnNameToColumn.remove( entry.getKey() );
+
+				if ( entry.getKey().contains( "_q0.3" ) )
+					columnNameToColumn.remove( entry.getKey() );
+
+				if ( entry.getKey().contains( "_q0.1" ) )
+					columnNameToColumn.remove( entry.getKey() );
+
+				if ( entry.getKey().contains( "_q0.9" ) )
+					columnNameToColumn.remove( entry.getKey() );
+			}
 		}
 		else
 		{
@@ -65,13 +87,11 @@ public class Tables
 
 		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final String siteNameColumnName = ensureSiteNameColumn( columnNameToColumn );
-
-			return createSiteNameTableRowsFromColumns(
+			return createAnnotatedIntervalTableRowsFromColumns(
 						columnNameToColumn,
-						siteNameColumnName,
-						siteNameToInterval,
-						NamingSchemes.ColumnNamesBatchLibHdf5.COLUMN_NAME_OUTLIER );
+						NamingSchemes.ColumnNamesBatchLibHdf5.getIntervalName( hdf5Group ),
+						nameToInterval,
+						NamingSchemes.ColumnNamesBatchLibHdf5.OUTLIER );
 		}
 		else
 		{

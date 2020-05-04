@@ -17,7 +17,9 @@ public abstract class NamingSchemes
 
 	public static abstract class ColumnNamesBatchLibHdf5
 	{
-		public static final String COLUMN_NAME_OUTLIER = "is_outlier";
+		public static final String OUTLIER = "is_outlier";
+		public static final String WELL_NAME = "well_name";
+		public static final String SITE_NAME = "site_name";
 
 		public static String getDefaultColumnNameX( List< DefaultAnnotatedIntervalTableRow > siteTableRows )
 		{
@@ -30,6 +32,16 @@ public abstract class NamingSchemes
 		public static String getDefaultColumnNameY()
 		{
 			return "infected_median";
+		}
+
+		public static String getIntervalName( String hdf5Group )
+		{
+			String intervalName = null;
+			if ( hdf5Group.contains( "images" ) )
+				intervalName = SITE_NAME; // ensureSiteNameColumn( columnNameToColumn );
+			else if ( hdf5Group.contains( "wells" ) )
+				intervalName = WELL_NAME;
+			return intervalName;
 		}
 	}
 }
