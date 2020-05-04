@@ -18,7 +18,7 @@ public abstract class NamingSchemes
 	public static final String PATTERN_SCANR_WELLNAME_WELLNUM = "(.*--W[0-9]{5})--.*\\..*";
 	public static final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
 
-	public static abstract class ColumnNamesBatchLibHdf5
+	public static abstract class BatchLibHdf5
 	{
 		public static final String OUTLIER = "is_outlier";
 		public static final String WELL_NAME = "well_name";
@@ -45,6 +45,16 @@ public abstract class NamingSchemes
 			else if ( hdf5Group.contains( "wells" ) )
 				intervalName = WELL_NAME;
 			return intervalName;
+		}
+
+		public static String getOutlierString( boolean isOutlier )
+		{
+			return isOutlier ? "1" : "0";
+		}
+
+		public static boolean isOutlier( String s )
+		{
+			return s.equals( "1" ) ? true : false;
 		}
 	}
 }

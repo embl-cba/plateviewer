@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.table;
 
-import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
+import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.tables.tablerow.AbstractTableRow;
 import net.imglib2.Interval;
 
@@ -8,15 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.plateviewer.mongo.AssayMetadataRepository.getCovid19AssayMetadataRepository;
-
 public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implements AnnotatedIntervalTableRow
 {
-	private final Interval interval;
-	private String outlierColumnName;
-	private final Map< String, List< String > > columns;
-	private final String siteName;
-	private final int rowIndex;
+	protected final Interval interval;
+	protected String outlierColumnName;
+	protected final Map< String, List< String > > columns;
+	protected final String siteName;
+	protected final int rowIndex;
 
 	public DefaultAnnotatedIntervalTableRow(
 			String siteName,
@@ -50,24 +48,19 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 		if ( ! columns.containsKey( outlierColumnName  ) ) return false;
 
 		final String s = columns.get( outlierColumnName ).get( rowIndex );
-		return s.equals( "1" ) ? true : false;
+		return NamingSchemes.BatchLibHdf5.isOutlier( s );
 	}
 
 	@Override
 	public void setOutlier( boolean isOutlier )
 	{
-		final String s = isOutlier ? "1" : "0";
 		if ( columns.containsKey( outlierColumnName ))
-			setCell( outlierColumnName, s );
+			setCell( outlierColumnName, NamingSchemes.BatchLibHdf5.getOutlierString( isOutlier ) );
 	}
 
 	@Override
 	public String getAnnotation()
 	{
-//		final AssayMetadataRepository amr = getCovid19AssayMetadataRepository( "covid2581" );
-//		columns.get( wellNameColumnName )
-//		amr.getManualAssessment( "plateName", "C01");
-
 		return "Not annotated";
 	}
 

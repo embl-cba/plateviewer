@@ -13,7 +13,6 @@ import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
 import net.imglib2.Interval;
-import net.imglib2.util.Intervals;
 
 import java.awt.*;
 import java.io.File;
@@ -90,8 +89,8 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 							selectionColoringModel,
 							selectionModel,
 							imageView.getPlateName(),
-							NamingSchemes.ColumnNamesBatchLibHdf5.getDefaultColumnNameX( tableRows ),
-							NamingSchemes.ColumnNamesBatchLibHdf5.getDefaultColumnNameY(),
+							NamingSchemes.BatchLibHdf5.getDefaultColumnNameX( tableRows ),
+							NamingSchemes.BatchLibHdf5.getDefaultColumnNameY(),
 							ScatterPlotOverlay.Y_NX );
 
 			scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );

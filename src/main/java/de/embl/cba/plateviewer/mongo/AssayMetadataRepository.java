@@ -6,6 +6,8 @@ import org.bson.Document;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
@@ -15,11 +17,27 @@ import static com.mongodb.client.model.Updates.set;
  * Used to interact with the 'immuno-assay-metadata' collection which keeps information about the plates.
  */
 public class AssayMetadataRepository extends AbstractRepository {
+
+    public static String repositoryOutlierColumnName = "DB_outlier";
+    public static String cohortIdColumnName = "DB_cohort_id";
+
+    private String defaultPlateName;
+
     public AssayMetadataRepository(MongoClient mongoClient, String database) {
         super(mongoClient, database, "immuno-assay-metadata");
     }
 
-    public Document getPlate(String plateName) {
+    public String getDefaultPlateName()
+    {
+        return defaultPlateName;
+    }
+
+    public void setDefaultPlateName( String defaultPlateName )
+    {
+        this.defaultPlateName = defaultPlateName;
+    }
+
+    public Document getPlate( String plateName) {
         return getCollection().find(eq("name", plateName)).first();
     }
 
@@ -177,9 +195,10 @@ public class AssayMetadataRepository extends AbstractRepository {
         return 0;
     }
 
-
     public static AssayMetadataRepository getCovid19AssayMetadataRepository( String password )
     {
+        Logger.getLogger("org.mongodb.driver").setLevel( Level.OFF );
+
         String host = "vm-kreshuk08.embl.de";
         int port = 27017;
         String user = "covid19";
@@ -187,7 +206,8 @@ public class AssayMetadataRepository extends AbstractRepository {
 
         String connectionString = String.format("mongodb://%s:%s@%s:%d/?authSource=%s", user, password, host, port, dbName);
         MongoClient client = MongoClients.create(connectionString);
+        final AssayMetadataRepository repository = new AssayMetadataRepository( client, dbName );
 
-        return new AssayMetadataRepository(client, dbName);
+        return repository;
     }
 }

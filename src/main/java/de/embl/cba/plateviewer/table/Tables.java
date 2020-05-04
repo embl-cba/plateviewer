@@ -4,14 +4,18 @@ import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderBatchLibHdf5;
 import de.embl.cba.plateviewer.image.NamingSchemes;
+import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
 import de.embl.cba.tables.TableColumns;
 import net.imglib2.Interval;
 
+import java.io.File;
 import java.util.*;
+
+import static de.embl.cba.plateviewer.mongo.AssayMetadataRepository.getCovid19AssayMetadataRepository;
 
 public class Tables
 {
-	public static List< DefaultAnnotatedIntervalTableRow > createDefaultAnnotatedIntervalTableRowsFromColumns(
+	public static List< ? extends AnnotatedIntervalTableRow > createDefaultAnnotatedIntervalTableRowsFromColumns(
 			final Map< String, List< String > > columns,
 			final String intervalNameColumnName,
 			final Map< String, Interval > nameToInterval,
@@ -34,6 +38,35 @@ public class Tables
 							outlierColumnName,
 							columns,
 							row )
+			);
+		}
+
+		return tableRows;
+	}
+
+	public static List< ? extends AnnotatedIntervalTableRow > createAnnotatedIntervalTableRowsFromColumnsAndRepository(
+			final Map< String, List< String > > columns,
+			final String intervalNameColumnName,
+			final Map< String, Interval > nameToInterval,
+			AssayMetadataRepository repository )
+	{
+		final List< RepositoryAnnotatedIntervalTableRow > tableRows = new ArrayList<>();
+		final int numRows = columns.values().iterator().next().size();
+		for ( int row = 0; row < numRows; row++ )
+		{
+			final String siteName = columns.get( intervalNameColumnName ).get( row );
+
+			Interval interval = null;
+			if ( nameToInterval != null )
+				interval = nameToInterval.get( siteName );
+
+			tableRows.add(
+					new RepositoryAnnotatedIntervalTableRow(
+							siteName,
+							interval,
+							columns,
+							row,
+							repository)
 			);
 		}
 
@@ -87,11 +120,34 @@ public class Tables
 
 		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			return createDefaultAnnotatedIntervalTableRowsFromColumns(
+
+			try
+			{
+				final AssayMetadataRepository repository = getCovid19AssayMetadataRepository( "covid" + (2500 + 81 ) );
+
+				final String plateName = new File( filePath ).getParent();
+				repository.setDefaultPlateName( plateName );
+
+				final List< ? extends AnnotatedIntervalTableRow > fromColumnsAndRepository = createAnnotatedIntervalTableRowsFromColumnsAndRepository(
 						columnNameToColumn,
-						NamingSchemes.ColumnNamesBatchLibHdf5.getIntervalName( hdf5Group ),
+						NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
 						nameToInterval,
-						NamingSchemes.ColumnNamesBatchLibHdf5.OUTLIER );
+						repository );
+
+				return fromColumnsAndRepository;
+
+			}
+			catch ( Exception e )
+			{
+				e.printStackTrace();
+
+				return createDefaultAnnotatedIntervalTableRowsFromColumns(
+							columnNameToColumn,
+							NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
+							nameToInterval,
+							NamingSchemes.BatchLibHdf5.OUTLIER );
+			}
+
 		}
 		else
 		{
