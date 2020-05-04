@@ -1,6 +1,7 @@
 package de.embl.cba.plateviewer.mongo;
 
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import org.bson.Document;
 
 import java.util.Arrays;
@@ -174,5 +175,19 @@ public class AssayMetadataRepository extends AbstractRepository {
         }
 
         return 0;
+    }
+
+
+    public static AssayMetadataRepository getCovid19AssayMetadataRepository( String password )
+    {
+        String host = "vm-kreshuk08.embl.de";
+        int port = 27017;
+        String user = "covid19";
+        String dbName = "covid";
+
+        String connectionString = String.format("mongodb://%s:%s@%s:%d/?authSource=%s", user, password, host, port, dbName);
+        MongoClient client = MongoClients.create(connectionString);
+
+        return new AssayMetadataRepository(client, dbName);
     }
 }

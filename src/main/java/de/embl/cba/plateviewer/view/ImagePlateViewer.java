@@ -791,7 +791,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	public void addAnnotatedSiteIntervals(
 			List< T > annotatedIntervals,
 			SelectionModel< T > selectionModel,
-			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel )
+			SelectionColoringModel< T > selectionColoringModel )
 	{
 		this.sites = annotatedIntervals;
 		this.siteSelectionModel = selectionModel;
@@ -804,7 +804,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	public void addAnnotatedWellIntervals(
 			List< T > annotatedIntervals,
 			SelectionModel< T > selectionModel,
-			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel )
+			SelectionColoringModel< T > selectionColoringModel )
 	{
 		this.wells = annotatedIntervals;
 		this.wellSelectionModel = selectionModel;

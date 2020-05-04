@@ -6,6 +6,7 @@ import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.AbstractBdvViewable;
+import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -25,32 +26,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsIntervalImage extends AbstractBdvViewable
+public class TableRowsIntervalImage < T extends AnnotatedIntervalTableRow > extends AbstractBdvViewable
 {
-	private final List< DefaultAnnotatedIntervalTableRow > tableRows;
-	private final SelectionColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
+	private final List< T > tableRows;
+	private final SelectionColoringModel< T > coloringModel;
 	private Interval plateInterval;
-	private final long[] intervalDimensions;
 	private RandomAccessibleInterval< IntType > rai;
 	private double[] contrastLimits;
-	private final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView;
-	private HashMap< String, DefaultAnnotatedIntervalTableRow > nameToTableRow;
+	private final TableRowsTableView< T > tableView;
+	private HashMap< String, T > nameToTableRow;
 	private HashMap< String, Integer > nameToTableRowIndex;
 	private ARGBConvertedRealSource argbSource;
 	private String name;
 
 	public TableRowsIntervalImage(
-			List< DefaultAnnotatedIntervalTableRow > tableRows,
-			SelectionColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel,
-			TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView,
+			List< T > tableRows,
+			SelectionColoringModel< T > coloringModel,
+			TableRowsTableView< T > tableView,
 			Interval plateInterval,
-			long[] siteDimensions, String name )
+			String name )
 	{
 		this.tableRows = tableRows;
 		this.coloringModel = coloringModel;
 
 		this.plateInterval = plateInterval;
-		this.intervalDimensions = siteDimensions;
 		this.tableView = tableView;
 		this.name = name;
 
@@ -61,18 +60,18 @@ public class TableRowsIntervalImage extends AbstractBdvViewable
 		createImage();
 	}
 
-	public TableRowsTableView< DefaultAnnotatedIntervalTableRow > getTableView()
+	public TableRowsTableView< T > getTableView()
 	{
 		return tableView;
 	}
 
-	public void createSiteNameToTableRowMap( List< DefaultAnnotatedIntervalTableRow > tableRows )
+	public void createSiteNameToTableRowMap( List< T > tableRows )
 	{
 		nameToTableRow = new HashMap<>();
 		nameToTableRowIndex = new HashMap();
 
 		int rowIndex = 0;
-		for ( DefaultAnnotatedIntervalTableRow tableRow : tableRows )
+		for ( T tableRow : tableRows )
 		{
 			nameToTableRow.put( tableRow.getName(), tableRow );
 			nameToTableRowIndex.put( tableRow.getName(), rowIndex++ );
@@ -85,8 +84,7 @@ public class TableRowsIntervalImage extends AbstractBdvViewable
 		{
 			t.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
 
-			// TODO: think about a more preformant version of this
-			for ( DefaultAnnotatedIntervalTableRow tableRow : tableRows )
+			for ( T tableRow : tableRows )
 			{
 				if ( Intervals.contains( tableRow.getInterval(), l ) )
 				{
@@ -120,7 +118,7 @@ public class TableRowsIntervalImage extends AbstractBdvViewable
 		final RandomAccessibleIntervalSource< IntType > tableRowIndexSource
 				= new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), "table row index" );
 
-		final ListItemsARGBConverter< DefaultAnnotatedIntervalTableRow > argbConverter =
+		final ListItemsARGBConverter< T > argbConverter =
 				new ListItemsARGBConverter<>( tableRows, coloringModel );
 
 		argbSource = new ARGBConvertedRealSource( tableRowIndexSource , argbConverter );

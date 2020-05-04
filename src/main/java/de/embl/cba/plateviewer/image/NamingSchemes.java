@@ -1,6 +1,9 @@
 package de.embl.cba.plateviewer.image;
 
+import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
+import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.List;
 
@@ -21,7 +24,7 @@ public abstract class NamingSchemes
 		public static final String WELL_NAME = "well_name";
 		public static final String SITE_NAME = "site_name";
 
-		public static String getDefaultColumnNameX( List< DefaultAnnotatedIntervalTableRow > siteTableRows )
+		public static String getDefaultColumnNameX( List< ? extends TableRow > siteTableRows )
 		{
 			String defaultColumnNameX = "not_infected_median";
 			if ( siteTableRows.get( 0 ).getColumnNames().contains( "control_median" ) )

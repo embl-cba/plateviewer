@@ -23,7 +23,7 @@ import java.util.Set;
 
 import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableRowsFromFile;
 
-public class AnnotatedIntervalCreatorAndAdder
+public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTableRow >
 {
 	public enum IntervalType
 	{
@@ -31,16 +31,16 @@ public class AnnotatedIntervalCreatorAndAdder
 		Wells
 	}
 
-	private final ImagePlateViewer< ?, DefaultAnnotatedIntervalTableRow > imageView;
+	private final ImagePlateViewer< ?, T > imageView;
 	private final String fileNamingScheme;
 	private final File tableFile;
-	private DefaultSelectionModel< DefaultAnnotatedIntervalTableRow > selectionModel;
-	private LazyCategoryColoringModel< DefaultAnnotatedIntervalTableRow > coloringModel;
-	private SelectionColoringModel< DefaultAnnotatedIntervalTableRow > selectionColoringModel;
-	private List< DefaultAnnotatedIntervalTableRow > tableRows;
+	private DefaultSelectionModel< T > selectionModel;
+	private LazyCategoryColoringModel< T > coloringModel;
+	private SelectionColoringModel< T > selectionColoringModel;
+	private List< T > tableRows;
 
 	public AnnotatedIntervalCreatorAndAdder(
-			ImagePlateViewer< ?, DefaultAnnotatedIntervalTableRow > imageView,
+			ImagePlateViewer< ?, T > imageView,
 			String fileNamingScheme,
 			File tableFile )
 	{
@@ -53,7 +53,7 @@ public class AnnotatedIntervalCreatorAndAdder
 	{
 		Map< String, Interval > nameToInterval = getNameToInterval( intervalType );
 
-		tableRows = createAnnotatedIntervalTableRowsFromFile(
+		tableRows = ( List< T > ) createAnnotatedIntervalTableRowsFromFile(
 						tableFile.getAbsolutePath(),
 						fileNamingScheme,
 						nameToInterval,
@@ -68,7 +68,7 @@ public class AnnotatedIntervalCreatorAndAdder
 		else if ( intervalType.equals( IntervalType.Wells ) )
 			imageView.addAnnotatedWellIntervals( tableRows, selectionModel, selectionColoringModel );
 
-		final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView
+		final TableRowsTableView< T > tableView
 				= createTableView( imageView.getBdvHandle().getViewerPanel() );
 
 		final TableRowsIntervalImage tableRowsIntervalImage =
@@ -77,7 +77,6 @@ public class AnnotatedIntervalCreatorAndAdder
 						selectionColoringModel,
 						tableView,
 						imageView.getPlateInterval(),
-						Intervals.dimensionsAsLongArray( tableRows.get( 0 ).getInterval() ),
 						intervalType.toString().toLowerCase() + " table values" );
 
 		imageView.addToPanelAndBdv( tableRowsIntervalImage );
@@ -112,7 +111,7 @@ public class AnnotatedIntervalCreatorAndAdder
 		return nameToInterval;
 	}
 
-	private void colorByDefaultColumn( TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView )
+	private void colorByDefaultColumn( TableRowsTableView< T > tableView )
 	{
 		NumericColoringModelDialog.dialogLocation = new Point( 10, imageView.getMainPanel().getLocationOnScreen().y + imageView.getMainPanel().getHeight() + 80 );
 
@@ -129,9 +128,9 @@ public class AnnotatedIntervalCreatorAndAdder
 			tableView.colorByColumn( "score", ColoringLuts.VIRIDIS );
 	}
 
-	public TableRowsTableView< DefaultAnnotatedIntervalTableRow > createTableView( Component component )
+	public TableRowsTableView< T > createTableView( Component component )
 	{
-		final TableRowsTableView< DefaultAnnotatedIntervalTableRow > tableView =
+		final TableRowsTableView< T > tableView =
 				new TableRowsTableView<>( tableRows, selectionModel, selectionColoringModel );
 		tableView.setSelectionMode( TableRowsTableView.SelectionMode.FocusOnly );
 		tableView.showTableAndMenu( component );

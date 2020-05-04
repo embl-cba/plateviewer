@@ -11,16 +11,14 @@ import java.util.*;
 
 public class Tables
 {
-	public static List< DefaultAnnotatedIntervalTableRow > createAnnotatedIntervalTableRowsFromColumns(
+	public static List< DefaultAnnotatedIntervalTableRow > createDefaultAnnotatedIntervalTableRowsFromColumns(
 			final Map< String, List< String > > columns,
 			final String intervalNameColumnName,
 			final Map< String, Interval > nameToInterval,
 			final String outlierColumnName )
 	{
 		final List< DefaultAnnotatedIntervalTableRow > tableRows = new ArrayList<>();
-
 		final int numRows = columns.values().iterator().next().size();
-
 		for ( int row = 0; row < numRows; row++ )
 		{
 			final String siteName = columns.get( intervalNameColumnName ).get( row );
@@ -42,7 +40,7 @@ public class Tables
 		return tableRows;
 	}
 
-	public static List< DefaultAnnotatedIntervalTableRow > createAnnotatedIntervalTableRowsFromFile(
+	public static List< ? extends AnnotatedIntervalTableRow > createAnnotatedIntervalTableRowsFromFile(
 			String filePath,
 			String imageNamingScheme,
 			Map< String, Interval > nameToInterval,
@@ -89,7 +87,7 @@ public class Tables
 
 		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			return createAnnotatedIntervalTableRowsFromColumns(
+			return createDefaultAnnotatedIntervalTableRowsFromColumns(
 						columnNameToColumn,
 						NamingSchemes.ColumnNamesBatchLibHdf5.getIntervalName( hdf5Group ),
 						nameToInterval,

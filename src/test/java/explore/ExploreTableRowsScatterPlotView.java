@@ -4,6 +4,7 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.plot.ScatterPlotOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
+import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -28,7 +29,7 @@ public class ExploreTableRowsScatterPlotView
 				coloringModel,
 				selectionModel );
 
-		final List< DefaultAnnotatedIntervalTableRow > tableRows = createAnnotatedIntervalTableRowsFromFile(
+		final List< ? extends AnnotatedIntervalTableRow > tableRows = createAnnotatedIntervalTableRowsFromFile(
 				file.getAbsolutePath(),
 				NamingSchemes.PATTERN_NIKON_TI2_HDF5, null, "tables/images/default" );
 
