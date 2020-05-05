@@ -1,13 +1,14 @@
 package de.embl.cba.plateviewer.mongo;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.bson.Document;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
@@ -18,10 +19,21 @@ import static com.mongodb.client.model.Updates.set;
  */
 public class AssayMetadataRepository extends AbstractRepository {
 
-    public static String repositoryOutlierColumnName = "DB_outlier";
-    public static String cohortIdColumnName = "DB_cohort_id";
+    public static String dbOutlier = "DB_outlier";
+    public static String dbPatientType = "DB_patient_type";
+    public static String dbCohortId = "DB_cohort_id";
+
+    public static String[] attributes = new String[]{ dbOutlier, dbPatientType, dbCohortId };
 
     private String defaultPlateName;
+    private TableType defaultTableType;
+
+    public enum TableType
+    {
+        Plate,
+        Well,
+        Image
+    }
 
     public AssayMetadataRepository(MongoClient mongoClient, String database) {
         super(mongoClient, database, "immuno-assay-metadata");
@@ -37,7 +49,17 @@ public class AssayMetadataRepository extends AbstractRepository {
         this.defaultPlateName = defaultPlateName;
     }
 
-    public Document getPlate( String plateName) {
+    public TableType getDefaultTableType()
+    {
+        return defaultTableType;
+    }
+
+    public void setDefaultTableType( TableType defaultTableType )
+    {
+        this.defaultTableType = defaultTableType;
+    }
+
+    public Document getPlate( String plateName ) {
         return getCollection().find(eq("name", plateName)).first();
     }
 
@@ -90,7 +112,10 @@ public class AssayMetadataRepository extends AbstractRepository {
      * @param outlierType
      * @return
      */
-    public long updateImageQC(String plateName, String wellName, String siteName, OutlierStatus outlierStatus, String outlierType) {
+    public long updateImageQC( String plateName, String siteName, OutlierStatus outlierStatus, String outlierType) {
+
+        final String wellName = getWellName( siteName );
+
         Document plate = getCollection().find(
                 eq("name", plateName)
         ).first();
@@ -120,14 +145,68 @@ public class AssayMetadataRepository extends AbstractRepository {
         return 0;
     }
 
+    public String getSiteOrWellAttribute( String siteOrWellName, String attribute )
+    {
+        String plateName = defaultPlateName;
+        attribute = attribute.replace( "DB_", "");
+        switch ( getDefaultTableType() )
+        {
+            case Well:
+                if ( attribute.equals( dbOutlier ) )
+                    return getWellAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
+                else
+                    return getWellAttribute( plateName, siteOrWellName, attribute, String.class );
+            case Image:
+                if ( attribute.equals( dbOutlier ) )
+                    return getImageAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
+                else
+                    return getImageAttribute( plateName, siteOrWellName, attribute, String.class );
+            default:
+                return null;
+        }
+    }
+
     /**
-     * Gets manual assessment values for a given well stored in the DB
+     * Gets patient type values for a given well stored in the DB
      *
+     * @param attribute
      * @param plateName plate name
-     * @param wellName  well name
-     * @return manual assessment label or null if the well cannot be found
+     * @param siteOrWellName site or well name
+     * @return attribute string
      */
-    public String getManualAssessment(String plateName, String wellName) {
+    public String getSiteOrWellAttribute( String plateName, String siteOrWellName, String attribute )
+    {
+        switch ( getDefaultTableType() )
+        {
+            case Well:
+                if ( attribute.equals( dbOutlier ) )
+                    return getWellAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
+                else
+                    return getWellAttribute( plateName, siteOrWellName, attribute, String.class );
+            case Image:
+                if ( attribute.equals( dbOutlier ) )
+                    return getImageAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
+                else
+                    return getImageAttribute( plateName, siteOrWellName, attribute, String.class );
+            default:
+                return null;
+        }
+    }
+
+    public < T > T getPlateAttribute( String plateName, String attribute, Class< T > clazz )
+    {
+        Document plate = getCollection().find(eq("name", plateName)).first();
+
+        if (plate != null) {
+            return plate.get( attribute, clazz );
+        }
+
+        return null;
+    }
+
+
+    public < T > T getWellAttribute( String plateName, String wellName, String attribute, Class< T > clazz )
+    {
         Document plate = getCollection().find(eq("name", plateName)).first();
 
         List<Document> wells = (List<Document>) plate.get("wells");
@@ -137,10 +216,45 @@ public class AssayMetadataRepository extends AbstractRepository {
                 .orElse(null);
 
         if (well != null) {
-            return well.get("manual_assessment", String.class);
+            return well.get( attribute, clazz );
         }
         return null;
     }
+
+    public < T > T getImageAttribute( String plateName, String siteName, String attribute, Class< T > clazz )
+    {
+        Document plate = getCollection().find( eq( "name", plateName ) ).first();
+
+        Document well = getWellDocument( getWellName( siteName ), plate );
+
+        if ( well != null )
+        {
+            List< Document > images = ( List< Document > ) well.get( "images" );
+            Document image = images.stream()
+                    .filter( img -> img.get( "site_name", String.class ).equals( siteName ) )
+                    .findFirst()
+                    .orElse( null );
+            if ( image != null )
+                return image.get( attribute, clazz );
+        }
+
+        return null;
+    }
+
+    public String getWellName( String siteName )
+    {
+        return siteName.split( "-" )[ 0 ];
+    }
+
+    public Document getWellDocument( String wellName, Document plate )
+    {
+        List<Document> wells = (List<Document>) plate.get("wells");
+        return wells.stream()
+                .filter(w -> w.get("name", String.class).equals(wellName))
+                .findFirst()
+                .orElse(null);
+    }
+
 
     /**
      * Updates manual assessment for a given well
@@ -197,7 +311,8 @@ public class AssayMetadataRepository extends AbstractRepository {
 
     public static AssayMetadataRepository getCovid19AssayMetadataRepository( String password )
     {
-        Logger.getLogger("org.mongodb.driver").setLevel( Level.OFF );
+        final Logger logger = ( Logger ) LoggerFactory.getLogger( "org.mongodb");
+        logger.setLevel( Level.WARN );
 
         String host = "vm-kreshuk08.embl.de";
         int port = 27017;

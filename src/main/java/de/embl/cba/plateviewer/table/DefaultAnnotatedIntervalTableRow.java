@@ -59,18 +59,6 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 	}
 
 	@Override
-	public String getAnnotation()
-	{
-		return "Not annotated";
-	}
-
-	@Override
-	public void setAnnotation( String annotation )
-	{
-
-	}
-
-	@Override
 	public String getCell( String columnName )
 	{
 		return columns.get( columnName ).get( rowIndex );

@@ -1,8 +1,6 @@
 package de.embl.cba.plateviewer.image;
 
-import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
-import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
-import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.plateviewer.mongo.OutlierStatus;
 import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.List;
@@ -52,9 +50,20 @@ public abstract class NamingSchemes
 			return isOutlier ? "1" : "0";
 		}
 
+		public static OutlierStatus getOutlierEnum( boolean isOutlier )
+		{
+			return isOutlier ? OutlierStatus.OUTLIER : OutlierStatus.VALID;
+		}
+
 		public static boolean isOutlier( String s )
 		{
 			return s.equals( "1" ) ? true : false;
 		}
+
+		public static boolean isOutlier( Integer s )
+		{
+			return s == 1 ? true : false;
+		}
+
 	}
 }

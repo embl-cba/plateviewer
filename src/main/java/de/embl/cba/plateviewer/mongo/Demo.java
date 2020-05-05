@@ -5,12 +5,11 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class Demo {
     public static void main(String[] args) {
+
         AssayMetadataRepository amr = getAssayMetadataRepository();
+
         MongoCollection<Document> collection = amr.getCollection();
 
         System.out.println(collection.countDocuments());
@@ -19,7 +18,7 @@ public class Demo {
 
         System.out.println(amr.getPlate( plateName ).toJson());
 
-        String manualAssessment = amr.getManualAssessment( plateName, "C01");
+        String manualAssessment = amr.getSiteOrWellAttribute( plateName, "C01", "patient_type" );
         System.out.println(manualAssessment);
 
 //        System.out.println(amr.updatePlateQC( plateName, OutlierStatus.OUTLIER, "plateViewer:image-saturated"));

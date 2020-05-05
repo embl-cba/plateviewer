@@ -270,11 +270,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 	{
 		final GenericDialog gd = new GenericDialog( "Annotations" );
 		gd.addCheckbox( "Is outlier", interval.isOutlier() );
-		gd.addStringField( "Annotation", interval.getAnnotation() );
 		gd.showDialog();
 		if ( gd.wasCanceled() ) return;
 		interval.setOutlier( gd.getNextBoolean() );
-		interval.setAnnotation( gd.getNextString() );
 	}
 
 	private void logPixelValues( PlateLocation plateLocation )

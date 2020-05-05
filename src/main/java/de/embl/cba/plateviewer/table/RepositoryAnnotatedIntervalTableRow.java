@@ -2,9 +2,8 @@ package de.embl.cba.plateviewer.table;
 
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
-import de.embl.cba.tables.select.Listeners;
+import de.embl.cba.plateviewer.mongo.OutlierStatus;
 import de.embl.cba.tables.tablerow.AbstractTableRow;
-import de.embl.cba.tables.tablerow.TableRowListener;
 import net.imglib2.Interval;
 
 import java.util.*;
@@ -18,7 +17,6 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 	private final AssayMetadataRepository repository;
 	private String annotation;
 	private HashSet< String > columnNames;
-	private Boolean isOutlier;
 
 	public RepositoryAnnotatedIntervalTableRow(
 			String name,
@@ -37,18 +35,27 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 	@Override
 	public String getCell( String columnName )
 	{
-		if ( columnName.equals( AssayMetadataRepository.repositoryOutlierColumnName ) )
-			return NamingSchemes.BatchLibHdf5.getOutlierString( isOutlier() );
-		else if ( columnName.equals( AssayMetadataRepository.cohortIdColumnName ) )
-			return getAnnotation();
+		if ( Arrays.stream( AssayMetadataRepository.attributes ).anyMatch( columnName::equals ) )
+		{
+			return repository.getSiteOrWellAttribute( this.name, columnName );
+		}
 		else
+		{
 			return columns.get( columnName ).get( rowIndex );
+		}
 	}
 
 	@Override
 	public void setCell( String columnName, String value )
 	{
-		columns.get( columnName ).set( rowIndex, value );
+		if ( Arrays.stream( AssayMetadataRepository.attributes ).anyMatch( columnName::equals ) )
+		{
+			// TODO
+		}
+		else
+		{
+			columns.get( columnName ).set( rowIndex, value );
+		}
 		notifyCellChangedListeners( columnName, value );
 	}
 
@@ -58,13 +65,14 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 		if ( columnNames == null )
 		{
 			columnNames = new LinkedHashSet<>( columns.keySet() );
-			columnNames.add( AssayMetadataRepository.repositoryOutlierColumnName );
-			columnNames.add( AssayMetadataRepository.cohortIdColumnName );
+			for ( String attribute : AssayMetadataRepository.attributes )
+			{
+				columnNames.add( attribute );
+			}
 		}
 
 		return columnNames;
 	}
-
 
 	@Override
 	public int rowIndex()
@@ -85,42 +93,27 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 	}
 
 	@Override
-	public String getAnnotation()
-	{
-		if ( annotation == null )
-		{
-			try
-			{
-				annotation = repository.getManualAssessment( repository.getDefaultPlateName(), this.getName() );
-			} catch ( Exception e )
-			{
-				annotation = "DB connection failed";
-			}
-		}
-
-		return annotation;
-	}
-
-	@Override
-	public void setAnnotation( String annotation )
-	{
-		// TODO: not needed
-	}
-
-	@Override
 	public boolean isOutlier()
 	{
-		if ( isOutlier == null )
-			isOutlier = false; // TODO: get from database
-
-		return isOutlier;
+		final String outlier = repository.getSiteOrWellAttribute( this.getName(), AssayMetadataRepository.dbOutlier );
+		final boolean booleanOutlier = NamingSchemes.BatchLibHdf5.isOutlier( outlier );
+		return booleanOutlier;
 	}
 
 	@Override
 	public void setOutlier( boolean isOutlier )
 	{
-		this.isOutlier = isOutlier;
-		// TODO: set in database
-		notifyCellChangedListeners( AssayMetadataRepository.cohortIdColumnName, NamingSchemes.BatchLibHdf5.getOutlierString( isOutlier ) );
+		final OutlierStatus outlierStatus = NamingSchemes.BatchLibHdf5.getOutlierEnum( isOutlier );
+		switch ( repository.getDefaultTableType() )
+		{
+			case Well:
+				repository.updateWellQC( repository.getDefaultPlateName(), this.getName(), outlierStatus, "manual" );
+				break;
+			case Image:
+				repository.updateImageQC( repository.getDefaultPlateName(), this.getName(), outlierStatus, "manual" );
+				break;
+		}
+
+		notifyCellChangedListeners( AssayMetadataRepository.dbOutlier, NamingSchemes.BatchLibHdf5.getOutlierString( isOutlier ) );
 	}
 }

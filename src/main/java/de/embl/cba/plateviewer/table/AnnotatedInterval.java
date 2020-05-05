@@ -6,6 +6,4 @@ public interface AnnotatedInterval extends Outlier
 {
 	Interval getInterval();
 	String getName();
-	String getAnnotation();
-	void setAnnotation( String annotation );
 }
