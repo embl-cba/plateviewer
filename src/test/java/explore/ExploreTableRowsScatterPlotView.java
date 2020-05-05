@@ -2,7 +2,7 @@ package explore;
 
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.plot.ScatterPlotOverlay;
+import de.embl.cba.plateviewer.plot.ScatterPlotGridLinesOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
@@ -33,7 +33,7 @@ public class ExploreTableRowsScatterPlotView
 				file.getAbsolutePath(),
 				NamingSchemes.PATTERN_NIKON_TI2_HDF5, null, "tables/images/default" );
 
-		final TableRowsScatterPlotView< DefaultAnnotatedIntervalTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, "sites scatter plot", selectionColoringModel, selectionModel, "title", "not_infected_median", "infected_median", ScatterPlotOverlay.Y_1_2 );
+		final TableRowsScatterPlotView< DefaultAnnotatedIntervalTableRow > scatterPlotView = new TableRowsScatterPlotView( tableRows, "sites scatter plot", selectionColoringModel, selectionModel, "title", "not_infected_median", "infected_median", ScatterPlotGridLinesOverlay.Y_N );
 
 		scatterPlotView.show( null );
 	}

@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.table;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
-import de.embl.cba.plateviewer.plot.ScatterPlotOverlay;
+import de.embl.cba.plateviewer.plot.ScatterPlotGridLinesOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.tables.color.ColoringLuts;
@@ -91,7 +91,7 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 							imageView.getPlateName(),
 							NamingSchemes.BatchLibHdf5.getDefaultColumnNameX( tableRows ),
 							NamingSchemes.BatchLibHdf5.getDefaultColumnNameY(),
-							ScatterPlotOverlay.Y_NX );
+							ScatterPlotGridLinesOverlay.Y_NX );
 
 			scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );
 		}

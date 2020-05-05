@@ -62,6 +62,8 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private ArrayList< RealPoint> viewerPoints;
 	private AffineTransform3D viewerTransform;
 	private String name;
+	private HashMap< String, Double > xLabelToIndex;
+	private HashMap< String, Double > yLabelToIndex;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
@@ -116,7 +118,11 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		setWindowPosition( x, y );
 
-		showOverlays();
+		showGridLinesOverlay();
+
+		showAxisTickLabelsOverlay();
+
+		showSelectedPoints();
 	}
 
 	private void registerAsViewerTransformListener()
@@ -171,13 +177,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 	}
 
-	private void showOverlays()
-	{
-		showFrameAndAxis();
-
-		showSelectedPoints();
-	}
-
 	private void showSelectedPoints()
 	{
 		SelectedPointOverlay selectedPointOverlay =
@@ -192,11 +191,18 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
-	private void showFrameAndAxis()
+	private void showGridLinesOverlay()
 	{
-		ScatterPlotOverlay scatterPlotOverlay = new ScatterPlotOverlay( bdvHandle, columnNameX, columnNameY, dataPlotInterval, lineOverlay );
+		ScatterPlotGridLinesOverlay scatterPlotGridLinesOverlay = new ScatterPlotGridLinesOverlay( bdvHandle, columnNameX, columnNameY, dataPlotInterval, lineOverlay );
 
-		BdvFunctions.showOverlay( scatterPlotOverlay, "scatter plot overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		BdvFunctions.showOverlay( scatterPlotGridLinesOverlay, "grid lines overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+	}
+
+	private void showAxisTickLabelsOverlay()
+	{
+		ScatterPlotAxisTickLabelsOverlay scatterPlotGridLinesOverlay = new ScatterPlotAxisTickLabelsOverlay( xLabelToIndex, yLabelToIndex, dataInterval );
+
+		BdvFunctions.showOverlay( scatterPlotGridLinesOverlay, "axis tick labels overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void installBdvBehaviours()
@@ -226,13 +232,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		popupMenu.addPopupAction( "Change columns...", e ->
 		{
-			lineChoices = new String[]{ ScatterPlotOverlay.Y_NX, ScatterPlotOverlay.Y_1_2 };
+			lineChoices = new String[]{ ScatterPlotGridLinesOverlay.NONE, ScatterPlotGridLinesOverlay.Y_NX, ScatterPlotGridLinesOverlay.Y_N };
 
 			new Thread( () -> {
 				final GenericDialog gd = new GenericDialog( "Column selection" );
 				gd.addChoice( "Column X", columnNames, columnNameX );
 				gd.addChoice( "Column Y", columnNames, columnNameY );
-				gd.addChoice( "Add line", lineChoices, ScatterPlotOverlay.Y_NX );
+				gd.addChoice( "Add lines", lineChoices, ScatterPlotGridLinesOverlay.NONE );
 				gd.showDialog();
 
 				if ( gd.wasCanceled() ) return;
@@ -284,10 +290,10 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		Double x, y;
 		Double xMax=-Double.MAX_VALUE,yMax=-Double.MAX_VALUE,xMin=Double.MAX_VALUE,yMin=Double.MAX_VALUE;
 
-		final HashMap< String, Double > xColumnEntryToDouble = new HashMap<>();
+		xLabelToIndex = new HashMap<>();
 		MutableDouble xCategoricalIndex = new MutableDouble( 0.0 );
 
-		final HashMap< String, Double > yColumnEntryToDouble = new HashMap<>();
+		yLabelToIndex = new HashMap<>();
 		MutableDouble yCategoricalIndex = new MutableDouble( 0.0 );
 
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
@@ -298,9 +304,9 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				if ( ( ( Outlier ) tableRow ).isOutlier() )
 					continue;
 
-			x = getDouble( tableRow.getCell( columnNameX ), xColumnEntryToDouble, xCategoricalIndex );
+			x = getDouble( tableRow.getCell( columnNameX ), xLabelToIndex, xCategoricalIndex );
 			if ( x == null ) continue;
-			y = getDouble( tableRow.getCell( columnNameY ), yColumnEntryToDouble, yCategoricalIndex );
+			y = getDouble( tableRow.getCell( columnNameY ), yLabelToIndex, yCategoricalIndex );
 			if ( y == null ) continue;
 
 			points.add( new RealPoint( x, y, 0 ) );

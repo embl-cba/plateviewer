@@ -10,26 +10,28 @@ import java.awt.*;
 
 import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
-public class ScatterPlotOverlay extends BdvOverlay
+public class ScatterPlotGridLinesOverlay extends BdvOverlay
 {
+	public static final String NONE = "None";
 	public static final String Y_NX = "y = n * x";
-	public static final String Y_1_2 = "y = n";
+	public static final String Y_N = "y = n";
 
 	private final BdvHandle bdvHandle;
 	private final String columnNameX;
 	private final String columnNameY;
 	private final Interval scatterPlotInterval;
-	private final long max;
+	private final long dataMaxValue;
 	private final String lineOverlay;
 
-	public ScatterPlotOverlay( BdvHandle bdvHandle, String columnNameX, String columnNameY, Interval scatterPlotInterval, String lineOverlay )
+	// TODO: make an own overlay for the axis labels (columnNameX, columnNameY)
+	public ScatterPlotGridLinesOverlay( BdvHandle bdvHandle, String columnNameX, String columnNameY, Interval scatterPlotInterval, String lineOverlay )
 	{
 		super();
 		this.bdvHandle = bdvHandle;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
 		this.scatterPlotInterval = scatterPlotInterval;
-		max = Math.max( scatterPlotInterval.max( 0 ), scatterPlotInterval.max( 1 ) );
+		dataMaxValue = Math.max( scatterPlotInterval.max( 0 ), scatterPlotInterval.max( 1 ) );
 		this.lineOverlay = lineOverlay;
 	}
 
@@ -41,8 +43,7 @@ public class ScatterPlotOverlay extends BdvOverlay
 		final AffineTransform3D globalToViewerTransform = new AffineTransform3D();
 		getCurrentTransform3D( globalToViewerTransform );
 
-		drawDiagonalAndFrame( g, globalToViewerTransform );
-
+		drawGridLines( g, globalToViewerTransform );
 		drawAxisLabels( g );
 	}
 
@@ -68,7 +69,7 @@ public class ScatterPlotOverlay extends BdvOverlay
 				bdvWindowHeight - distanceToWindowBottom );
 	}
 
-	private void drawDiagonalAndFrame( Graphics2D g, AffineTransform3D globalToViewerTransform )
+	private void drawGridLines( Graphics2D g, AffineTransform3D globalToViewerTransform )
 	{
 		double[] zero = new double[ 3 ];
 		globalToViewerTransform.apply( new double[ 3 ], zero );
@@ -79,25 +80,23 @@ public class ScatterPlotOverlay extends BdvOverlay
 		{
 			double[] n = new double[ 3 ];
 
-			for ( int i = 0; i < 4; i++ )
+			for ( int i = 0; i < 5; i++ )
 			{
-				globalToViewerTransform.apply( new double[]{ this.max, ( i + 1 ) * this.max, 0 }, n );
-
-				g.drawLine(
-						( int ) zero[ 0 ], ( int ) zero[ 1 ],
+				globalToViewerTransform.apply( new double[]{ this.dataMaxValue, i * this.dataMaxValue, 0 }, n );
+				g.drawLine( ( int ) zero[ 0 ], ( int ) zero[ 1 ],
 						( int ) n[ 0 ], ( int ) n[ 1 ] );
 			}
 		}
-		else if ( lineOverlay.equals( Y_1_2 ) )
+		else if ( lineOverlay.equals( Y_N ) )
 		{
 
 			double[] max = new double[ 3 ];
-			globalToViewerTransform.apply( new double[]{ this.max, this.max, 0 }, max );
+			globalToViewerTransform.apply( new double[]{ this.dataMaxValue, this.dataMaxValue, 0 }, max );
 
-			for ( int i = 0; i < 4; i++ )
+			for ( int i = 0; i < 5; i++ )
 			{
 				double[] n = new double[ 3 ];
-				globalToViewerTransform.apply( new double[]{ 0, ( i + 1 ), 0 }, n );
+				globalToViewerTransform.apply( new double[]{ 0, i, 0 }, n );
 
 				g.drawLine(
 						( int ) zero[ 0 ], ( int ) n[ 1 ],
