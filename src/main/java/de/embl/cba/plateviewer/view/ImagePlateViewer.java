@@ -14,7 +14,7 @@ import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.channel.ChannelProperties;
 import de.embl.cba.plateviewer.channel.Channels;
 import de.embl.cba.plateviewer.github.IssueRaiser;
-import de.embl.cba.plateviewer.github.PlateLocation;
+import de.embl.cba.plateviewer.github.LocationInformation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
 import de.embl.cba.plateviewer.image.plate.QCOverlay;
@@ -26,7 +26,6 @@ import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.Utils;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
-import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import de.embl.cba.plateviewer.view.panel.PlateViewerMainPanel;
 import de.embl.cba.tables.Logger;
@@ -34,6 +33,7 @@ import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
+import de.embl.cba.tables.tablerow.TableRow;
 import ij.CompositeImage;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -188,6 +188,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 	private void showPopupMenu( int x, int y )
 	{
+		// TODO: refactor into PlatePopupMenuCreator
 		final RealPoint globalLocation = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
 		final String siteName = getIntervalName( globalLocation, intervalToSiteName );
@@ -198,7 +199,20 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		final double[] location = new double[ 3 ];
 		globalLocation.localize( location );
 
-		final PlateLocation plateLocation = new PlateLocation( plateName, siteName, location );
+		final LocationInformation locationInformation = new LocationInformation( plateName, siteName, location );
+
+		if ( sites != null )
+		{
+			final T site = getAnnotatedInterval( sites, siteName );
+			if ( site instanceof TableRow )
+			{
+				final TableRow tableRow = ( TableRow ) site;
+				if ( tableRow.getColumnNames().contains( "version" ) )
+				{
+					locationInformation.setAnalysisVersion( tableRow.getCell( "version" ) );
+				}
+			}
+		}
 
 		final PopupMenu popupMenu = new PopupMenu();
 
@@ -210,12 +224,12 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 						getOverlays() );
 				screenShot.setTitle( plateName + "-"  + siteName  );
 				final IssueRaiser issueRaiser = new IssueRaiser();
-				issueRaiser.showPlateIssueDialogAndCreateIssue( plateLocation, screenShot );
+				issueRaiser.showPlateIssueDialogAndCreateIssue( locationInformation, screenShot );
 			}).start();
 		} );
 
 		popupMenu.addPopupAction( "Focus well", e -> {
-			focusWell( siteName );
+			focusWell( wellName );
 		} );
 
 		popupMenu.addPopupAction( "Focus site", e -> {
@@ -241,7 +255,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		}
 
 		popupMenu.addPopupAction( "Measure pixel values", e -> {
-			logPixelValues( plateLocation );
+			logPixelValues( locationInformation );
 		} );
 
 		popupMenu.addPopupAction( "Measure pixel values statistics...", e -> {
@@ -251,7 +265,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			gd.showDialog();
 			if ( gd.wasCanceled() ) return;
 			final double radius = gd.getNextNumber();
-			new Thread( () -> logPixelValueStatistics( plateLocation, radius ) ).start();
+			new Thread( () -> logPixelValueStatistics( locationInformation, radius ) ).start();
 		} );
 
 		popupMenu.addPopupAction( "View raw data", e -> {
@@ -275,9 +289,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		interval.setOutlier( gd.getNextBoolean() );
 	}
 
-	private void logPixelValues( PlateLocation plateLocation )
+	private void logPixelValues( LocationInformation locationInformation )
 	{
-		Utils.log( "Pixel values at " + plateLocation );
+		Utils.log( "Pixel values at " + locationInformation );
 		final RealPoint globalLocation = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
 		final int t = bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
@@ -291,9 +305,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		}
 	}
 
-	private void logPixelValueStatistics( PlateLocation plateLocation, double radius )
+	private void logPixelValueStatistics( LocationInformation locationInformation, double radius )
 	{
-		Utils.log( "Region (r=" + (int) radius + ") statistics at " + plateLocation );
+		Utils.log( "Region (r=" + (int) radius + ") statistics at " + locationInformation );
 
 		final RealPoint globalLocation = new RealPoint( 3 );
 	 	bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
@@ -527,10 +541,10 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		focusInterval( siteName, siteNameToInterval, sites, siteSelectionModel );
 	}
 
-	public void focusInterval( String siteName, Map< String, Interval > nameToInterval, List< T > sites, SelectionModel< T > selectionModel )
+	public void focusInterval( String siteName, Map< String, Interval > nameToInterval, List< T > intervals, SelectionModel< T > selectionModel )
 	{
 		zoomToInterval( nameToInterval.get( siteName ) );
-		notifySelectionModel( siteName, sites, selectionModel );
+		notifySelectionModel( siteName, intervals, selectionModel );
 	}
 
 	private void notifySelectionModel( String siteName, List< T > sites, SelectionModel< T > siteSelectionModel )

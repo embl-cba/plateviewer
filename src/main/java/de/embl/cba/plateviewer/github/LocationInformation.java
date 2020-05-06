@@ -3,13 +3,14 @@ package de.embl.cba.plateviewer.github;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class PlateLocation
+public class LocationInformation
 {
 	public String plateName = "";
 	public String siteName = "";
 	public double[] pixelLocation;
+	public String analysisVersion = "?";
 
-	public PlateLocation( String plateName, String siteName, double[] pixelLocation )
+	public LocationInformation( String plateName, String siteName, double[] pixelLocation )
 	{
 		this.plateName = plateName;
 		this.siteName = siteName;
@@ -30,4 +31,8 @@ public class PlateLocation
 		}
 	}
 
+	public void setAnalysisVersion( String analysisVersion )
+	{
+		this.analysisVersion = analysisVersion;
+	}
 }

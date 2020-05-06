@@ -2,7 +2,6 @@ package explore;
 
 import de.embl.cba.plateviewer.github.GitHubIssue;
 import de.embl.cba.plateviewer.github.IssueRaiser;
-import de.embl.cba.plateviewer.github.PlateLocation;
 import de.embl.cba.plateviewer.github.UrlOpener;
 import ij.IJ;
 import ij.ImagePlus;

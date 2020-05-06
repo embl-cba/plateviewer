@@ -21,15 +21,15 @@ public class IssueRaiser
 	private String repository;
 	private String accessToken;
 	private String issueBody;
-	private PlateLocation plateLocation;
+	private LocationInformation locationInformation;
 	private ImagePlus screenShot;
 	private String issueTitle;
 	private String[] labels;
 	private boolean isOpenIssue;
 
-	public void showPlateIssueDialogAndCreateIssue( PlateLocation plateLocation )
+	public void showPlateIssueDialogAndCreateIssue( LocationInformation locationInformation )
 	{
-		showPlateIssueDialogAndCreateIssue( plateLocation, null );
+		showPlateIssueDialogAndCreateIssue( locationInformation, null );
 	}
 
 	public void openIssueInBrowser( int issue )
@@ -48,9 +48,9 @@ public class IssueRaiser
 		}
 	}
 
-	public void showPlateIssueDialogAndCreateIssue( PlateLocation plateLocation, ImagePlus screenShot )
+	public void showPlateIssueDialogAndCreateIssue( LocationInformation locationInformation, ImagePlus screenShot )
 	{
-		this.plateLocation = plateLocation;
+		this.locationInformation = locationInformation;
 		this.screenShot = screenShot;
 
 		if ( ! showDialog() ) return;
@@ -132,8 +132,8 @@ public class IssueRaiser
 
 	private GitHubIssue createPlateGithubIssue()
 	{
-		final String title = issueTitle + SEP + plateLocation.plateName + SEP + plateLocation.siteName;
-		String body = plateLocation.toString() + "\n\n" + issueBody;
+		final String title = issueTitle + SEP + locationInformation.plateName + SEP + locationInformation.siteName;
+		String body = locationInformation.toString() + "\n\n" + issueBody;
 
 		return new GitHubIssue( title, body, labels );
 	}

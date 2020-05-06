@@ -87,9 +87,10 @@ public class Tables
 		}
 		else if ( filePath.endsWith( ".hdf5" ) || filePath.endsWith( ".h5" ) )
 		{
-			columnNameToColumn = Tables.stringColumnsFromHDF5(
-					filePath,
-					hdf5Group );
+			columnNameToColumn =
+					Tables.stringColumnsFromHDF5(
+						filePath,
+						hdf5Group );
 
 			// remove some columns to make it easier to look at
 			// TODO: remove this at some point...
@@ -188,33 +189,43 @@ public class Tables
 	{
 		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( filePath );
 		final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
+		final List< String > columnNames = new ArrayList<>( Arrays.asList( hdf5Reader.string().readMDArray( tableGroup + "/columns" ).getAsFlatArray() ) );
+
 
 		final byte[] bytes = hdf5Reader.uint8().readArray( tableGroup + "/visible" );
 
-		final String[] columnNames = hdf5Reader.string().readMDArray( tableGroup + "/columns" ).getAsFlatArray();
 		final String[] cells = hdf5Reader.string().readMDArray( tableGroup + "/cells" ).getAsFlatArray();
 
 		final Map< String, List< String > > columnNameToStrings = new LinkedHashMap<>();
-
-		final int numColumns = columnNames.length;
-
+		final int numColumns = columnNames.size();
 		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
 		{
-			final String columnName = columnNames[ columnIndex ];
+			final String columnName = columnNames.get( columnIndex );
 			columnNameToStrings.put( columnName, new ArrayList<>( ) );
 		}
 
-		final int numRows = cells.length / columnNames.length;
-
+		final int numRows = cells.length / columnNames.size();
 		int cellIndex = 0;
 		for ( int rowIndex = 0; rowIndex < numRows; ++rowIndex )
 		{
 			for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
 			{
 				columnNameToStrings
-						.get( columnNames[ columnIndex ] )
+						.get( columnNames.get( columnIndex ) )
 						.add( cells[ cellIndex++ ] );
 			}
+		}
+
+		if ( hdf5Reader.hasAttribute( "/", "batchlib_commit" ) )
+		{
+			final String batchlibCommit = hdf5Reader.string().getAttr( "/", "batchlib_commit" );
+
+			final ArrayList< String > versions = new ArrayList<>();
+			for ( int rowIndex = 0; rowIndex < numRows; ++rowIndex )
+			{
+				versions.add( batchlibCommit );
+			}
+			columnNameToStrings.put( "version", versions );
 		}
 
 		// System.out.println( ( System.currentTimeMillis() - start ) / 1000.0 ) ;

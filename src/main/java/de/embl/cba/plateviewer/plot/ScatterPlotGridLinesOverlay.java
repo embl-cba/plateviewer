@@ -58,13 +58,13 @@ public class ScatterPlotGridLinesOverlay extends BdvOverlay
 
 		int distanceToWindowBottom = 2 * ( fontSize + 5 );
 
-		g.drawString( "Y: " + columnNameY,
+		g.drawString( "y: " + columnNameY,
 				bdvWindowWidth / 3,
 				bdvWindowHeight - distanceToWindowBottom  );
 
 		distanceToWindowBottom = 1 * ( fontSize + 5 );
 
-		g.drawString( "X: " + columnNameX,
+		g.drawString( "x: " + columnNameX,
 				bdvWindowWidth / 3,
 				bdvWindowHeight - distanceToWindowBottom );
 	}

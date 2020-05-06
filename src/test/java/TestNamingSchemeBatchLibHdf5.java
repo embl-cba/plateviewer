@@ -15,7 +15,7 @@ public class TestNamingSchemeBatchLibHdf5
 
 		pathname ="/g/kreshuk/data/covid/data-processed/20200417_132123_311"; // publication
 
-		pathname ="/g/kreshuk/data/covid/data-processed/20200417_152052_943"; // publication
+//		pathname ="/g/kreshuk/data/covid/data-processed/20200417_152052_943"; // publication
 
 
 		final PlateViewer plateViewer = new PlateViewer(
