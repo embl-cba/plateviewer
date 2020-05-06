@@ -90,12 +90,11 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 							selectionModel,
 							imageView.getPlateName(),
 							NamingSchemes.BatchLibHdf5.getDefaultColumnNameX( tableRows ),
-							NamingSchemes.BatchLibHdf5.getDefaultColumnNameY(),
+							NamingSchemes.BatchLibHdf5.getDefaultColumnNameY( tableRows ),
 							ScatterPlotGridLinesOverlay.Y_NX );
 
 			scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );
 		}
-
 
 		colorByDefaultColumn( tableView );
 	}
@@ -121,10 +120,11 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 			tableView.colorByColumn( "ratio_of_q0.5_of_sums", ColoringLuts.VIRIDIS );
 		else if ( columnNames.contains( "cell_based_score" ) )
 			tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
-		else if ( columnNames.contains( "score1" ) )
-			tableView.colorByColumn( "score1", ColoringLuts.VIRIDIS );
+		else if ( columnNames.contains( "serum_ratio_of_q0.5_of_sums" ) )
+			tableView.colorByColumn( "serum_ratio_of_q0.5_of_sums", ColoringLuts.VIRIDIS );
 		else if ( columnNames.contains( "score" ) )
 			tableView.colorByColumn( "score", ColoringLuts.VIRIDIS );
+
 	}
 
 	public TableRowsTableView< T > createTableView( Component component )

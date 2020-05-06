@@ -64,6 +64,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private String name;
 	private HashMap< String, Double > xLabelToIndex;
 	private HashMap< String, Double > yLabelToIndex;
+	private SelectedPointOverlay selectedPointOverlay;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
@@ -118,11 +119,11 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		setWindowPosition( x, y );
 
-		showGridLinesOverlay();
+		addGridLinesOverlay();
 
-		showAxisTickLabelsOverlay();
+		addAxisTickLabelsOverlay();
 
-		showSelectedPoints();
+		addSelectedPointsOverlay();
 	}
 
 	private void registerAsViewerTransformListener()
@@ -177,28 +178,30 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		search = new NearestNeighborSearchOnKDTree<>( kdTree );
 	}
 
-	private void showSelectedPoints()
+	private void addSelectedPointsOverlay()
 	{
-		SelectedPointOverlay selectedPointOverlay =
-				new SelectedPointOverlay(
-					bdvHandle,
-					tableRows,
-					selectionModel,
-					points,
-					columnNameX,
-					columnNameY );
+		if ( selectedPointOverlay != null )
+			selectedPointOverlay.close();
+
+		selectedPointOverlay = new SelectedPointOverlay(
+			bdvHandle,
+			tableRows,
+			selectionModel,
+			points,
+			columnNameX,
+			columnNameY );
 
 		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
-	private void showGridLinesOverlay()
+	private void addGridLinesOverlay()
 	{
 		ScatterPlotGridLinesOverlay scatterPlotGridLinesOverlay = new ScatterPlotGridLinesOverlay( bdvHandle, columnNameX, columnNameY, dataPlotInterval, lineOverlay );
 
 		BdvFunctions.showOverlay( scatterPlotGridLinesOverlay, "grid lines overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
-	private void showAxisTickLabelsOverlay()
+	private void addAxisTickLabelsOverlay()
 	{
 		ScatterPlotAxisTickLabelsOverlay scatterPlotGridLinesOverlay = new ScatterPlotAxisTickLabelsOverlay( xLabelToIndex, yLabelToIndex, dataInterval );
 
@@ -212,7 +215,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showPopupMenu( x, y );
-		}, "context menu", "button3" ) ; // "button1",
+		}, "context menu", "button3", "P" ) ; // "button1",
 	}
 
 	private void showPopupMenu( int x, int y )
@@ -454,6 +457,10 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		viewerTransform = new AffineTransform3D();
 		bdvHandle.getViewerPanel().getState().getViewerTransform( viewerTransform );
 
+
+		FinalRealInterval bounds0 = viewerTransform.estimateBounds( dataInterval );
+
+
 		AffineTransform3D reflectY = new AffineTransform3D();
 		reflectY.set( -1.0, 1, 1 );
 		viewerTransform.preConcatenate( reflectY );
@@ -463,6 +470,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		viewerTransform.preConcatenate( scale );
 
 		FinalRealInterval bounds = viewerTransform.estimateBounds( dataInterval );
+
 
 		final AffineTransform3D translate = new AffineTransform3D();
 		translate.translate( - ( bounds.realMin( 0 ) ), - ( bounds.realMin( 1 ) ), 0 );

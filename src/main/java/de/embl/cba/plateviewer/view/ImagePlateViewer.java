@@ -183,7 +183,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showPopupMenu( x, y );
-		}, "context menu", "button3" ) ;
+		}, "context menu", "button3", "P" ) ;
 	}
 
 	private void showPopupMenu( int x, int y )
@@ -251,7 +251,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			gd.showDialog();
 			if ( gd.wasCanceled() ) return;
 			final double radius = gd.getNextNumber();
-			logPixelValueStatistics( plateLocation, radius );
+			new Thread( () -> logPixelValueStatistics( plateLocation, radius ) ).start();
 		} );
 
 		popupMenu.addPopupAction( "View raw data", e -> {
@@ -639,12 +639,10 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		// This may interfere with loading of the resolution layers => TODO right click!
 		// new BdvGrayValuesOverlay( bdv, Utils.bdvTextOverlayFontSize );
 
-		setBdvBehaviors();
-
 		// move to a region outside the plate, such that adding channels is faster
-		final AffineTransform3D transform3D = new AffineTransform3D();
-		transform3D.translate( 10000, 10000, 0 );
-		bdvHandle.getViewerPanel().setCurrentViewerTransform( transform3D );
+//		final AffineTransform3D transform3D = new AffineTransform3D();
+//		transform3D.translate( 10000, 10000, 0 );
+//		bdvHandle.getViewerPanel().setCurrentViewerTransform( transform3D );
 
 		BdvUtils.getViewerFrame( bdvHandle ).setLocation(
 				mainPanel.getLocation().x + mainPanel.getWidth() + 10,
@@ -745,17 +743,6 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 					bdvViewable.getName(),
 					BdvOptions.options().addTo( bdvHandle ) );
 		}
-	}
-
-	private void setBdvBehaviors ( )
-	{
-		Behaviours behaviours = new Behaviours( new InputTriggerConfig() );
-		behaviours.install( bdvHandle.getTriggerbindings(), "my-new-behaviours" );
-
-		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
-			showImageName();
-		}, "log image info", "P" );
-
 	}
 
 	private void showImageName ( )

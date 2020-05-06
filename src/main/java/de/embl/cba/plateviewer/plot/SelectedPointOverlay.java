@@ -16,6 +16,7 @@ import net.imglib2.RealPoint;
 import net.imglib2.ops.parse.token.Real;
 import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.ui.InteractiveDisplayCanvasComponent;
 import net.imglib2.util.LinAlgHelpers;
 
 import java.awt.*;
@@ -23,7 +24,7 @@ import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
+public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay implements SelectionListener< T >
 {
 	private final BdvHandle bdvHandle;
 	private final List< T > tableRows;
@@ -46,41 +47,13 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 
 		selectionCircleWidth = 20;
 
-		registerAsSelectionListener();
+		selectionModel.listeners().add( this );
 	}
 
-	public void registerAsSelectionListener()
+	public void close()
 	{
-		selectionModel.listeners().add( new SelectionListener< T >()
-		{
-			@Override
-			public void selectionChanged()
-			{
-
-			}
-
-			@Override
-			public void focusEvent( T selection )
-			{
-				if ( bdvHandle == null ) return;
-
-				if ( selection instanceof Outlier )
-				{
-					if ( ( ( Outlier ) selection ).isOutlier() )
-					{
-						return;
-					}
-				}
-
-				final double x = Utils.parseDouble( selection.getCell( columnNameX ));
-				final double y = Utils.parseDouble( selection.getCell( columnNameY ) );
-				selectedPoint = new RealPoint( x, y );
-
-				centerViewer( selectedPoint, 2000 );
-			}
-		} );
+		selectionModel.listeners().remove( this );
 	}
-
 
 	private void centerViewer( RealPoint selectedPoint, long durationMillis )
 	{
@@ -91,7 +64,7 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 		final double[] currentViewerLocation = new double[ 3 ];
 		currentViewerTransform.apply( globalLocation, currentViewerLocation );
 
-		final double[] bdvWindowCenter = BdvUtils.getBdvWindowCenter( bdvHandle );
+		final double[] bdvWindowCenter = BdvUtils.getBdvWindowCenter( this.bdvHandle );
 
 		final double[] translation = new double[ 3 ];
 		LinAlgHelpers.subtract( bdvWindowCenter, currentViewerLocation, translation );
@@ -101,7 +74,7 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 				translation,
 				durationMillis );
 
-		bdvHandle.getViewerPanel().setTransformAnimator( animator );
+		this.bdvHandle.getViewerPanel().setTransformAnimator( animator );
 	}
 
 	@Override
@@ -130,6 +103,32 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay
 		final RealPoint viewerPoint2D = new RealPoint( 0, 0 );
 		globalToViewerTransform.apply( globalPoint2D, viewerPoint2D );
 		return viewerPoint2D;
+	}
+
+	@Override
+	public void selectionChanged()
+	{
+
+	}
+
+	@Override
+	public void focusEvent( T selection )
+	{
+		if ( bdvHandle == null ) return;
+
+		if ( selection instanceof Outlier )
+		{
+			if ( ( ( Outlier ) selection ).isOutlier() )
+			{
+				return;
+			}
+		}
+
+		final double x = Utils.parseDouble( selection.getCell( columnNameX ));
+		final double y = Utils.parseDouble( selection.getCell( columnNameY ) );
+		selectedPoint = new RealPoint( x, y );
+
+		centerViewer( selectedPoint, 2000 );
 	}
 }
 

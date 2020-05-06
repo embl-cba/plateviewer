@@ -121,32 +121,32 @@ public class Tables
 		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 
-			try
-			{
-				final AssayMetadataRepository repository = getCovid19AssayMetadataRepository( "covid" + (2500 + 81 ) );
-
-				final String plateName = new File( filePath ).getParent();
-				repository.setDefaultPlateName( plateName );
-
-				final List< ? extends AnnotatedIntervalTableRow > fromColumnsAndRepository = createAnnotatedIntervalTableRowsFromColumnsAndRepository(
-						columnNameToColumn,
-						NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
-						nameToInterval,
-						repository );
-
-				return fromColumnsAndRepository;
-
-			}
-			catch ( Exception e )
-			{
-				e.printStackTrace();
+//			try
+//			{
+//				final AssayMetadataRepository repository = getCovid19AssayMetadataRepository( "covid" + (2500 + 81 ) );
+//
+//				final String plateName = new File( filePath ).getParent();
+//				repository.setDefaultPlateName( plateName );
+//
+//				final List< ? extends AnnotatedIntervalTableRow > fromColumnsAndRepository = createAnnotatedIntervalTableRowsFromColumnsAndRepository(
+//						columnNameToColumn,
+//						NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
+//						nameToInterval,
+//						repository );
+//
+//				return fromColumnsAndRepository;
+//
+//			}
+//			catch ( Exception e )
+//			{
+//				e.printStackTrace();
 
 				return createDefaultAnnotatedIntervalTableRowsFromColumns(
 							columnNameToColumn,
 							NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
 							nameToInterval,
 							NamingSchemes.BatchLibHdf5.OUTLIER );
-			}
+//			}
 
 		}
 		else

@@ -24,6 +24,8 @@ public class MultiSiteHdf5Loader extends MultiSiteLoader
 
 		if ( singleSiteChannelFile != null )
 		{
+//			System.out.println( singleSiteChannelFile.getSiteName() );
+
 			loadHdf5IntoCell( cell, singleSiteChannelFile.getFile(), singleSiteChannelFile.getHdf5DataSetName() );
 		}
 	}

@@ -1,6 +1,7 @@
 package de.embl.cba.plateviewer.image;
 
 import de.embl.cba.plateviewer.mongo.OutlierStatus;
+import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
 import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.List;
@@ -24,11 +25,20 @@ public abstract class NamingSchemes
 
 		public static String getDefaultColumnNameX( List< ? extends TableRow > siteTableRows )
 		{
-			String defaultColumnNameX = "not_infected_median";
-			if ( siteTableRows.get( 0 ).getColumnNames().contains( "control_median" ) )
-				defaultColumnNameX = "control_median";
-			return defaultColumnNameX;
+			if ( siteTableRows.get( 0 ).getColumnNames().contains( "serum_control_q0.5_of_cell_sums" ) )
+				return "serum_control_q0.5_of_cell_sums";
+			else
+				throw new UnsupportedOperationException( "Default column not found!" );
 		}
+
+		public static String getDefaultColumnNameY( List< ? extends TableRow > siteTableRows )
+		{
+			if ( siteTableRows.get( 0 ).getColumnNames().contains( "serum_infected_q0.5_of_cell_sums" ) )
+				return "serum_infected_q0.5_of_cell_sums";
+			else
+				throw new UnsupportedOperationException( "Default column not found!" );
+		}
+
 
 		public static String getDefaultColumnNameY()
 		{
