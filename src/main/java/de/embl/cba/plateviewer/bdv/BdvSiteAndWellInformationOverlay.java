@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.*;
 
-import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
+import static de.embl.cba.plateviewer.util.Utils.bdvTextOverlayFontSize;
 
 
 public class BdvSiteAndWellInformationOverlay extends BdvOverlay implements MouseMotionListener

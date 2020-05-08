@@ -3,6 +3,7 @@ package de.embl.cba.plateviewer.table;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
+import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
 import de.embl.cba.plateviewer.plot.ScatterPlotGridLinesOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableRowsFromFile;
+import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableRowsFromFileAndRepository;
 
 public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTableRow >
 {
@@ -33,6 +34,7 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 	private final ImagePlateViewer< ?, T > imageView;
 	private final String fileNamingScheme;
 	private final File tableFile;
+	private final AssayMetadataRepository repository;
 	private DefaultSelectionModel< T > selectionModel;
 	private LazyCategoryColoringModel< T > coloringModel;
 	private SelectionColoringModel< T > selectionColoringModel;
@@ -46,17 +48,33 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 		this.imageView = imageView;
 		this.fileNamingScheme = fileNamingScheme;
 		this.tableFile = tableFile;
+		this.repository = null;
+	}
+
+	public AnnotatedIntervalCreatorAndAdder(
+			ImagePlateViewer< ?, T > imageView,
+			String fileNamingScheme,
+			File tableFile,
+			AssayMetadataRepository repository )
+	{
+		this.imageView = imageView;
+		this.fileNamingScheme = fileNamingScheme;
+		this.tableFile = tableFile;
+		this.repository = repository;
 	}
 
 	public void createAndAddAnnotatedIntervals( IntervalType intervalType, String hdf5Group )
 	{
 		Map< String, Interval > nameToInterval = getNameToInterval( intervalType );
 
-		tableRows = ( List< T > ) createAnnotatedIntervalTableRowsFromFile(
+		repository.setIntervalType( intervalType );
+
+		tableRows = ( List< T > ) createAnnotatedIntervalTableRowsFromFileAndRepository(
 						tableFile.getAbsolutePath(),
 						fileNamingScheme,
 						nameToInterval,
-						hdf5Group );
+						hdf5Group,
+						repository );
 
 		selectionModel = new DefaultSelectionModel<>();
 		coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );

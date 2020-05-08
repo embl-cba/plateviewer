@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.view.panel;
 import bdv.util.*;
 import bdv.util.volatiles.VolatileViews;
 import de.embl.cba.bdv.utils.Logger;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.channel.MultiWellFilteredImg;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;

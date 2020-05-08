@@ -11,8 +11,6 @@ import net.imglib2.Interval;
 import java.io.File;
 import java.util.*;
 
-import static de.embl.cba.plateviewer.mongo.AssayMetadataRepository.getCovid19AssayMetadataRepository;
-
 public class Tables
 {
 	public static List< ? extends AnnotatedIntervalTableRow > createDefaultAnnotatedIntervalTableRowsFromColumns(
@@ -22,18 +20,24 @@ public class Tables
 			final String outlierColumnName )
 	{
 		final List< DefaultAnnotatedIntervalTableRow > tableRows = new ArrayList<>();
+
+		if ( ! columns.containsKey( intervalNameColumnName ) )
+		{
+			throw new UnsupportedOperationException( "Table does not contain required column: " + intervalNameColumnName );
+		}
+
 		final int numRows = columns.values().iterator().next().size();
 		for ( int row = 0; row < numRows; row++ )
 		{
-			final String siteName = columns.get( intervalNameColumnName ).get( row );
+			final String intervalName = columns.get( intervalNameColumnName ).get( row );
 
 			Interval interval = null;
 			if ( nameToInterval != null )
-				interval = nameToInterval.get( siteName );
+				interval = nameToInterval.get( intervalName );
 
 			tableRows.add(
 					new DefaultAnnotatedIntervalTableRow(
-							siteName,
+							intervalName,
 							interval,
 							outlierColumnName,
 							columns,
@@ -73,11 +77,14 @@ public class Tables
 		return tableRows;
 	}
 
-	public static List< ? extends AnnotatedIntervalTableRow > createAnnotatedIntervalTableRowsFromFile(
+	public static List< ? extends AnnotatedIntervalTableRow >
+	createAnnotatedIntervalTableRowsFromFileAndRepository(
 			String filePath,
 			String imageNamingScheme,
 			Map< String, Interval > nameToInterval,
-			String hdf5Group )
+			String hdf5Group,
+			AssayMetadataRepository repository // optional, can be null
+	 		)
 	{
 		final Map< String, List< String > > columnNameToColumn;
 
@@ -121,34 +128,28 @@ public class Tables
 
 		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
+			if ( repository != null )
+			{
+				final String plateName = new File( new File( filePath ).getParent() ).getName();
+				repository.setPlateName( plateName );
 
-//			try
-//			{
-//				final AssayMetadataRepository repository = getCovid19AssayMetadataRepository( "covid" + (2500 + 81 ) );
-//
-//				final String plateName = new File( filePath ).getParent();
-//				repository.setDefaultPlateName( plateName );
-//
-//				final List< ? extends AnnotatedIntervalTableRow > fromColumnsAndRepository = createAnnotatedIntervalTableRowsFromColumnsAndRepository(
-//						columnNameToColumn,
-//						NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
-//						nameToInterval,
-//						repository );
-//
-//				return fromColumnsAndRepository;
-//
-//			}
-//			catch ( Exception e )
-//			{
-//				e.printStackTrace();
+				final List< ? extends AnnotatedIntervalTableRow > fromColumnsAndRepository = createAnnotatedIntervalTableRowsFromColumnsAndRepository(
+						columnNameToColumn,
+						NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
+						nameToInterval,
+						repository );
 
+				return fromColumnsAndRepository;
+
+			}
+			else
+			{
 				return createDefaultAnnotatedIntervalTableRowsFromColumns(
 							columnNameToColumn,
 							NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
 							nameToInterval,
 							NamingSchemes.BatchLibHdf5.OUTLIER );
-//			}
-
+			}
 		}
 		else
 		{

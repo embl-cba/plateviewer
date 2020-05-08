@@ -1,6 +1,6 @@
 package users.daja;
 
-import de.embl.cba.plateviewer.command.PlateViewerCommand;
+import de.embl.cba.plateviewer.PlateViewerCommand;
 import net.imagej.ImageJ;
 
 import java.io.File;

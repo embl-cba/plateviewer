@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.image;
 
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import net.imglib2.FinalInterval;
 
 import java.io.File;

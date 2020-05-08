@@ -1,19 +1,14 @@
 package de.embl.cba.plateviewer.plot;
 
 
-import bdv.util.BdvHandle;
 import bdv.util.BdvOverlay;
 import net.imglib2.FinalRealInterval;
-import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform2D;
-import net.imglib2.realtransform.AffineTransform3D;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
 import java.util.Map;
-
-import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
 
 public class ScatterPlotAxisTickLabelsOverlay extends BdvOverlay
 {

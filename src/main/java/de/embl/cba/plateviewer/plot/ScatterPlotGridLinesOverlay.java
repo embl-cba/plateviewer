@@ -8,7 +8,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import java.awt.*;
 
-import static de.embl.cba.plateviewer.Utils.bdvTextOverlayFontSize;
+import static de.embl.cba.plateviewer.util.Utils.bdvTextOverlayFontSize;
 
 public class ScatterPlotGridLinesOverlay extends BdvOverlay
 {

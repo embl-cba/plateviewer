@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.plateviewer.util;
 
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;

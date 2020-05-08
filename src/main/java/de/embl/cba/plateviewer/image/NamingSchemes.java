@@ -4,6 +4,7 @@ import de.embl.cba.plateviewer.mongo.OutlierStatus;
 import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
 import de.embl.cba.tables.tablerow.TableRow;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class NamingSchemes
@@ -23,20 +24,22 @@ public abstract class NamingSchemes
 		public static final String WELL_NAME = "well_name";
 		public static final String SITE_NAME = "site_name";
 
-		public static String getDefaultColumnNameX( List< ? extends TableRow > siteTableRows )
+		public static String getDefaultColumnNameX( List< ? extends TableRow > tableRows )
 		{
-			if ( siteTableRows.get( 0 ).getColumnNames().contains( "serum_control_q0.5_of_cell_sums" ) )
+			if ( tableRows.get( 0 ).getColumnNames().contains( "serum_control_q0.5_of_cell_sums" ) )
 				return "serum_control_q0.5_of_cell_sums";
 			else
-				throw new UnsupportedOperationException( "Default column not found!" );
+				return (String) new ArrayList( tableRows.get( 0 ).getColumnNames() ).get( 4 );
+				//throw new UnsupportedOperationException( "Default column not found!" );
 		}
 
-		public static String getDefaultColumnNameY( List< ? extends TableRow > siteTableRows )
+		public static String getDefaultColumnNameY( List< ? extends TableRow > tableRows )
 		{
-			if ( siteTableRows.get( 0 ).getColumnNames().contains( "serum_infected_q0.5_of_cell_sums" ) )
+			if ( tableRows.get( 0 ).getColumnNames().contains( "serum_infected_q0.5_of_cell_sums" ) )
 				return "serum_infected_q0.5_of_cell_sums";
 			else
-				throw new UnsupportedOperationException( "Default column not found!" );
+				return (String) new ArrayList( tableRows.get( 0 ).getColumnNames() ).get( 5 );
+				//throw new UnsupportedOperationException( "Default column not found!" );
 		}
 
 

@@ -1,14 +1,13 @@
 package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.util.Intervals;
 
 import java.awt.*;
-import java.util.HashMap;
 import java.util.Map;
 
 public class WellNamesOverlay extends BdvOverlay

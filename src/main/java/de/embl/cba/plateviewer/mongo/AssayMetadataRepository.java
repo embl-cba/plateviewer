@@ -4,13 +4,16 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import de.embl.cba.plateviewer.table.AnnotatedIntervalCreatorAndAdder;
 import org.bson.Document;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
@@ -19,44 +22,40 @@ import static com.mongodb.client.model.Updates.set;
  */
 public class AssayMetadataRepository extends AbstractRepository {
 
-    public static String dbOutlier = "DB_outlier";
-    public static String dbPatientType = "DB_patient_type";
-    public static String dbCohortId = "DB_cohort_id";
+    public static String dbOutlier = "outlier";
+    public static String dbPatientType = "patient_type";
+    public static String dbCohortId = "cohort_id";
 
     public static String[] attributes = new String[]{ dbOutlier, dbPatientType, dbCohortId };
 
-    private String defaultPlateName;
-    private TableType defaultTableType;
-
-    public enum TableType
-    {
-        Plate,
-        Well,
-        Image
-    }
+    private String plateName;
+    private AnnotatedIntervalCreatorAndAdder.IntervalType intervalType;
+    private Document plate;
+    private HashMap< String, Document > wellNameToDocument = new HashMap<>();
+    private List< Document > wells;
 
     public AssayMetadataRepository(MongoClient mongoClient, String database) {
         super(mongoClient, database, "immuno-assay-metadata");
     }
 
-    public String getDefaultPlateName()
+    public String getPlateName()
     {
-        return defaultPlateName;
+        return plateName;
     }
 
-    public void setDefaultPlateName( String defaultPlateName )
+    public void setPlateName( String plateName )
     {
-        this.defaultPlateName = defaultPlateName;
+        this.plateName = plateName;
     }
 
-    public TableType getDefaultTableType()
+    public AnnotatedIntervalCreatorAndAdder.IntervalType getIntervalType()
     {
-        return defaultTableType;
+        return intervalType;
     }
 
-    public void setDefaultTableType( TableType defaultTableType )
+    public void setIntervalType( AnnotatedIntervalCreatorAndAdder.IntervalType defaultIntervalType )
     {
-        this.defaultTableType = defaultTableType;
+        this.intervalType = defaultIntervalType;
     }
 
     public Document getPlate( String plateName ) {
@@ -107,7 +106,6 @@ public class AssayMetadataRepository extends AbstractRepository {
      * Update outlier status of a given image
      *
      * @param plateName
-     * @param wellName
      * @param siteName
      * @param outlierType
      * @return
@@ -147,22 +145,21 @@ public class AssayMetadataRepository extends AbstractRepository {
 
     public String getSiteOrWellAttribute( String siteOrWellName, String attribute )
     {
-        String plateName = defaultPlateName;
-        attribute = attribute.replace( "DB_", "");
-        switch ( getDefaultTableType() )
+        String plateName = this.plateName;
+        switch ( getIntervalType() )
         {
-            case Well:
+            case Wells:
                 if ( attribute.equals( dbOutlier ) )
                     return getWellAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
                     return getWellAttribute( plateName, siteOrWellName, attribute, String.class );
-            case Image:
+            case Sites:
                 if ( attribute.equals( dbOutlier ) )
                     return getImageAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
                     return getImageAttribute( plateName, siteOrWellName, attribute, String.class );
             default:
-                return null;
+                throw new UnsupportedOperationException( "Interval type not supported: " + getIntervalType() );
         }
     }
 
@@ -176,14 +173,14 @@ public class AssayMetadataRepository extends AbstractRepository {
      */
     public String getSiteOrWellAttribute( String plateName, String siteOrWellName, String attribute )
     {
-        switch ( getDefaultTableType() )
+        switch ( getIntervalType() )
         {
-            case Well:
+            case Wells:
                 if ( attribute.equals( dbOutlier ) )
                     return getWellAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
                     return getWellAttribute( plateName, siteOrWellName, attribute, String.class );
-            case Image:
+            case Sites:
                 if ( attribute.equals( dbOutlier ) )
                     return getImageAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
@@ -223,9 +220,12 @@ public class AssayMetadataRepository extends AbstractRepository {
 
     public < T > T getImageAttribute( String plateName, String siteName, String attribute, Class< T > clazz )
     {
-        Document plate = getCollection().find( eq( "name", plateName ) ).first();
+        if ( plate == null )
+            plate = getCollection().find( eq( "name", plateName ) ).first();
 
-        Document well = getWellDocument( getWellName( siteName ), plate );
+        final String wellName = getWellName( siteName );
+
+        Document well = getWellDocument( wellName, plate );
 
         if ( well != null )
         {
@@ -248,11 +248,21 @@ public class AssayMetadataRepository extends AbstractRepository {
 
     public Document getWellDocument( String wellName, Document plate )
     {
-        List<Document> wells = (List<Document>) plate.get("wells");
-        return wells.stream()
-                .filter(w -> w.get("name", String.class).equals(wellName))
-                .findFirst()
-                .orElse(null);
+        if ( ! wellNameToDocument.containsKey (wellName  ) )
+        {
+            if ( wells == null )
+                wells = ( List< Document > ) plate.get( "wells" );
+
+            final Document well = wells.stream()
+                    .filter( w -> w.get( "name", String.class ).equals( wellName ) )
+                    .findFirst()
+                    .orElse( null );
+
+            wellNameToDocument.put( wellName, well );
+        }
+
+        return wellNameToDocument.get( wellName );
+
     }
 
 

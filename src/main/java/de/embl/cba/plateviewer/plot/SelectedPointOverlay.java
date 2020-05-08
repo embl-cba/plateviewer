@@ -1,22 +1,17 @@
 package de.embl.cba.plateviewer.plot;
 
-import bdv.util.Bdv;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOverlay;
-import bdv.viewer.animate.SimilarityTransformAnimator;
-import bdv.viewer.animate.TranslationAnimator;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.bdv.RelativeTranslationAnimator;
 import de.embl.cba.plateviewer.table.Outlier;
 import de.embl.cba.tables.select.SelectionListener;
 import de.embl.cba.tables.select.SelectionModel;
 import de.embl.cba.tables.tablerow.TableRow;
 import net.imglib2.RealPoint;
-import net.imglib2.ops.parse.token.Real;
 import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.ui.InteractiveDisplayCanvasComponent;
 import net.imglib2.util.LinAlgHelpers;
 
 import java.awt.*;

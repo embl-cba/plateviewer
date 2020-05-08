@@ -2,7 +2,7 @@ package de.embl.cba.plateviewer.image.cellloader;
 
 
 import bdv.util.*;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
 import de.embl.cba.plateviewer.bdv.TextOverlay;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;

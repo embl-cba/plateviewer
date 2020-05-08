@@ -101,7 +101,7 @@ public class IssueRaiser
 
 	public String commitImagePlus( String repository, String accessToken, ImagePlus imp )
 	{
-		final String imageJpegBase64String = JpegOutputStreamWriter.createBase64String( imp, 0.90F );
+		final String imageJpegBase64String = JpegOutputStreamWriter.createBase64String( imp, 1.0F );
 
 		final String path = createImagePath( imp );
 

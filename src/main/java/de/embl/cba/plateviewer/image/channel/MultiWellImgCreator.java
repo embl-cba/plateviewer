@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.image.channel;
 
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.source.MultiResolutionBatchLibHdf5ChannelSourceCreator;
 import de.embl.cba.plateviewer.io.FileUtils;

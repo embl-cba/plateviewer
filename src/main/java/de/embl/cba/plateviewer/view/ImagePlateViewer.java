@@ -23,7 +23,7 @@ import de.embl.cba.plateviewer.image.plate.OverlayBdvViewable;
 import de.embl.cba.plateviewer.image.plate.WellNamesOverlay;
 import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import de.embl.cba.plateviewer.io.FileUtils;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
@@ -254,9 +254,9 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			} );
 		}
 
-		popupMenu.addPopupAction( "Measure pixel values", e -> {
-			logPixelValues( locationInformation );
-		} );
+//		popupMenu.addPopupAction( "Measure pixel values", e -> {
+//			logPixelValues( locationInformation );
+//		} );
 
 		popupMenu.addPopupAction( "Measure pixel values statistics...", e -> {
 			// TODO out everything below in own class (in bdv-utils repo) and improve UI

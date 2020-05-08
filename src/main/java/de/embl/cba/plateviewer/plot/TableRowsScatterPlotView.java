@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.plot;
 import bdv.util.*;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.image.source.ARGBConvertedRealAccessibleSource;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
@@ -149,14 +149,16 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void setViewerAspectRatio()
 	{
-		if ( dataAspectRatio < 0.2  || dataAspectRatio > 1 / 0.2 )
-		{
-			viewerAspectRatio = 1 / dataAspectRatio;
-		}
-		else
-		{
-			viewerAspectRatio = 1.0;
-		}
+		viewerAspectRatio = 1 / dataAspectRatio;
+
+//		if ( dataAspectRatio < 0.2  || dataAspectRatio > 1 / 0.2 )
+//		{
+//			viewerAspectRatio = 1 / dataAspectRatio;
+//		}
+//		else
+//		{
+//			viewerAspectRatio = 1.0;
+//		}
 	}
 
 	private void createSearchTree()
@@ -455,23 +457,32 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	public void setViewerTransform()
 	{
 		viewerTransform = new AffineTransform3D();
-		bdvHandle.getViewerPanel().getState().getViewerTransform( viewerTransform );
-
-
-		FinalRealInterval bounds0 = viewerTransform.estimateBounds( dataInterval );
-
+		// bdvHandle.getViewerPanel().getState().getViewerTransform( viewerTransform );
 
 		AffineTransform3D reflectY = new AffineTransform3D();
 		reflectY.set( -1.0, 1, 1 );
 		viewerTransform.preConcatenate( reflectY );
 
 		final AffineTransform3D scale = new AffineTransform3D();
-		scale.scale( 0.8, 0.8 * viewerAspectRatio, 1.0  );
+
+		final double scaleX = 1.0 * BdvUtils.getBdvWindowWidth( bdvHandle ) / dataRanges[ 0 ];
+
+		final double zoom = 0.8;
+		scale.scale( zoom * scaleX, zoom * scaleX * viewerAspectRatio, 1.0  );
 		viewerTransform.preConcatenate( scale );
 
+		FinalRealInterval scaledBounds = viewerTransform.estimateBounds( dataInterval );
+
+		shiftViewerTransformToDataCenter();
+
+		FinalRealInterval finalBounds = viewerTransform.estimateBounds( dataInterval );
+
+		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
+	}
+
+	public void shiftViewerTransformToDataCenter()
+	{
 		FinalRealInterval bounds = viewerTransform.estimateBounds( dataInterval );
-
-
 		final AffineTransform3D translate = new AffineTransform3D();
 		translate.translate( - ( bounds.realMin( 0 ) ), - ( bounds.realMin( 1 ) ), 0 );
 		viewerTransform.preConcatenate( translate );
@@ -484,8 +495,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		final AffineTransform3D translate2 = new AffineTransform3D();
 		translate2.translate( translation[ 0 ], translation[ 1 ], 0 );
 		viewerTransform.preConcatenate( translate2 );
-
-		bdvHandle.getViewerPanel().setCurrentViewerTransform( viewerTransform );
 	}
 
 	public void show( JComponent component )

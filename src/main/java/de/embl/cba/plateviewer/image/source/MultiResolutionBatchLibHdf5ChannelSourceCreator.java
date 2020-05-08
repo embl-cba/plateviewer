@@ -2,7 +2,7 @@ package de.embl.cba.plateviewer.image.source;
 
 import bdv.util.volatiles.SharedQueue;
 import bdv.viewer.Source;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;

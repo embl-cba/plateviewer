@@ -1,8 +1,8 @@
 package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.Graphics;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Graphics;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform2D;

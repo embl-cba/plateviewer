@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.image.cellloader;
 import ch.systemsx.cisd.hdf5.HDF5DataSetInformation;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import net.imglib2.cache.img.SingleCellArrayImg;
 

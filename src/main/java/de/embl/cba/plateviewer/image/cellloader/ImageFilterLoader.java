@@ -4,7 +4,7 @@ package de.embl.cba.plateviewer.image.cellloader;
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
 import de.embl.cba.plateviewer.bdv.TextOverlay;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.filter.FastFilters;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;

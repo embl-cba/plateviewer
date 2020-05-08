@@ -5,7 +5,7 @@ import bdv.util.BdvSource;
 import bdv.util.BdvStackSource;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;

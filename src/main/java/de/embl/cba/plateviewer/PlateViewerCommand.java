@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.command;
+package de.embl.cba.plateviewer;
 
 import de.embl.cba.plateviewer.PlateViewer;
 import org.scijava.command.Command;
@@ -25,10 +25,12 @@ public class PlateViewerCommand implements Command
 	@Parameter (label = "Load well table")
 	public boolean loadWellTable;
 
+	@Parameter (label = "Connect to database")
+	public boolean connectToDatabase;
 
 	public void run()
 	{
-		new PlateViewer( imagesDirectory, filePattern, loadImageTable, loadWellTable,4, includeSubFolders );
+		new PlateViewer( imagesDirectory, filePattern, loadImageTable, loadWellTable, connectToDatabase, 4, includeSubFolders );
 	}
 
 }

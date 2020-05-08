@@ -15,7 +15,6 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 	private final Map< String, List< String > > columns;
 	private final int rowIndex;
 	private final AssayMetadataRepository repository;
-	private String annotation;
 	private HashSet< String > columnNames;
 
 	public RepositoryAnnotatedIntervalTableRow(
@@ -39,9 +38,13 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 		{
 			return repository.getSiteOrWellAttribute( this.name, columnName );
 		}
-		else
+		else if ( columns.containsKey( columnName ) )
 		{
 			return columns.get( columnName ).get( rowIndex );
+		}
+		else
+		{
+			throw new UnsupportedOperationException( "Column not present: " + columnName );
 		}
 	}
 
@@ -96,21 +99,20 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 	public boolean isOutlier()
 	{
 		final String outlier = repository.getSiteOrWellAttribute( this.getName(), AssayMetadataRepository.dbOutlier );
-		final boolean booleanOutlier = NamingSchemes.BatchLibHdf5.isOutlier( outlier );
-		return booleanOutlier;
+		return NamingSchemes.BatchLibHdf5.isOutlier( outlier );
 	}
 
 	@Override
 	public void setOutlier( boolean isOutlier )
 	{
 		final OutlierStatus outlierStatus = NamingSchemes.BatchLibHdf5.getOutlierEnum( isOutlier );
-		switch ( repository.getDefaultTableType() )
+		switch ( repository.getIntervalType() )
 		{
-			case Well:
-				repository.updateWellQC( repository.getDefaultPlateName(), this.getName(), outlierStatus, "manual" );
+			case Wells:
+				repository.updateWellQC( repository.getPlateName(), this.getName(), outlierStatus, "manual" );
 				break;
-			case Image:
-				repository.updateImageQC( repository.getDefaultPlateName(), this.getName(), outlierStatus, "manual" );
+			case Sites:
+				repository.updateImageQC( repository.getPlateName(), this.getName(), outlierStatus, "manual" );
 				break;
 		}
 

@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.image.cellloader;
 
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import ij.IJ;
 import ij.ImagePlus;

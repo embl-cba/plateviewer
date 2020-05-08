@@ -2,7 +2,7 @@ package de.embl.cba.plateviewer.image;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.Utils;
+import de.embl.cba.plateviewer.util.Utils;
 import net.imglib2.FinalInterval;
 
 import java.io.File;
