@@ -27,21 +27,22 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay impl
 	private final ArrayList< RealPoint > points;
 	private final String columnNameX;
 	private final String columnNameY;
+	private final TableRowsScatterPlotView< T > plotView;
 	private RealPoint selectedPoint;
 	private int selectionCircleWidth;
 
-	public SelectedPointOverlay( BdvHandle bdvHandle, List< T > tableRows, SelectionModel< T > selectionModel, ArrayList< RealPoint > points, String columnNameX, String columnNameY )
+	public SelectedPointOverlay( TableRowsScatterPlotView< T > plotView )
 	{
 		super();
-		this.bdvHandle = bdvHandle;
-		this.tableRows = tableRows;
-		this.selectionModel = selectionModel;
-		this.points = points;
-		this.columnNameX = columnNameX;
-		this.columnNameY = columnNameY;
+		this.bdvHandle = plotView.getBdvHandle();
+		this.tableRows = plotView.getTableRows();
+		this.selectionModel = plotView.getSelectionModel();
+		this.points = plotView.getPoints();
+		this.columnNameX = plotView.getColumnNameX();
+		this.columnNameY = plotView.getColumnNameY();
+		this.plotView = plotView;
 
 		selectionCircleWidth = 20;
-
 		selectionModel.listeners().add( this );
 	}
 
@@ -119,10 +120,9 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay impl
 			}
 		}
 
-		final double x = Utils.parseDouble( selection.getCell( columnNameX ));
-		final double y = Utils.parseDouble( selection.getCell( columnNameY ) );
+		final double x = plotView.getLocation( selection.getCell( columnNameX ), 0 );
+		final double y = plotView.getLocation( selection.getCell( columnNameY ), 1 );
 		selectedPoint = new RealPoint( x, y );
-
 		centerViewer( selectedPoint, 2000 );
 	}
 }

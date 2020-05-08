@@ -65,6 +65,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private HashMap< String, Double > xLabelToIndex;
 	private HashMap< String, Double > yLabelToIndex;
 	private SelectedPointOverlay selectedPointOverlay;
+	private ArrayList< HashMap< String, Double > > labelsToIndices;
 
 	public TableRowsScatterPlotView(
 			List< T > tableRows,
@@ -185,13 +186,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		if ( selectedPointOverlay != null )
 			selectedPointOverlay.close();
 
-		selectedPointOverlay = new SelectedPointOverlay(
-			bdvHandle,
-			tableRows,
-			selectionModel,
-			points,
-			columnNameX,
-			columnNameY );
+		selectedPointOverlay = new SelectedPointOverlay( this );
 
 		BdvFunctions.showOverlay( selectedPointOverlay, "selected point overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
@@ -301,6 +296,10 @@ public class TableRowsScatterPlotView< T extends TableRow >
 		yLabelToIndex = new HashMap<>();
 		MutableDouble yCategoricalIndex = new MutableDouble( 0.0 );
 
+		labelsToIndices = new ArrayList<>();
+		labelsToIndices.add( xLabelToIndex );
+		labelsToIndices.add( yLabelToIndex );
+
 		for ( int rowIndex = 0; rowIndex < numTableRows; rowIndex++ )
 		{
 			final T tableRow = tableRows.get( rowIndex );
@@ -352,6 +351,30 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			}
 
 			return stringToDouble.get( cell );
+		}
+	}
+
+	public Double getLocation( String cell, int dimension )
+	{
+		if ( labelsToIndices.get( dimension ).containsKey( cell ) )
+		{
+			return labelsToIndices.get( dimension ).get( cell );
+		}
+		else
+		{
+			return Utils.parseDouble( cell );
+		}
+	}
+
+	public Double getLocationX( String cell )
+	{
+		if ( xLabelToIndex.containsKey( cell ) )
+		{
+			return xLabelToIndex.get( cell );
+		}
+		else
+		{
+			return Utils.parseDouble( cell );
 		}
 	}
 
@@ -516,5 +539,35 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	public void setWindowPosition( int x, int y )
 	{
 		BdvUtils.getViewerFrame( bdvHandle ).setLocation( x, y );
+	}
+
+	public List< T > getTableRows()
+	{
+		return tableRows;
+	}
+
+	public BdvHandle getBdvHandle()
+	{
+		return bdvHandle;
+	}
+
+	public SelectionModel< T > getSelectionModel()
+	{
+		return selectionModel;
+	}
+
+	public ArrayList< RealPoint > getPoints()
+	{
+		return points;
+	}
+
+	public String getColumnNameX()
+	{
+		return columnNameX;
+	}
+
+	public String getColumnNameY()
+	{
+		return columnNameY;
 	}
 }

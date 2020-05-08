@@ -22,17 +22,18 @@ import static com.mongodb.client.model.Updates.set;
  */
 public class AssayMetadataRepository extends AbstractRepository {
 
-    public static String dbOutlier = "outlier";
-    public static String dbPatientType = "patient_type";
-    public static String dbCohortId = "cohort_id";
+    public static String outlier = "outlier";
+    public static String patientType = "patient_type";
+    public static String cohortId = "cohort_id";
 
-    public static String[] attributes = new String[]{ dbOutlier, dbPatientType, dbCohortId };
+    public static String[] attributes = new String[]{ outlier, patientType, cohortId };
 
     private String plateName;
     private AnnotatedIntervalCreatorAndAdder.IntervalType intervalType;
-    private Document plate;
     private HashMap< String, Document > wellNameToDocument = new HashMap<>();
     private List< Document > wells;
+    private HashMap< String, Document > plateNameToDocument = new HashMap<>();
+    private HashMap< String, Document > siteNameToDocument = new HashMap<>();
 
     public AssayMetadataRepository(MongoClient mongoClient, String database) {
         super(mongoClient, database, "immuno-assay-metadata");
@@ -149,15 +150,19 @@ public class AssayMetadataRepository extends AbstractRepository {
         switch ( getIntervalType() )
         {
             case Wells:
-                if ( attribute.equals( dbOutlier ) )
+                if ( attribute.equals( outlier ) )
                     return getWellAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
                     return getWellAttribute( plateName, siteOrWellName, attribute, String.class );
             case Sites:
-                if ( attribute.equals( dbOutlier ) )
+                if ( attribute.equals( outlier ) )
                     return getImageAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
-                    return getImageAttribute( plateName, siteOrWellName, attribute, String.class );
+                {
+                    // only the outlier attribute is available for images, the others only from well
+                    final String wellName = getWellName( siteOrWellName );
+                    return getWellAttribute( plateName, wellName, attribute, String.class );
+                }
             default:
                 throw new UnsupportedOperationException( "Interval type not supported: " + getIntervalType() );
         }
@@ -176,12 +181,12 @@ public class AssayMetadataRepository extends AbstractRepository {
         switch ( getIntervalType() )
         {
             case Wells:
-                if ( attribute.equals( dbOutlier ) )
+                if ( attribute.equals( outlier ) )
                     return getWellAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
                     return getWellAttribute( plateName, siteOrWellName, attribute, String.class );
             case Sites:
-                if ( attribute.equals( dbOutlier ) )
+                if ( attribute.equals( outlier ) )
                     return getImageAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
                 else
                     return getImageAttribute( plateName, siteOrWellName, attribute, String.class );
@@ -201,44 +206,45 @@ public class AssayMetadataRepository extends AbstractRepository {
         return null;
     }
 
-
     public < T > T getWellAttribute( String plateName, String wellName, String attribute, Class< T > clazz )
     {
-        Document plate = getCollection().find(eq("name", plateName)).first();
-
-        List<Document> wells = (List<Document>) plate.get("wells");
-        Document well = wells.stream()
-                .filter(w -> w.get("name", String.class).equals(wellName))
-                .findFirst()
-                .orElse(null);
-
-        if (well != null) {
-            return well.get( attribute, clazz );
-        }
-        return null;
+        final Document plate = getPlateDocument( plateName );
+        Document well = getWellDocument( wellName, plate );
+        return well.get( attribute, clazz );
     }
 
     public < T > T getImageAttribute( String plateName, String siteName, String attribute, Class< T > clazz )
     {
-        if ( plate == null )
-            plate = getCollection().find( eq( "name", plateName ) ).first();
-
         final String wellName = getWellName( siteName );
-
+        final Document plate = getPlateDocument( plateName );
         Document well = getWellDocument( wellName, plate );
+        final Document image = getImageDocument( siteName, well );
+        return image.get( attribute, clazz );
+    }
 
-        if ( well != null )
+    public Document getImageDocument( String siteName, Document well )
+    {
+        if ( ! siteNameToDocument.containsKey( siteName ) )
         {
             List< Document > images = ( List< Document > ) well.get( "images" );
             Document image = images.stream()
                     .filter( img -> img.get( "site_name", String.class ).equals( siteName ) )
                     .findFirst()
                     .orElse( null );
-            if ( image != null )
-                return image.get( attribute, clazz );
+            siteNameToDocument.put( siteName, image );
+        }
+        return siteNameToDocument.get( siteName );
+    }
+
+    public Document getPlateDocument( String plateName )
+    {
+        if ( ! plateNameToDocument.containsKey( plateName ) )
+        {
+            final Document plate = getCollection().find( eq( "name", plateName ) ).first();
+            plateNameToDocument.put( plateName, plate );
         }
 
-        return null;
+        return plateNameToDocument.get( plateName );
     }
 
     public String getWellName( String siteName )
@@ -258,11 +264,15 @@ public class AssayMetadataRepository extends AbstractRepository {
                     .findFirst()
                     .orElse( null );
 
+            if ( well == null )
+            {
+                throw new UnsupportedOperationException( "Well not found in database: " + wellName );
+            }
+
             wellNameToDocument.put( wellName, well );
         }
 
         return wellNameToDocument.get( wellName );
-
     }
 
 

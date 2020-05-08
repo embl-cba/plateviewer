@@ -98,7 +98,7 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 	@Override
 	public boolean isOutlier()
 	{
-		final String outlier = repository.getSiteOrWellAttribute( this.getName(), AssayMetadataRepository.dbOutlier );
+		final String outlier = repository.getSiteOrWellAttribute( this.getName(), AssayMetadataRepository.outlier );
 		return NamingSchemes.BatchLibHdf5.isOutlier( outlier );
 	}
 
@@ -116,6 +116,6 @@ public class RepositoryAnnotatedIntervalTableRow extends AbstractTableRow implem
 				break;
 		}
 
-		notifyCellChangedListeners( AssayMetadataRepository.dbOutlier, NamingSchemes.BatchLibHdf5.getOutlierString( isOutlier ) );
+		notifyCellChangedListeners( AssayMetadataRepository.outlier, NamingSchemes.BatchLibHdf5.getOutlierString( isOutlier ) );
 	}
 }
