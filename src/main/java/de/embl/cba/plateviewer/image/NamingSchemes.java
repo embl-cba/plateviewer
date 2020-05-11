@@ -6,6 +6,7 @@ import de.embl.cba.tables.tablerow.TableRow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public abstract class NamingSchemes
 {
@@ -26,19 +27,23 @@ public abstract class NamingSchemes
 
 		public static String getDefaultColumnNameX( List< ? extends TableRow > tableRows )
 		{
-			if ( tableRows.get( 0 ).getColumnNames().contains( "serum_control_q0.5_of_cell_sums" ) )
-				return "serum_control_q0.5_of_cell_sums";
+			final Set< String > columnNames = tableRows.get( 0 ).getColumnNames();
+
+			if ( columnNames.contains( "n_cells" ) )
+				return "n_cells";
 			else
-				return (String) new ArrayList( tableRows.get( 0 ).getColumnNames() ).get( 4 );
+				return (String) new ArrayList( columnNames ).get( 0 );
 				//throw new UnsupportedOperationException( "Default column not found!" );
 		}
 
 		public static String getDefaultColumnNameY( List< ? extends TableRow > tableRows )
 		{
-			if ( tableRows.get( 0 ).getColumnNames().contains( "serum_infected_q0.5_of_cell_sums" ) )
-				return "serum_infected_q0.5_of_cell_sums";
+			final Set< String > columnNames = tableRows.get( 0 ).getColumnNames();
+
+			if ( columnNames.contains( "score" ) )
+				return "score";
 			else
-				return (String) new ArrayList( tableRows.get( 0 ).getColumnNames() ).get( 5 );
+				return (String) new ArrayList( columnNames ).get( 1 );
 				//throw new UnsupportedOperationException( "Default column not found!" );
 		}
 

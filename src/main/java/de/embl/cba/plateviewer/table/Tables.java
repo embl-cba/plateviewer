@@ -98,28 +98,6 @@ public class Tables
 					Tables.stringColumnsFromHDF5(
 						filePath,
 						hdf5Group );
-
-			// remove some columns to make it easier to look at
-			// TODO: remove this at some point...
-
-			final Set< String > columnNames = new HashSet<>( columnNameToColumn.keySet() );
-			for ( String columnName : columnNames )
-			{
-				if ( columnName.contains( "_mean_" ) )
-					columnNameToColumn.remove( columnName );
-
-				if ( columnName.contains( "_q0.7" ) )
-					columnNameToColumn.remove( columnName );
-
-				if ( columnName.contains( "_q0.3" ) )
-					columnNameToColumn.remove( columnName );
-
-				if ( columnName.contains( "_q0.1" ) )
-					columnNameToColumn.remove( columnName );
-
-				if ( columnName.contains( "_q0.9" ) )
-					columnNameToColumn.remove( columnName );
-			}
 		}
 		else
 		{
@@ -192,28 +170,30 @@ public class Tables
 		final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
 		final List< String > columnNames = new ArrayList<>( Arrays.asList( hdf5Reader.string().readMDArray( tableGroup + "/columns" ).getAsFlatArray() ) );
 
-
-		final byte[] bytes = hdf5Reader.uint8().readArray( tableGroup + "/visible" );
-
-		final String[] cells = hdf5Reader.string().readMDArray( tableGroup + "/cells" ).getAsFlatArray();
+		final byte[] visible = hdf5Reader.uint8().readArray( tableGroup + "/visible" );
 
 		final Map< String, List< String > > columnNameToStrings = new LinkedHashMap<>();
 		final int numColumns = columnNames.size();
 		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
 		{
+			if ( visible[ columnIndex ] == 0 ) continue;
 			final String columnName = columnNames.get( columnIndex );
 			columnNameToStrings.put( columnName, new ArrayList<>( ) );
 		}
 
+		// add column content
+		final String[] cells = hdf5Reader.string().readMDArray( tableGroup + "/cells" ).getAsFlatArray();
 		final int numRows = cells.length / columnNames.size();
-		int cellIndex = 0;
-		for ( int rowIndex = 0; rowIndex < numRows; ++rowIndex )
+
+		for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
 		{
-			for ( int columnIndex = 0; columnIndex < numColumns; columnIndex++ )
+			if ( visible[ columnIndex ] == 0 ) continue;
+			final String columName = columnNames.get( columnIndex );
+			final List< String > strings = columnNameToStrings.get( columName );
+
+			for ( int rowIndex = 0; rowIndex < numRows; ++rowIndex )
 			{
-				columnNameToStrings
-						.get( columnNames.get( columnIndex ) )
-						.add( cells[ cellIndex++ ] );
+				strings.add( cells[ rowIndex * numColumns + columnIndex ] );
 			}
 		}
 

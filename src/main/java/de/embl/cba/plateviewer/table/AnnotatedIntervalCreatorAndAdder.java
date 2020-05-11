@@ -17,6 +17,7 @@ import net.imglib2.Interval;
 
 import java.awt.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,14 +68,16 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 	{
 		Map< String, Interval > nameToInterval = getNameToInterval( intervalType );
 
-		repository.setIntervalType( intervalType );
+		if ( repository != null )
+			repository.setIntervalType( intervalType );
 
+		// TODO: below code only uses the repository it is not null. clean this up to make it more obvious
 		tableRows = ( List< T > ) createAnnotatedIntervalTableRowsFromFileAndRepository(
-						tableFile.getAbsolutePath(),
-						fileNamingScheme,
-						nameToInterval,
-						hdf5Group,
-						repository );
+				tableFile.getAbsolutePath(),
+				fileNamingScheme,
+				nameToInterval,
+				hdf5Group,
+				repository );
 
 		selectionModel = new DefaultSelectionModel<>();
 		coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
@@ -109,7 +112,7 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 							imageView.getPlateName(),
 							NamingSchemes.BatchLibHdf5.getDefaultColumnNameX( tableRows ),
 							NamingSchemes.BatchLibHdf5.getDefaultColumnNameY( tableRows ),
-							ScatterPlotGridLinesOverlay.Y_NX );
+							ScatterPlotGridLinesOverlay.Y_N );
 
 			scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );
 		}
@@ -132,17 +135,10 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 		NumericColoringModelDialog.dialogLocation = new Point( 10, imageView.getMainPanel().getLocationOnScreen().y + imageView.getMainPanel().getHeight() + 80 );
 
 		final Set< String > columnNames = tableView.getTableRows().get( 0 ).getColumnNames();
-		if ( columnNames.contains( "ratio_of_median_of_sums" ) )
-			tableView.colorByColumn( "ratio_of_median_of_sums", ColoringLuts.VIRIDIS );
-		if ( columnNames.contains( "ratio_of_q0.5_of_sums" ) )
-			tableView.colorByColumn( "ratio_of_q0.5_of_sums", ColoringLuts.VIRIDIS );
-		else if ( columnNames.contains( "cell_based_score" ) )
-			tableView.colorByColumn( "cell_based_score", ColoringLuts.VIRIDIS );
-		else if ( columnNames.contains( "serum_ratio_of_q0.5_of_sums" ) )
-			tableView.colorByColumn( "serum_ratio_of_q0.5_of_sums", ColoringLuts.VIRIDIS );
-		else if ( columnNames.contains( "score" ) )
+		if ( columnNames.contains( "score" ) )
 			tableView.colorByColumn( "score", ColoringLuts.VIRIDIS );
-
+		else
+			tableView.colorByColumn( new ArrayList<>( columnNames ).get( 0 ), ColoringLuts.VIRIDIS );
 	}
 
 	public TableRowsTableView< T > createTableView( Component component )

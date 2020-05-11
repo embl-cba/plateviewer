@@ -37,14 +37,20 @@ public class TestNamingSchemeBatchLibHdf5
 
 		pathname ="/g/kreshuk/data/covid/data-processed/plate1rep3_20200505_100837_821"; // H1
 
-		pathname = "/g/kreshuk/data/covid/sandbox/with-cohort/20200417_132123_311"; // with cohort DB
+		//pathname = "/g/kreshuk/data/covid/data-processed/20200417_132123_311";
+
+		//pathname = "/g/kreshuk/data/covid/data-processed/plate9_2rep1_20200506_163349_413";
+
+		pathname = "/g/kreshuk/data/covid/sandbox/for_tischi/20200417_132123_311";
+
+		//pathname = "/g/kreshuk/data/covid/sandbox/for_tischi/plateK12rep1_20200430_155932_313";
 
 		final PlateViewer plateViewer = new PlateViewer(
 				new File( pathname ),
 				".*.h5",
 				true,
 				true,
-				true,
+				false,
 				1,
 				false );
 	}

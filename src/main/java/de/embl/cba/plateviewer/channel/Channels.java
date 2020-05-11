@@ -24,7 +24,7 @@ public class Channels
 		{
 			return fetchChannelsNikonTi2Hdf5( files, channelNameToProperties );
 		}
-		else // multiple channels, figure out which ones...
+		else
 		{
 			return fetchChannels( files, namingScheme, channelNameToProperties );
 		}
@@ -71,7 +71,6 @@ public class Channels
 
 	public static Map< String, ChannelProperties > fetchChannelsNikonTi2Hdf5( List< File > files, HashMap< String, ChannelProperties > channelNameToProperties )
 	{
-		final ArrayList< String > channels = new ArrayList<>();
 		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( files.get( 0 ) );
 		final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
 		for ( String groupMember : groupMembers )

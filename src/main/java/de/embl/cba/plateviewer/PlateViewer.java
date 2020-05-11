@@ -4,6 +4,7 @@ import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import de.embl.cba.plateviewer.table.AnnotatedIntervalCreatorAndAdder;
+import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
 import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import ij.IJ;
@@ -24,9 +25,9 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 	private final int numIoThreads;
 	private final boolean includeSubFolders;
 
-	public PlateViewer( File imagesDirectory, String filePattern, boolean loadSiteTable, boolean loadWellTable, boolean connectToDatabase, int numIoThreads, boolean includeSubFolders )
+	public PlateViewer( File plateDirectory, String filePattern, boolean loadSiteTable, boolean loadWellTable, boolean connectToDatabase, int numIoThreads, boolean includeSubFolders )
 	{
-		this.imagesDirectory = imagesDirectory;
+		this.imagesDirectory = plateDirectory;
 		this.filePattern = filePattern;
 		this.loadSiteTable = loadSiteTable;
 		this.loadWellTable = loadWellTable;
@@ -36,20 +37,29 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 
 		final ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView =
 				new ImagePlateViewer(
-						imagesDirectory.toString(),
+						plateDirectory.getAbsolutePath(),
 						filePattern,
 						numIoThreads,
 						includeSubFolders );
 
-		if ( loadSiteTable )
-		{
-			addTable( imageView, "tables/images/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Sites );
-		}
+		final BatchLibHdf5CellFeatureProvider valueProvider = new BatchLibHdf5CellFeatureProvider( plateDirectory.getAbsolutePath() );
 
-		if ( loadWellTable )
+		imageView.setCellFeatureProvider( valueProvider );
+
+		new Thread( () ->
 		{
-			addTable( imageView, "tables/wells/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Wells );
-		}
+			IJ.wait( 5000 );
+
+			if ( loadSiteTable )
+			{
+				addTable( imageView, "tables/images/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Sites );
+			}
+
+			if ( loadWellTable )
+			{
+				addTable( imageView, "tables/wells/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Wells );
+			}
+		}).start();
 	}
 
 	public void addTable( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView, String tableName, AnnotatedIntervalCreatorAndAdder.IntervalType intervalType )
