@@ -3,29 +3,33 @@ package de.embl.cba.plateviewer.view;
 import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
 import ij.gui.GenericDialog;
 
+import java.util.ArrayList;
+
 public class CellFeatureDialog
 {
 	private final BatchLibHdf5CellFeatureProvider cellFeatureProvider;
 	private final String[] tableGroups;
 	private String tableGroupChoice;
 	private String featureChoice;
+	private String feature;
 
 
 	public CellFeatureDialog( BatchLibHdf5CellFeatureProvider cellFeatureProvider )
 	{
 		this.cellFeatureProvider = cellFeatureProvider;
-		tableGroups = cellFeatureProvider.getTableGroups().toArray( new String[]{} );
-		tableGroupChoice = tableGroups[ 0 ];
+		final ArrayList< String > tableGroups = cellFeatureProvider.getTableGroups();
+		this.tableGroups = tableGroups.stream().toArray( String[]::new );
+		tableGroupChoice = this.tableGroups[ 0 ];
 	}
 
-	public void showDialog( String siteName, int cellId )
+	public boolean showDialog( String siteName, int cellId )
 	{
 		// fetch table group
 		final GenericDialog groupDialog = new GenericDialog( "" );
 		groupDialog.addChoice( "Feature group", tableGroups, tableGroupChoice );
 
 		groupDialog.showDialog();
-		if ( groupDialog.wasCanceled() ) return;
+		if ( groupDialog.wasCanceled() ) return false;
 
 		tableGroupChoice = groupDialog.getNextChoice();
 
@@ -36,11 +40,27 @@ public class CellFeatureDialog
 		featureDialog.addChoice( "Feature", features, featureChoice );
 
 		featureDialog.showDialog();
-		if ( featureDialog.wasCanceled() ) return;
+		if ( featureDialog.wasCanceled() ) return false;
 
 		featureChoice = featureDialog.getNextChoice();
 
 
-		cellFeatureProvider.fetchFeature( cellId, siteName, tableGroupChoice, featureChoice );
+		feature = cellFeatureProvider.fetchFeature( cellId, siteName, tableGroupChoice, featureChoice );
+		return true;
+	}
+
+	public String getFeatureValue()
+	{
+		return feature;
+	}
+
+	public String getTableGroupChoice()
+	{
+		return tableGroupChoice;
+	}
+
+	public String getFeatureChoice()
+	{
+		return featureChoice;
 	}
 }

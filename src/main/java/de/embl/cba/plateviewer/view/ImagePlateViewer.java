@@ -138,6 +138,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		installBdvBehaviours();
 	}
 
+
+
 	public List< File > getSiteFiles()
 	{
 		return siteFiles;
@@ -245,8 +247,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			focusSite( siteName );
 		} );
 
-		popupMenu.addPopupAction( "View cell feature value...", e -> {
-			final String sourceName = "cell-segmentation";
+		popupMenu.addPopupAction( "Inspect cell features...", e -> {
+			final String sourceName = "cell_segmentation";
 			if ( ! nameToBdvViewable.containsKey( sourceName ) )
 			{
 				IJ.showMessage( "Please add the cell-segmentation channel first.");
@@ -258,7 +260,13 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 			final PlateChannelRawDataFetcher rawDataFetcher = new PlateChannelRawDataFetcher( cellSegmentation );
 			final Map< String, Double > pixelValues = rawDataFetcher.fetchPixelValues( globalLocation, bdvHandle.getViewerPanel().getState().getCurrentTimepoint() );
 			final int cellId = pixelValues.get( sourceName ).intValue();
-			cellFeatureDialog.showDialog( siteName, cellId );
+
+			if ( ! cellFeatureDialog.showDialog( siteName, cellId ) ) return;
+
+			Utils.log( "\nCell " + cellId +
+					"; Table " + cellFeatureDialog.getTableGroupChoice() +
+					"; Feature " + cellFeatureDialog.getFeatureChoice() +
+					"; Value " + cellFeatureDialog.getFeatureValue() );
 
 		} );
 

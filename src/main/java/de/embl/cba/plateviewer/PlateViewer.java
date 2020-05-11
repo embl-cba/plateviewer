@@ -42,9 +42,13 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 						numIoThreads,
 						includeSubFolders );
 
-		final BatchLibHdf5CellFeatureProvider valueProvider = new BatchLibHdf5CellFeatureProvider( plateDirectory.getAbsolutePath() );
+		if ( imageView.getFileNamingScheme().equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5  ) )
+		{
+			final BatchLibHdf5CellFeatureProvider valueProvider =
+					new BatchLibHdf5CellFeatureProvider( plateDirectory.getAbsolutePath(), imageView.getSiteFiles() );
 
-		imageView.setCellFeatureProvider( valueProvider );
+			imageView.setCellFeatureProvider( valueProvider );
+		}
 
 		new Thread( () ->
 		{

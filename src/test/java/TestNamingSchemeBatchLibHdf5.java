@@ -41,7 +41,7 @@ public class TestNamingSchemeBatchLibHdf5
 
 		//pathname = "/g/kreshuk/data/covid/data-processed/plate9_2rep1_20200506_163349_413";
 
-		pathname = "/g/kreshuk/data/covid/sandbox/for_tischi/20200417_132123_311";
+		pathname = "/g/kreshuk/data/covid/sandbox/for_tischi/PlateK19rep1_20200506_095722_264";
 
 		//pathname = "/g/kreshuk/data/covid/sandbox/for_tischi/plateK12rep1_20200430_155932_313";
 

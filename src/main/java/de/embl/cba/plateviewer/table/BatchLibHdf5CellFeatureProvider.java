@@ -2,6 +2,7 @@ package de.embl.cba.plateviewer.table;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
+import com.google.common.util.concurrent.UncheckedTimeoutException;
 
 import java.io.File;
 import java.util.*;
@@ -13,11 +14,13 @@ public class BatchLibHdf5CellFeatureProvider
 	private ArrayList< String > tableGroups;
 	private HashMap< String, Map< String, List< String > > > siteAndTableGroupToColumns;
 
-	public BatchLibHdf5CellFeatureProvider( String plateDirectory )
+	public BatchLibHdf5CellFeatureProvider( String plateDirectory, List< File > siteFiles )
 	{
 		this.plateDirectory = plateDirectory;
+		this.siteFiles = siteFiles;
 		siteAndTableGroupToColumns = new HashMap<>();
-		tableGroups = new ArrayList<>(  );
+		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( siteFiles.get( 0 ) );
+		fetchTableGroups( hdf5Reader );
 	}
 
 	public String fetchFeature( int labelId, String siteName, String tableGroup, String feature )
@@ -27,31 +30,27 @@ public class BatchLibHdf5CellFeatureProvider
 			throw new UnsupportedOperationException( "Fetching site files not yet implemented" );
 		}
 
-		final File siteFile = getSiteFile( siteName );
-		final IHDF5Reader hdf5Reader = HDF5Factory.openForReading( siteFile );
-		fetchTableGroups( hdf5Reader );
 		final Map< String, List< String > > columns = getColumns( siteName, tableGroup );
 
 		final List< String > labels = columns.get( "label_id" );
 		for ( int i = 0; i < labels.size(); i++ )
 		{
-			if ( labels.get( i ).equals( "" + labelId  ) )
+			final int label = ( int ) Double.parseDouble( labels.get( i ) );
+
+			if ( label ==  labelId  )
 			{
 				final String value = columns.get( feature ).get( i );
 				return value;
 			}
 		}
 
-		throw new UnsupportedOperationException( "Feature not found: " + feature );
+		throw new UnsupportedOperationException( "Feature " + feature + "not found for cell " + labelId );
 	}
 
-	public void fetchTableGroups( IHDF5Reader hdf5Reader )
+	private void fetchTableGroups( IHDF5Reader hdf5Reader )
 	{
-		if ( tableGroups == null ) // assuming all site files have the same tables
-		{
-			tableGroups = new ArrayList<>();
-			setLeafGroups( hdf5Reader, "/tables" );
-		}
+		tableGroups = new ArrayList<>();
+		setLeafGroups( hdf5Reader, "/tables" );
 	}
 
 	public void setLeafGroups( IHDF5Reader hdf5Reader, String parentGroup )
@@ -77,11 +76,6 @@ public class BatchLibHdf5CellFeatureProvider
 				setLeafGroups( hdf5Reader, childGroup );
 			}
 		}
-	}
-
-	public void setSiteFiles ( List < File > siteFiles )
-	{
-		this.siteFiles = siteFiles;
 	}
 
 	public File getSiteFile( String siteName )

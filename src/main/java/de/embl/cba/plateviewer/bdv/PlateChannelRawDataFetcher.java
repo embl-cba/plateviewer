@@ -88,9 +88,6 @@ public class PlateChannelRawDataFetcher
 		return nameToStatistics;
 	}
 
-
-
-
 	public Map< String, Double > fetchPixelValues( RealPoint globalPoint, int t )
 	{
 		final HashMap< String, Double > sourceNameToPixelValue = new HashMap<>();
@@ -256,11 +253,9 @@ public class PlateChannelRawDataFetcher
 
 			final BdvStackSource< ? > bdvStackSource = ( BdvStackSource ) bdvViewable.getBdvSource();
 
-			bdvHandle = bdvViewable.getBdvSource().getBdvHandle();
-			final List< Integer > visibleSourceIndices = getVisibleSourceIndices( bdvHandle );
-			final int sourceIndex = getSourceIndex( bdvHandle, bdvStackSource.getSources().get( 0 ).getSpimSource() );
-
-			if ( ! ( visibleSourceIndices.contains( sourceIndex ) ) ) continue;
+//			final List< Integer > visibleSourceIndices = getVisibleSourceIndices( bdvHandle );
+//			final int sourceIndex = getSourceIndex( bdvHandle, bdvStackSource.getSources().get( 0 ).getSpimSource() );
+//			if ( ! ( visibleSourceIndices.contains( sourceIndex ) ) ) continue;
 
 			if ( ! ( bdvViewable.getSource() instanceof RandomAccessibleIntervalPlateViewerSource ) ) continue;
 			sourceToBdvStackSource.put( bdvViewable.getSource(), bdvStackSource );
