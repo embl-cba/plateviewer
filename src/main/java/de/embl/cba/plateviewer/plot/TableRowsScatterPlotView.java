@@ -9,6 +9,7 @@ import de.embl.cba.plateviewer.image.source.ARGBConvertedRealAccessibleSource;
 import de.embl.cba.plateviewer.image.table.ListItemsARGBConverter;
 import de.embl.cba.plateviewer.table.Outlier;
 import de.embl.cba.plateviewer.view.PopupMenu;
+import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.ColorUtils;
 import de.embl.cba.tables.color.SelectionColoringModel;
 import de.embl.cba.tables.select.SelectionModel;
@@ -99,6 +100,11 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	{
 		fetchDataPoints( columnNameX, columnNameY );
 
+		if ( points.size() < 2 )
+		{
+			throw new UnsupportedOperationException( "Cannot create scatter plot \"" + name + "\", because there are less than two valid data points." );
+		}
+
 		createSearchTree();
 
 		setViewerAspectRatio();
@@ -107,7 +113,6 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		BiConsumer< RealLocalizable, IntType > biConsumer = createPlotFunction();
 
-		// TODO: distinguish colors outside scatter plot range and background
 		createSource( biConsumer );
 
 		showSource();

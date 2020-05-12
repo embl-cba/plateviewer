@@ -83,16 +83,15 @@ public class RESTCaller
 				status = entry.getValue().get( 0 );
 			}
 
-
 			builder.append("\n");
 		}
-
-		System.out.println(builder);
 
 		int responseCode = httpURLConnection.getResponseCode();
 		if ( ! ( responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED ) )
 		{
-			Logger.error( "Unexpected response code: " + responseCode + "\n"+status);
+			Logger.error( "Unexpected response code: " + responseCode + "\n"+status+
+					"\nPlease see the log window for more details.");
+			Logger.info( "\n" + builder.toString() );
 		}
 	}
 
