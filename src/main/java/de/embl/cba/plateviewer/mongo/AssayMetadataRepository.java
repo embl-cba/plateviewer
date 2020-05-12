@@ -151,17 +151,30 @@ public class AssayMetadataRepository extends AbstractRepository {
         {
             case Wells:
                 if ( attribute.equals( outlier ) )
-                    return getWellAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
-                else
-                    return getWellAttribute( plateName, siteOrWellName, attribute, String.class );
-            case Sites:
-                if ( attribute.equals( outlier ) )
-                    return getImageAttribute( plateName, siteOrWellName, attribute, Integer.class ).toString();
+                {
+                    final Integer wellAttribute = getWellAttribute( plateName, siteOrWellName, attribute, Integer.class );
+                    if ( wellAttribute != null ) return wellAttribute.toString();
+                    else return "-1";
+                }
                 else
                 {
-                    // only the outlier attribute is available for images, the others only from well
+                    final String wellAttribute = getWellAttribute( plateName, siteOrWellName, attribute, String.class );
+                    if ( wellAttribute != null ) return wellAttribute;
+                    else return "None";
+                }
+            case Sites:
+                if ( attribute.equals( outlier ) )
+                {
+                    final Integer imageAttribute = getImageAttribute( plateName, siteOrWellName, attribute, Integer.class );
+                    if ( imageAttribute != null ) return imageAttribute.toString();
+                    else return "-1";
+                }
+                else // only the outlier attribute is available for images, the others only from well
+                {
                     final String wellName = getWellName( siteOrWellName );
-                    return getWellAttribute( plateName, wellName, attribute, String.class );
+                    final String wellAttribute = getWellAttribute( plateName, wellName, attribute, String.class );
+                    if ( wellAttribute != null ) return wellAttribute;
+                    else return "None";
                 }
             default:
                 throw new UnsupportedOperationException( "Interval type not supported: " + getIntervalType() );

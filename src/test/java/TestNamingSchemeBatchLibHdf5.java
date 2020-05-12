@@ -45,14 +45,14 @@ public class TestNamingSchemeBatchLibHdf5
 
 		//pathname = "/g/kreshuk/data/covid/sandbox/for_tischi/plateK12rep1_20200430_155932_313";
 
-		pathname = "/Users/tischer/Downloads/test_tischi";
+		//pathname = "/Users/tischer/Downloads/test_tischi";
 
 		final PlateViewer plateViewer = new PlateViewer(
 				new File( pathname ),
 				".*.h5",
 				true,
 				true,
-				false,
+				true,
 				1,
 				false );
 	}
