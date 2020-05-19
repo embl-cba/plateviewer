@@ -12,12 +12,14 @@ public class TestLauraBallina
 		final ImageJ imageJ = new ImageJ();
 		imageJ.ui().showUI();
 
-		String pathname;
+		String rawImagesFolder;
+		rawImagesFolder = "/Users/tischer/Downloads/Laura";
+		//rawImagesFolder = "/g/almfscreen/ballina/BigDataViewer_test_dataset";
 
-		pathname = "/Users/tischer/Downloads/Laura/";
+		final String tablePath = rawImagesFolder + "/image_table_with_mean_object_measurements_QC.txt";
 
 		final PlateViewer plateViewer = new PlateViewer(
-				new File( pathname ),
+				new File( rawImagesFolder ),
 				".*.tif",
 				true,
 				false,
@@ -26,7 +28,7 @@ public class TestLauraBallina
 				true );
 
 		final TableSource tableSource = new TableSource();
-		tableSource.filePath = "/Users/tischer/Downloads/Laura/image_table_with_mean_object_measurements_QC.txt";
+		tableSource.filePath = tablePath;
 		tableSource.intervalType = IntervalType.Sites;
 		plateViewer.setSiteTableSource( tableSource );
 

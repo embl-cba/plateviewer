@@ -54,8 +54,8 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 		{
 			t.set( 0 );
 
-			final boolean drawSiteBorder = isDrawBorder( l, siteDimensions, relativeSiteBorderWidth );
-			if ( drawSiteBorder ) t.set( 180 );
+//			final boolean drawSiteBorder = isDrawBorder( l, siteDimensions, relativeSiteBorderWidth );
+//			if ( drawSiteBorder ) t.set( 180 );
 
 			final boolean drawWellBorder = isDrawBorder( l, wellDimensions, relativeWellBorderWidth );
 			if ( drawWellBorder ) t.set( 255 );

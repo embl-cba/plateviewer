@@ -119,9 +119,9 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 
 		numWellsPerPlate = Utils.guessWellDimensions( numWells );
 
-		Utils.log( "Distinct wells: " +  numWells );
-		Utils.log( "Well dimensions [ 0 ] : " +  numWellsPerPlate[ 0 ] );
-		Utils.log( "Well dimensions [ 1 ] : " +  numWellsPerPlate[ 1 ] );
+		Utils.log( "Number of wells: " +  numWells );
+		Utils.log( "Well layout [ 0 ] : " +  numWellsPerPlate[ 0 ] );
+		Utils.log( "Well layout [ 1 ] : " +  numWellsPerPlate[ 1 ] );
 
 		wellNames = getWellNames( files );
 	}
@@ -143,17 +143,13 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 			}
 
 		numSitesPerWell = new int[ 2 ];
-		for ( int d = 0; d < numSitesPerWell.length; ++d )
-		{
-			numSitesPerWell[ d ] = ( int ) Math.ceil( Math.sqrt( numSites ) );
-			numSitesPerWell[ d ] = Math.max( 1, numSitesPerWell[ d ] );
-		}
+		numSitesPerWell[ 0 ] = ( int ) Math.ceil( Math.sqrt( numSites ) );
+		numSitesPerWell[ 1 ] = ( int ) Math.ceil( numSites / numSitesPerWell[ 0 ]  );
 
-		Utils.log( "Distinct sites: " +  numSites );
-		Utils.log( "Sites are zero based: " +  zeroBasedSites );
-		Utils.log( "Site dimensions [ 0 ] : " +  numSitesPerWell[ 0 ] );
-		Utils.log( "Site dimensions [ 1 ] : " +  numSitesPerWell[ 1 ] );
-
+		Utils.log( "Number of sites: " +  numSites );
+		Utils.log( "Site numbering is zero based: " +  zeroBasedSites );
+		Utils.log( "Site layout [ 0 ] : " +  numSitesPerWell[ 0 ] );
+		Utils.log( "Site layout [ 1 ] : " +  numSitesPerWell[ 1 ] );
 	}
 
 	private Set< Integer > getSitesSet( List< File > files )

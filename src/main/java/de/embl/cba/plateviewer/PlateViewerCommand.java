@@ -30,7 +30,8 @@ public class PlateViewerCommand implements Command
 
 	public void run()
 	{
-		new PlateViewer( imagesDirectory, filePattern, loadImageTable, loadWellTable, connectToDatabase, 4, includeSubFolders );
+		final PlateViewer plateViewer = new PlateViewer( imagesDirectory, filePattern, loadImageTable, loadWellTable, connectToDatabase, 4, includeSubFolders );
+		plateViewer.run();
 	}
 
 }

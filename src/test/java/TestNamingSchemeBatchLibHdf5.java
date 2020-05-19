@@ -47,7 +47,7 @@ public class TestNamingSchemeBatchLibHdf5
 
 		pathname = "/Users/tischer/Downloads/test_tischi";
 
-		pathname ="/g/kreshuk/data/covid/data-processed/plateK25rep1_20200512_123527_554";
+		pathname ="/g/kreshuk/data/covid/data-processed/plate1rep3_20200505_100837_821";
 
 		final PlateViewer plateViewer = new PlateViewer(
 				new File( pathname ),
