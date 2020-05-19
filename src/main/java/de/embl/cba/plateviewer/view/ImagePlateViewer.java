@@ -100,8 +100,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 	public ImagePlateViewer( String inputDirectory, String filterPattern, int numIoThreads, boolean includeSubFolders )
 	{
-		this.plateName = new File( inputDirectory ).getName();
-		//this.multiWellImgs = new ArrayList<>();
+		plateName = new File( inputDirectory ).getName();
 		channelToMultiWellImg = new HashMap<>();
 		nameToBdvViewable = new HashMap<>();
 
@@ -125,7 +124,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 
 		addToPanelAndBdv( referenceWellImg );
 
-		configPlateDimensions();
+		configPlateWellAndSiteIntervals();
 
 		addWellOutlinesImages();
 
@@ -429,7 +428,7 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 		}
 	}
 
-	public void configPlateDimensions()
+	public void configPlateWellAndSiteIntervals()
 	{
 		setPlateInterval( referenceWellImg );
 

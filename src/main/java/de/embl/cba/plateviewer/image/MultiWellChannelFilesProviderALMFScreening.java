@@ -18,7 +18,7 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 	int[] imageDimensions;
 
 	final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
-	final ArrayList< String > wellNames;
+	ArrayList< String > wellNames;
 
 	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
 	public static final int WELL_GROUP = 1;
@@ -32,8 +32,6 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 		this.imageDimensions = imageDimensions;
 
 		createImageSources();
-
-		this.wellNames = getWellNames( files );
 	}
 
 	@Override
@@ -61,9 +59,9 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 
 	}
 
-	private static String getWellName( String fileName )
+	public static String getWellName( String fileName )
 	{
-		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_ALMF_SCREENING_TREAT1_TREAT2_WELLNUM ).matcher( fileName );
+		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM ).matcher( fileName );
 
 		if ( matcher.matches() )
 		{
@@ -71,6 +69,25 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 			wellName += "--" + matcher.group( 2 );
 			wellName += "--W" + matcher.group( 3 );
 			return wellName;
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	public static String getSiteName( String fileName )
+	{
+		final String pattern = NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM;
+		final Matcher matcher = Pattern.compile( pattern ).matcher( fileName );
+
+		if ( matcher.matches() )
+		{
+			String name = matcher.group( 1 );
+			name += "--" + matcher.group( 2 );
+			name += "--W" + matcher.group( 3 );
+			name += "--P" + matcher.group( 4 );
+			return name;
 		}
 		else
 		{
@@ -88,7 +105,7 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
 					file,
 					getInterval( file, WELL_SITE_CHANNEL_PATTERN, numWellsPerPlate[ 0 ], numSitesPerWell[ 0 ] ),
-					file.getName(),
+					getSiteName( file.getName() ),
 					getWellName( file.getName() ) );
 
 			singleSiteChannelFiles.add( singleSiteChannelFile );
@@ -105,6 +122,8 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 		Utils.log( "Distinct wells: " +  numWells );
 		Utils.log( "Well dimensions [ 0 ] : " +  numWellsPerPlate[ 0 ] );
 		Utils.log( "Well dimensions [ 1 ] : " +  numWellsPerPlate[ 1 ] );
+
+		wellNames = getWellNames( files );
 	}
 
 	private void configSites( List< File > files )

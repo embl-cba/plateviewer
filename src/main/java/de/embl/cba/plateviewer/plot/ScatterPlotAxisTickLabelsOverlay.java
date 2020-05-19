@@ -28,7 +28,7 @@ public class ScatterPlotAxisTickLabelsOverlay extends BdvOverlay
 		this.dataInterval = dataInterval;
 		xMin = dataInterval.realMin( 0 );
 		yMin = dataInterval.realMin( 1 );
-		offset = 70;
+		offset = 10;
 		fontSize = 15;
 	}
 
@@ -53,9 +53,14 @@ public class ScatterPlotAxisTickLabelsOverlay extends BdvOverlay
 		{
 			globalLocation[ 0 ] = entry.getValue().floatValue();
 			viewerTransform.apply( globalLocation, viewerLocation );
+			float xPos = viewerLocation[ 0 ];
+			float yPos = viewerLocation[ 1 ];
+			final String text = entry.getKey();
+			final int stringWidth = g.getFontMetrics().stringWidth( text );
+			yPos = yPos - stringWidth + offset;
 			g.setTransform( orig );
-			g.rotate(-Math.PI/2, viewerLocation[ 0 ], viewerLocation[ 1 ] + offset );
-			g.drawString( entry.getKey(), viewerLocation[ 0 ], viewerLocation[ 1 ] + offset );
+			g.rotate(-Math.PI/2, xPos, yPos );
+			g.drawString( text, xPos, yPos );
 		}
 
 		// draw y axis tick marks
@@ -65,7 +70,11 @@ public class ScatterPlotAxisTickLabelsOverlay extends BdvOverlay
 		{
 			globalLocation[ 1 ] = entry.getValue().floatValue();
 			viewerTransform.apply( globalLocation, viewerLocation );
-			g.drawString( entry.getKey(), viewerLocation[ 0 ] - offset, viewerLocation[ 1 ] + fontSize / 2);
+			final String text = entry.getKey();
+			final int stringWidth = g.getFontMetrics().stringWidth( text );
+			float xPos = viewerLocation[ 0 ];
+			xPos = xPos - stringWidth - offset;
+			g.drawString( entry.getKey(), xPos, viewerLocation[ 1 ]);
 		}
 	}
 }

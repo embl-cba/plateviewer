@@ -100,9 +100,9 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	{
 		fetchDataPoints( columnNameX, columnNameY );
 
-		if ( points.size() < 2 )
+		if ( points.size() < 1 )
 		{
-			throw new UnsupportedOperationException( "Cannot create scatter plot \"" + name + "\", because there are less than two valid data points." );
+			throw new UnsupportedOperationException( "Cannot create scatter plot \"" + name + "\", because there is no valid data point." );
 		}
 
 		createSearchTree();
@@ -327,7 +327,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 			if ( y < yMin ) yMin = y;
 		}
 
-		dataInterval = FinalRealInterval.createMinMax( xMin, yMin, 0, xMax, yMax, 0 );
+		dataInterval = FinalRealInterval.createMinMax(
+				xMin * 0.9,
+				yMin * 0.9,
+				0,
+				xMax * 1.1,
+				yMax * 1.1,
+				0 );
 
 		dataRanges = new double[ 2 ];
 		for ( int d = 0; d < 2; d++ )
@@ -495,7 +501,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		final double scaleX = 1.0 * BdvUtils.getBdvWindowWidth( bdvHandle ) / dataRanges[ 0 ];
 
-		final double zoom = 0.8;
+		final double zoom = 1.0;
 		scale.scale( zoom * scaleX, zoom * scaleX * viewerAspectRatio, 1.0  );
 		viewerTransform.preConcatenate( scale );
 

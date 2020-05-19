@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import de.embl.cba.plateviewer.table.AnnotatedIntervalCreatorAndAdder;
+import de.embl.cba.plateviewer.table.IntervalType;
 import org.bson.Document;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ public class AssayMetadataRepository extends AbstractRepository {
     public static String[] attributes = new String[]{ outlier, patientType, cohortId };
 
     private String plateName;
-    private AnnotatedIntervalCreatorAndAdder.IntervalType intervalType;
+    private IntervalType intervalType;
     private HashMap< String, Document > wellNameToDocument = new HashMap<>();
     private List< Document > wells;
     private HashMap< String, Document > plateNameToDocument = new HashMap<>();
@@ -49,12 +49,12 @@ public class AssayMetadataRepository extends AbstractRepository {
         this.plateName = plateName;
     }
 
-    public AnnotatedIntervalCreatorAndAdder.IntervalType getIntervalType()
+    public IntervalType getIntervalType()
     {
         return intervalType;
     }
 
-    public void setIntervalType( AnnotatedIntervalCreatorAndAdder.IntervalType defaultIntervalType )
+    public void setIntervalType( IntervalType defaultIntervalType )
     {
         this.intervalType = defaultIntervalType;
     }

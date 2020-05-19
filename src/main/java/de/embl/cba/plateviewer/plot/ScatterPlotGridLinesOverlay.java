@@ -80,7 +80,7 @@ public class ScatterPlotGridLinesOverlay extends BdvOverlay
 		{
 			double[] n = new double[ 3 ];
 
-			for ( int i = 0; i < 5; i++ )
+			for ( int i = 0; i < 10; i++ )
 			{
 				globalToViewerTransform.apply( new double[]{ this.dataMaxValue, i * this.dataMaxValue, 0 }, n );
 				g.drawLine( ( int ) zero[ 0 ], ( int ) zero[ 1 ],
@@ -89,11 +89,10 @@ public class ScatterPlotGridLinesOverlay extends BdvOverlay
 		}
 		else if ( lineOverlay.equals( Y_N ) )
 		{
-
 			double[] max = new double[ 3 ];
 			globalToViewerTransform.apply( new double[]{ this.dataMaxValue, this.dataMaxValue, 0 }, max );
 
-			for ( int i = 0; i < 5; i++ )
+			for ( int i = 0; i < 1000; i++ )
 			{
 				double[] n = new double[ 3 ];
 				globalToViewerTransform.apply( new double[]{ 0, i, 0 }, n );

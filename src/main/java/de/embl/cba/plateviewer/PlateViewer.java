@@ -2,10 +2,7 @@ package de.embl.cba.plateviewer;
 
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
-import de.embl.cba.plateviewer.table.AnnotatedInterval;
-import de.embl.cba.plateviewer.table.AnnotatedIntervalCreatorAndAdder;
-import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
-import de.embl.cba.plateviewer.table.DefaultAnnotatedIntervalTableRow;
+import de.embl.cba.plateviewer.table.*;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
 import ij.IJ;
 import net.imglib2.type.NativeType;
@@ -14,6 +11,7 @@ import net.imglib2.type.numeric.RealType;
 import java.io.File;
 
 import static de.embl.cba.plateviewer.mongo.AssayMetadataRepository.getCovid19AssayMetadataRepository;
+import static de.embl.cba.plateviewer.table.IntervalType.*;
 
 public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends AnnotatedInterval >
 {
@@ -24,6 +22,9 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 	private final boolean connectToDatabase;
 	private final int numIoThreads;
 	private final boolean includeSubFolders;
+	private String namingScheme;
+	private TableSource siteTableSource;
+	private TableSource wellTableSource;
 
 	public PlateViewer( File plateDirectory, String filePattern, boolean loadSiteTable, boolean loadWellTable, boolean connectToDatabase, int numIoThreads, boolean includeSubFolders )
 	{
@@ -34,100 +35,115 @@ public class PlateViewer < R extends NativeType< R > & RealType< R >, T extends 
 		this.connectToDatabase = connectToDatabase;
 		this.numIoThreads = numIoThreads;
 		this.includeSubFolders = includeSubFolders;
+	}
 
+	public void run()
+	{
 		final ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView =
 				new ImagePlateViewer(
-						plateDirectory.getAbsolutePath(),
+						imagesDirectory.getAbsolutePath(),
 						filePattern,
 						numIoThreads,
 						includeSubFolders );
 
+		namingScheme = imageView.getFileNamingScheme();
+
 		if ( imageView.getFileNamingScheme().equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5  ) )
 		{
 			final BatchLibHdf5CellFeatureProvider valueProvider =
-					new BatchLibHdf5CellFeatureProvider( plateDirectory.getAbsolutePath(), imageView.getSiteFiles() );
+					new BatchLibHdf5CellFeatureProvider( imagesDirectory.getAbsolutePath(), imageView.getSiteFiles() );
 
 			imageView.setCellFeatureProvider( valueProvider );
 		}
 
 		new Thread( () ->
 		{
-			IJ.wait( 5000 );
+			IJ.wait( 3000 );
 
 			if ( loadSiteTable )
 			{
-				addTable( imageView, "tables/images/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Sites );
+				if ( siteTableSource == null )
+					siteTableSource = getTableSource( namingScheme, imagesDirectory, Sites );
+				addTable( imageView, siteTableSource );
 			}
 
 			if ( loadWellTable )
 			{
-				addTable( imageView, "tables/wells/default", AnnotatedIntervalCreatorAndAdder.IntervalType.Wells );
+				wellTableSource = getTableSource( namingScheme, imagesDirectory, Wells );
+				addTable( imageView, wellTableSource );
 			}
 		}).start();
 	}
 
-	public void addTable( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView, String tableName, AnnotatedIntervalCreatorAndAdder.IntervalType intervalType )
+	public void setSiteTableSource( TableSource siteTableSource )
 	{
-		final String fileNamingScheme = imageView.getFileNamingScheme();
-		File tableFile = getTableFile( fileNamingScheme );
-
-		AnnotatedIntervalCreatorAndAdder intervalCreatorAndAdder = getAnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableFile );
-
-		intervalCreatorAndAdder.createAndAddAnnotatedIntervals( intervalType, tableName );
+		this.siteTableSource = siteTableSource;
 	}
 
-	public AnnotatedIntervalCreatorAndAdder getAnnotatedIntervalCreatorAndAdder( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView, String fileNamingScheme, File tableFile )
+	public void setWellTableSource( TableSource wellTableSource )
 	{
-		AnnotatedIntervalCreatorAndAdder intervalCreatorAndAdder;
+		this.wellTableSource = wellTableSource;
+	}
+
+	public void addTable( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView, TableSource tableSource )
+	{
+		AnnotatedIntervalCreatorAndAdder intervalCreatorAndAdder = getAnnotatedIntervalCreatorAndAdder( imageView, namingScheme, tableSource );
+
+		intervalCreatorAndAdder.createAndAddAnnotatedIntervals( );
+	}
+
+	public AnnotatedIntervalCreatorAndAdder getAnnotatedIntervalCreatorAndAdder( ImagePlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView, String fileNamingScheme, TableSource tableSource )
+	{
 		if ( connectToDatabase )
 		{
 			final AssayMetadataRepository repository = getCovid19AssayMetadataRepository( "covid" + ( 2500 + 81 ) );
-			intervalCreatorAndAdder = new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableFile, repository );
+			return new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableSource, repository );
 		}
 		else
 		{
-			intervalCreatorAndAdder = new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableFile );
+			return new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableSource );
 		}
-		return intervalCreatorAndAdder;
 	}
 
-	public File getTableFile( String fileNamingScheme )
+	public static TableSource getTableSource( String namingScheme, File imagesDirectory, IntervalType intervalType )
 	{
-		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
+		final TableSource tableSource = new TableSource();
+		tableSource.intervalType = intervalType;
+
+		final String plateName = imagesDirectory.getName();
+
+		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final String plateName = imagesDirectory.getName();
-			File tableFile;
+			final File tableFile = TableSourceUtils.getTableFileBatchLibHdf5( imagesDirectory, plateName );
 
-			// try all the different conventions
-			//
-			tableFile = new File( imagesDirectory, plateName + "_table.hdf5" );
-			if ( tableFile.exists() ) return tableFile;
+			tableSource.filePath = tableFile.getAbsolutePath();
 
-			tableFile = new File( imagesDirectory, plateName + "_table_serum_IgG_corrected.hdf5" );
-			if ( tableFile.exists() ) return tableFile;
+			switch ( intervalType )
+			{
+				case Sites:
+					tableSource.hdf5Group = "tables/images/default";
+					break;
+				case Wells:
+					tableSource.hdf5Group = "tables/wells/default";
+					break;
+				default:
+					throw new UnsupportedOperationException();
+			}
 
-			tableFile = new File( imagesDirectory, plateName + "_analysis.csv" );
-			if ( tableFile.exists() ) return tableFile;
-
-			tableFile = new File( imagesDirectory, "analysis.csv" );
-			if ( tableFile.exists() ) return tableFile;
-
-
-			tableFile = new File( imagesDirectory, plateName + "_table_serum_corrected.hdf5" );
-			if ( tableFile.exists() ) return tableFile;
-
-			// nothing worked => ask user
-			//
-			final String tableFilePath = IJ.getFilePath( "Please select table file" );
-			if ( tableFilePath != null )
-				return new File( tableFilePath );
-			else
-				return null;
+			return tableSource;
 		}
 		else
 		{
-			throw new UnsupportedOperationException( "Cannot yet load tables for naming scheme: " + fileNamingScheme );
+			final String tableFilePath = IJ.getFilePath( "Please select table file" );
+			if ( tableFilePath != null )
+			{
+				tableSource.filePath = tableFilePath;
+				return tableSource;
+			}
+			else
+			{
+				return null;
+			}
 		}
-
 	}
 }

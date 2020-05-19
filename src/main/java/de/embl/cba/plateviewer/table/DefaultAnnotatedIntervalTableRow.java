@@ -7,11 +7,14 @@ import net.imglib2.Interval;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implements AnnotatedIntervalTableRow
 {
 	protected final Interval interval;
 	protected String outlierColumnName;
+	private final Function< String, Boolean > stringToOutlier;
+	private final Function< Boolean, String > outlierToString;
 	protected final Map< String, List< String > > columns;
 	protected final String siteName;
 	protected final int rowIndex;
@@ -20,12 +23,16 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 			String siteName,
 			Interval interval,
 			String outlierColumnName,
+			Function< String, Boolean > stringToOutlier,
+			Function< Boolean, String > outlierToString,
 			Map< String, List< String > > columns,
 			int rowIndex )
 	{
 		this.siteName = siteName;
 		this.interval = interval;
 		this.outlierColumnName = outlierColumnName;
+		this.stringToOutlier = stringToOutlier;
+		this.outlierToString = outlierToString;
 		this.columns = columns;
 		this.rowIndex = rowIndex;
 	}
@@ -48,14 +55,14 @@ public class DefaultAnnotatedIntervalTableRow extends AbstractTableRow implement
 		if ( ! columns.containsKey( outlierColumnName  ) ) return false;
 
 		final String s = columns.get( outlierColumnName ).get( rowIndex );
-		return NamingSchemes.BatchLibHdf5.isOutlier( s );
+		return stringToOutlier.apply( s );
 	}
 
 	@Override
 	public void setOutlier( boolean isOutlier )
 	{
 		if ( columns.containsKey( outlierColumnName ))
-			setCell( outlierColumnName, NamingSchemes.BatchLibHdf5.getOutlierString( isOutlier ) );
+			setCell( outlierColumnName, outlierToString.apply( isOutlier ) );
 	}
 
 	@Override

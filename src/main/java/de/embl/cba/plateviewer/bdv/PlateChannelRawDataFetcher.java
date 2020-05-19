@@ -49,6 +49,7 @@ public class PlateChannelRawDataFetcher
 	{
 		this.nameToBdvViewable = nameToBdvViewable;
 		sourceToBdvStackSource = createSourceToBdvChannelStackSource();
+
 		t = bdvHandle.getViewerPanel().getState().getCurrentTimepoint();
 		viewerVoxelSpacing = getViewerVoxelSpacing( bdvHandle );
 	}
@@ -252,14 +253,22 @@ public class PlateChannelRawDataFetcher
 			if ( ! ( bdvViewable.getBdvSource() instanceof BdvStackSource ) ) continue;
 
 			final BdvStackSource< ? > bdvStackSource = ( BdvStackSource ) bdvViewable.getBdvSource();
-
+			
 //			final List< Integer > visibleSourceIndices = getVisibleSourceIndices( bdvHandle );
 //			final int sourceIndex = getSourceIndex( bdvHandle, bdvStackSource.getSources().get( 0 ).getSpimSource() );
 //			if ( ! ( visibleSourceIndices.contains( sourceIndex ) ) ) continue;
 
 			if ( ! ( bdvViewable.getSource() instanceof RandomAccessibleIntervalPlateViewerSource ) ) continue;
+
 			sourceToBdvStackSource.put( bdvViewable.getSource(), bdvStackSource );
+			bdvHandle = bdvStackSource.getBdvHandle();
 		}
+
+		if ( sourceToBdvStackSource.keySet().size() == 0)
+		{
+			throw new UnsupportedOperationException( "No sources present, cannot fetch raw data." );
+		}
+
 		return sourceToBdvStackSource;
 	}
 

@@ -7,9 +7,11 @@ import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
 import de.embl.cba.tables.TableColumns;
 import net.imglib2.Interval;
+import org.bson.Document;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Function;
 
 public class Tables
 {
@@ -17,7 +19,9 @@ public class Tables
 			final Map< String, List< String > > columns,
 			final String intervalNameColumnName,
 			final Map< String, Interval > nameToInterval,
-			final String outlierColumnName )
+			final String outlierColumnName,
+			Function< String, Boolean > stringToOutlier,
+			Function< Boolean, String > outlierToString )
 	{
 		final List< DefaultAnnotatedIntervalTableRow > tableRows = new ArrayList<>();
 
@@ -33,13 +37,17 @@ public class Tables
 
 			Interval interval = null;
 			if ( nameToInterval != null )
+			{
 				interval = nameToInterval.get( intervalName );
+			}
 
 			tableRows.add(
 					new DefaultAnnotatedIntervalTableRow(
 							intervalName,
 							interval,
 							outlierColumnName,
+							stringToOutlier,
+							outlierToString,
 							columns,
 							row )
 			);
@@ -79,60 +87,92 @@ public class Tables
 
 	public static List< ? extends AnnotatedIntervalTableRow >
 	createAnnotatedIntervalTableRowsFromFileAndRepository(
-			String filePath,
-			String imageNamingScheme,
+			TableSource tableSource,
+			String namingScheme,
 			Map< String, Interval > nameToInterval,
-			String hdf5Group,
 			AssayMetadataRepository repository // optional, can be null
-	 		)
+	)
 	{
 		final Map< String, List< String > > columnNameToColumn;
 
-		if ( filePath.endsWith( ".csv" ) )
+		if ( tableSource.filePath.endsWith( ".csv" ) || tableSource.filePath.endsWith( ".txt" ) )
 		{
-			columnNameToColumn = TableColumns.stringColumnsFromTableFile( filePath );
+			columnNameToColumn = TableColumns.stringColumnsFromTableFile( tableSource.filePath );
 		}
-		else if ( filePath.endsWith( ".hdf5" ) || filePath.endsWith( ".h5" ) )
+		else if ( tableSource.filePath.endsWith( ".hdf5" ) || tableSource.filePath.endsWith( ".h5" ) )
 		{
-			columnNameToColumn =
-					Tables.stringColumnsFromHDF5(
-						filePath,
-						hdf5Group );
+			columnNameToColumn = Tables.stringColumnsFromHDF5( tableSource.filePath, tableSource.hdf5Group );
 		}
 		else
 		{
-			throw new UnsupportedOperationException( "Table file extension not supported: " + filePath );
+			throw new UnsupportedOperationException( "Table file extension not supported: " + tableSource );
 		}
 
-		if ( imageNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			if ( repository != null )
-			{
-				final String plateName = new File( new File( filePath ).getParent() ).getName();
-				repository.setPlateName( plateName );
+			final String plateName = new File( new File( tableSource.filePath ).getParent() ).getName();
+			boolean hasRepository = hasRepository( repository, plateName );
 
+			if ( hasRepository )
+			{
 				final List< ? extends AnnotatedIntervalTableRow > fromColumnsAndRepository = createAnnotatedIntervalTableRowsFromColumnsAndRepository(
 						columnNameToColumn,
-						NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
+						NamingSchemes.BatchLibHdf5.getIntervalName( tableSource.hdf5Group ),
 						nameToInterval,
 						repository );
 
 				return fromColumnsAndRepository;
-
 			}
 			else
 			{
 				return createDefaultAnnotatedIntervalTableRowsFromColumns(
 							columnNameToColumn,
-							NamingSchemes.BatchLibHdf5.getIntervalName( hdf5Group ),
+							NamingSchemes.BatchLibHdf5.getIntervalName( tableSource.hdf5Group ),
 							nameToInterval,
-							NamingSchemes.BatchLibHdf5.OUTLIER );
+							NamingSchemes.BatchLibHdf5.outlierColumnName,
+							NamingSchemes.BatchLibHdf5.stringToOutlier,
+						    NamingSchemes.BatchLibHdf5.outlierToString );
 			}
+		}
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
+		{
+			final String intervalNameColumn = NamingSchemes.ALMFScreening.addIntervalNameColumn( tableSource, columnNameToColumn );
+
+			if ( ! columnNameToColumn.containsKey( NamingSchemes.ALMFScreening.qcColumnName ) )
+			{
+				throw new RuntimeException( "Table must contain column: " + NamingSchemes.ALMFScreening.qcColumnName );
+			}
+
+			// TODO: make an interface and classes for the outlier stuff
+			return createDefaultAnnotatedIntervalTableRowsFromColumns(
+					columnNameToColumn,
+					intervalNameColumn,
+					nameToInterval,
+					NamingSchemes.ALMFScreening.qcColumnName,
+					NamingSchemes.ALMFScreening.stringToOutlier,
+					NamingSchemes.ALMFScreening.outlierToString );
 		}
 		else
 		{
-			throw new UnsupportedOperationException( "Appending a table for naming scheme " + imageNamingScheme + " is not yet supported.");
+			throw new UnsupportedOperationException( "Appending a table for naming scheme " + namingScheme + " is not yet supported.");
 		}
+	}
+
+	public static boolean hasRepository( AssayMetadataRepository repository, String plateName )
+	{
+		boolean hasRepository = false;
+
+		if ( repository != null )
+		{
+			repository.setPlateName( plateName );
+
+			final Document plateDocument = repository.getPlateDocument( repository.getPlateName() );
+			if ( plateDocument != null )
+			{
+				hasRepository = true;
+			}
+		}
+		return hasRepository;
 	}
 
 	public static String ensureSiteNameColumn( Map< String, List< String > > columnNameToColumn )

@@ -16,7 +16,6 @@ import de.embl.cba.tables.view.TableRowsTableView;
 import net.imglib2.Interval;
 
 import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,15 +25,10 @@ import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableR
 
 public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTableRow >
 {
-	public enum IntervalType
-	{
-		Sites,
-		Wells
-	}
 
 	private final ImagePlateViewer< ?, T > imageView;
-	private final String fileNamingScheme;
-	private final File tableFile;
+	private final String namingScheme;
+	private final TableSource tableSource;
 	private final AssayMetadataRepository repository;
 	private DefaultSelectionModel< T > selectionModel;
 	private LazyCategoryColoringModel< T > coloringModel;
@@ -42,50 +36,49 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 	private List< T > tableRows;
 
 	public AnnotatedIntervalCreatorAndAdder(
-			ImagePlateViewer< ?, T > imageView,
-			String fileNamingScheme,
-			File tableFile )
+			ImagePlateViewer imageView,
+			String namingScheme,
+			TableSource tableSource )
 	{
 		this.imageView = imageView;
-		this.fileNamingScheme = fileNamingScheme;
-		this.tableFile = tableFile;
+		this.namingScheme = namingScheme;
+		this.tableSource = tableSource;
 		this.repository = null;
 	}
 
 	public AnnotatedIntervalCreatorAndAdder(
-			ImagePlateViewer< ?, T > imageView,
-			String fileNamingScheme,
-			File tableFile,
+			ImagePlateViewer imageView,
+			String namingScheme,
+			TableSource tableSource,
 			AssayMetadataRepository repository )
 	{
 		this.imageView = imageView;
-		this.fileNamingScheme = fileNamingScheme;
-		this.tableFile = tableFile;
+		this.namingScheme = namingScheme;
+		this.tableSource = tableSource;
 		this.repository = repository;
 	}
 
-	public void createAndAddAnnotatedIntervals( IntervalType intervalType, String hdf5Group )
+	public void createAndAddAnnotatedIntervals()
 	{
-		Map< String, Interval > nameToInterval = getNameToInterval( intervalType );
+		Map< String, Interval > nameToInterval = getNameToInterval( tableSource.intervalType );
 
 		if ( repository != null )
-			repository.setIntervalType( intervalType );
+			repository.setIntervalType( tableSource.intervalType );
 
-		// TODO: below code only uses the repository it is not null. clean this up to make it more obvious
 		tableRows = ( List< T > ) createAnnotatedIntervalTableRowsFromFileAndRepository(
-				tableFile.getAbsolutePath(),
-				fileNamingScheme,
+				tableSource,
+				namingScheme,
 				nameToInterval,
-				hdf5Group,
-				repository );
+				repository // optional
+		);
 
-		selectionModel = new DefaultSelectionModel<>();
+		selectionModel = new DefaultSelectionModel<>();// TODO: below code only uses the repository it is not null. clean this up to make it more obvious
 		coloringModel = new LazyCategoryColoringModel<>( new GlasbeyARGBLut( 255 ) );
 		selectionColoringModel = new SelectionColoringModel( coloringModel, selectionModel );
 
-		if ( intervalType.equals( IntervalType.Sites ) )
+		if ( tableSource.intervalType.equals( IntervalType.Sites ) )
 			imageView.addAnnotatedSiteIntervals( tableRows, selectionModel, selectionColoringModel );
-		else if ( intervalType.equals( IntervalType.Wells ) )
+		else if ( tableSource.intervalType.equals( IntervalType.Wells ) )
 			imageView.addAnnotatedWellIntervals( tableRows, selectionModel, selectionColoringModel );
 
 		final TableRowsTableView< T > tableView
@@ -97,25 +90,22 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 						selectionColoringModel,
 						tableView,
 						imageView.getPlateInterval(),
-						intervalType.toString().toLowerCase() + " table values" );
+						tableSource.intervalType.toString().toLowerCase() + " table values" );
 
 		imageView.addToPanelAndBdv( tableRowsIntervalImage );
 
-		if ( fileNamingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
-		{
-			final TableRowsScatterPlotView< DefaultAnnotatedIntervalTableRow > scatterPlotView =
-					new TableRowsScatterPlotView(
-							tableRows,
-							hdf5Group,
-							selectionColoringModel,
-							selectionModel,
-							imageView.getPlateName(),
-							NamingSchemes.BatchLibHdf5.getDefaultColumnNameX( tableRows ),
-							NamingSchemes.BatchLibHdf5.getDefaultColumnNameY( tableRows ),
-							ScatterPlotGridLinesOverlay.Y_N );
+		final TableRowsScatterPlotView< DefaultAnnotatedIntervalTableRow > scatterPlotView =
+				new TableRowsScatterPlotView(
+						tableRows,
+						tableSource.intervalType.toString(),
+						selectionColoringModel,
+						selectionModel,
+						imageView.getPlateName(),
+						NamingSchemes.getDefaultColumnNameX( tableRows ),
+						NamingSchemes.getDefaultColumnNameY( tableRows ),
+						ScatterPlotGridLinesOverlay.Y_N );
 
-			scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );
-		}
+		scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );
 
 		colorByDefaultColumn( tableView );
 	}

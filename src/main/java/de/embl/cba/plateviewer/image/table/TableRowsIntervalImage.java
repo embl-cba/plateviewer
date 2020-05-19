@@ -86,7 +86,10 @@ public class TableRowsIntervalImage < T extends AnnotatedIntervalTableRow > exte
 
 			for ( T tableRow : tableRows )
 			{
-				if ( Intervals.contains( tableRow.getInterval(), l ) )
+				final Interval interval = tableRow.getInterval();
+				if ( interval == null ) return;
+
+				if ( Intervals.contains( interval, l ) )
 				{
 					t.setInteger( tableRow.rowIndex() );
 				}
