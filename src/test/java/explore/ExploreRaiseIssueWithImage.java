@@ -1,8 +1,8 @@
 package explore;
 
-import de.embl.cba.plateviewer.github.GitHubIssue;
-import de.embl.cba.plateviewer.github.IssueRaiser;
-import de.embl.cba.plateviewer.github.UrlOpener;
+import de.embl.cba.plateviewer.github.SiteIssueRaiser;
+import de.embl.cba.tables.github.GitHubIssue;
+import de.embl.cba.tables.github.UrlOpener;
 import ij.IJ;
 import ij.ImagePlus;
 
@@ -13,7 +13,7 @@ public class ExploreRaiseIssueWithImage
 {
 	public static void main( String[] args ) throws IOException, URISyntaxException
 	{
-		final IssueRaiser issueRaiser = new IssueRaiser();
+		final SiteIssueRaiser siteIssueRaiser = new SiteIssueRaiser();
 
 		final ImagePlus imp = IJ.openImage( "/Users/tischer/Documents/fiji-plugin-plateViewer/src/test/resources/ALMF-EMBL-JPEG/P001--A1--A1/D0004BS000000007-1uM--A1--A1--W0001--P001--T00001--Z001--C01.ome.jpeg" );
 
@@ -23,7 +23,7 @@ public class ExploreRaiseIssueWithImage
 
 		final GitHubIssue gitHubIssue = new GitHubIssue( "Test upload image", "Test", new String[]{ "test" } );
 
-		final int issue = issueRaiser.postIssue( repository, accessToken, gitHubIssue, imp );
+		final int issue = siteIssueRaiser.postIssue( repository, accessToken, gitHubIssue, imp );
 
 		UrlOpener.openUrl( repository + "/issues/" + issue );
 	}

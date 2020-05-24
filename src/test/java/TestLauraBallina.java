@@ -14,7 +14,7 @@ public class TestLauraBallina
 
 		String rawImagesFolder;
 		rawImagesFolder = "/Users/tischer/Downloads/Laura";
-		//rawImagesFolder = "/g/almfscreen/ballina/BigDataViewer_test_dataset";
+		rawImagesFolder = "/g/almfscreen/ballina/BigDataViewer_test_dataset";
 
 		final String tablePath = rawImagesFolder + "/image_table_with_mean_object_measurements_QC.txt";
 

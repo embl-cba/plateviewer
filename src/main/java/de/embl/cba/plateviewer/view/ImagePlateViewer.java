@@ -13,8 +13,8 @@ import de.embl.cba.plateviewer.bdv.*;
 import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.channel.ChannelProperties;
 import de.embl.cba.plateviewer.channel.Channels;
-import de.embl.cba.plateviewer.github.IssueRaiser;
-import de.embl.cba.plateviewer.github.LocationInformation;
+import de.embl.cba.plateviewer.github.SiteIssueRaiser;
+import de.embl.cba.plateviewer.location.LocationInformation;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
 import de.embl.cba.plateviewer.image.plate.QCOverlay;
@@ -23,6 +23,8 @@ import de.embl.cba.plateviewer.image.plate.OverlayBdvViewable;
 import de.embl.cba.plateviewer.image.plate.WellNamesOverlay;
 import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import de.embl.cba.plateviewer.io.FileUtils;
+import de.embl.cba.plateviewer.screenshot.PlateChannelRawDataFetcher;
+import de.embl.cba.plateviewer.screenshot.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
 import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.*;
@@ -233,8 +235,8 @@ public class ImagePlateViewer< R extends NativeType< R > & RealType< R >, T exte
 						bdvHandle.getViewerPanel(),
 						getOverlays() );
 				screenShot.setTitle( plateName + "-"  + siteName  );
-				final IssueRaiser issueRaiser = new IssueRaiser();
-				issueRaiser.showPlateIssueDialogAndCreateIssue( locationInformation, screenShot );
+				final SiteIssueRaiser siteIssueRaiser = new SiteIssueRaiser();
+				siteIssueRaiser.showPlateIssueDialogAndCreateIssue( locationInformation, screenShot );
 			}).start();
 		} );
 

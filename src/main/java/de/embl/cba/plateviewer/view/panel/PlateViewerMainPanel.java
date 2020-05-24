@@ -6,7 +6,7 @@ import de.embl.cba.bdv.utils.Logger;
 import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.channel.MultiWellFilteredImg;
 import de.embl.cba.plateviewer.view.ImagePlateViewer;
-import de.embl.cba.plateviewer.bdv.SimpleScreenShotMaker;
+import de.embl.cba.plateviewer.screenshot.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;

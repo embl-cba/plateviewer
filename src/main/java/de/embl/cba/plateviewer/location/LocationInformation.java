@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.github;
+package de.embl.cba.plateviewer.location;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

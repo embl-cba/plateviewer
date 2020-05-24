@@ -1,6 +1,11 @@
 package de.embl.cba.plateviewer.github;
 
 import de.embl.cba.plateviewer.io.JpegOutputStreamWriter;
+import de.embl.cba.plateviewer.location.LocationInformation;
+import de.embl.cba.tables.github.GitHubFileCommitter;
+import de.embl.cba.tables.github.GitHubIssue;
+import de.embl.cba.tables.github.RESTCaller;
+import de.embl.cba.tables.github.UrlOpener;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Prefs;
@@ -10,7 +15,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Random;
 
-public class IssueRaiser
+public class SiteIssueRaiser
 {
 	public static final String USER_NAME = "PlateViewer.GitHub user name";
 	public static final String REPOSITORY = "PlateViewer.GitHub repository";
@@ -87,7 +92,7 @@ public class IssueRaiser
 
 		String url = getIssueApiUrl( repository );
 		final RESTCaller restCaller = new RESTCaller();
-		restCaller.call( url, "POST", issue.toString(), accessToken );
+		restCaller.put( url, "POST", issue.toString(), accessToken );
 		final int issueNumber = restCaller.getIssueNumber();
 
 		return issueNumber;

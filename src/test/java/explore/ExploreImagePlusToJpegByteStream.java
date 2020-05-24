@@ -1,7 +1,7 @@
 package explore;
 
-import de.embl.cba.plateviewer.github.GitHubFileCommitter;
 import de.embl.cba.plateviewer.io.JpegOutputStreamWriter;
+import de.embl.cba.tables.github.GitHubFileCommitter;
 import ij.IJ;
 import ij.ImagePlus;
 

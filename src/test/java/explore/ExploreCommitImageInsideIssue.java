@@ -1,8 +1,8 @@
 package explore;
 
-import de.embl.cba.plateviewer.github.GitHubIssue;
-import de.embl.cba.plateviewer.github.IssueRaiser;
+import de.embl.cba.plateviewer.github.SiteIssueRaiser;
 import de.embl.cba.plateviewer.io.JpegOutputStreamWriter;
+import de.embl.cba.tables.github.GitHubIssue;
 import ij.IJ;
 import ij.ImagePlus;
 
@@ -17,7 +17,7 @@ public class ExploreCommitImageInsideIssue
 		final String a0 = "2309df0a4fbbf32b9b3";
 		final String accessToken = a0 + "cdbb4ca946162378ee4a5";
 
-		final IssueRaiser issueRaiser = new IssueRaiser();
+		final SiteIssueRaiser siteIssueRaiser = new SiteIssueRaiser();
 
 		final GitHubIssue gitHubIssue = new GitHubIssue(
 				"Test embed image",
@@ -26,7 +26,7 @@ public class ExploreCommitImageInsideIssue
 
 		final GitHubIssue issue = gitHubIssue;
 
-		issueRaiser.postIssue(
+		siteIssueRaiser.postIssue(
 				"https://github.com/hci-unihd/antibodies-analysis-issues",
 				accessToken,
 				gitHubIssue);

@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.bdv;
+package de.embl.cba.plateviewer.screenshot;
 
 import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
@@ -9,6 +9,7 @@ import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import ij.CompositeImage;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.YesNoCancelDialog;
 import ij.plugin.Duplicator;
@@ -133,7 +134,6 @@ public class PlateChannelRawDataFetcher
 		final int h = getBdvWindowHeight( bdvHandle );
 
 		final double[] rawPixelSpacing = new double[]{1, 1};
-
 		final double[] rawPixelSpacingInViewer = new double[ 2 ];
 
 		for ( int d = 0; d < 2; d++ )
@@ -155,7 +155,7 @@ public class PlateChannelRawDataFetcher
 			if ( ! dialog.yesPressed() ) return null;
 		}
 
-		final ArrayList< RandomAccessibleInterval< UnsignedShortType > > captures = new ArrayList<>();
+		final Map< String, RandomAccessibleInterval< UnsignedShortType > > captures = new LinkedHashMap<>();
 		final ArrayList< double[] > displayRanges = new ArrayList<>();
 
 		final AffineTransform3D viewerTransform = getViewerTransform();
@@ -214,7 +214,7 @@ public class PlateChannelRawDataFetcher
 				}
 			});
 
-			captures.add( realCapture );
+			captures.put( source.getName(), realCapture );
 
 			final double[] displayRange = getDisplayRange( sourceToBdvStackSource, source );
 			displayRanges.add( displayRange );
@@ -281,26 +281,28 @@ public class PlateChannelRawDataFetcher
 	}
 
 	public static CompositeImage createCompositeImage(
-			ArrayList< RandomAccessibleInterval< UnsignedShortType > > rais,
+			Map< String, RandomAccessibleInterval< UnsignedShortType > > rais,
 			ArrayList< double[] > displayRanges )
 	{
-		final RandomAccessibleInterval< UnsignedShortType > stack = Views.stack( rais );
+		final Set< String > channelNames = rais.keySet();
+		final ArrayList< RandomAccessibleInterval< UnsignedShortType > > channelRais = new ArrayList( rais.values() );
 
-		ImagePlus imp = ImageJFunctions.wrap( stack, "View Capture Raw" );
-
-		// duplicate: otherwise it is virtual and cannot be modified
-		imp = new Duplicator().run( imp );
-//
+		final RandomAccessibleInterval< UnsignedShortType > stack = Views.stack( channelRais );
+		ImagePlus imp = ImageJFunctions.wrap( stack, "Raw" );
+		imp = new Duplicator().run( imp ); // duplicate: otherwise it is virtual and cannot be modified
 
 		final CompositeImage compositeImage = new CompositeImage( imp );
-
-		for ( int channel = 1; channel <= compositeImage.getNChannels(); ++channel )
+		int channelIndex = 1;
+		for ( String name : channelNames )
 		{
 			final LUT lut = compositeImage.createLutFromColor( Color.WHITE );
-			compositeImage.setC( channel );
+			compositeImage.setC( channelIndex );
 			compositeImage.setChannelLut( lut );
-			final double[] range = displayRanges.get( channel - 1 );
+			compositeImage.getStack().setSliceLabel( name, channelIndex );
+
+			final double[] range = displayRanges.get( channelIndex - 1 );
 			compositeImage.setDisplayRange( range[ 0 ], range[ 1 ] );
+			channelIndex++;
 		}
 
 		compositeImage.setTitle( "Raw" );

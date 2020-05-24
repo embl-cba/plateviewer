@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.bdv;
+package de.embl.cba.plateviewer.screenshot;
 
 import bdv.cache.CacheControl;
 import bdv.util.BdvOverlay;
