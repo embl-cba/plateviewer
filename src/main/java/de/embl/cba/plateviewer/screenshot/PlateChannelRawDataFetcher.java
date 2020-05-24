@@ -3,23 +3,20 @@ package de.embl.cba.plateviewer.screenshot;
 import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
 import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.DoubleStatistics;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
+import de.embl.cba.plateviewer.Imglib2ImagePlusConverters;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import ij.CompositeImage;
-import ij.IJ;
-import ij.ImagePlus;
 import ij.gui.YesNoCancelDialog;
-import ij.plugin.Duplicator;
-import ij.process.LUT;
 import net.imglib2.*;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.algorithm.util.Grids;
 import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.IterableRegion;
 import net.imglib2.roi.RealMaskRealInterval;
@@ -32,9 +29,7 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 import static de.embl.cba.bdv.utils.BdvUtils.*;
 
@@ -222,7 +217,7 @@ public class PlateChannelRawDataFetcher
 
 		if ( captures.size() > 0 )
 		{
-			return createCompositeImage( captures, displayRanges );
+			return Imglib2ImagePlusConverters.createCompositeImage( captures, displayRanges );
 		}
 		else
 			return null;
@@ -253,20 +248,21 @@ public class PlateChannelRawDataFetcher
 			if ( ! ( bdvViewable.getBdvSource() instanceof BdvStackSource ) ) continue;
 
 			final BdvStackSource< ? > bdvStackSource = ( BdvStackSource ) bdvViewable.getBdvSource();
-			
-//			final List< Integer > visibleSourceIndices = getVisibleSourceIndices( bdvHandle );
-//			final int sourceIndex = getSourceIndex( bdvHandle, bdvStackSource.getSources().get( 0 ).getSpimSource() );
-//			if ( ! ( visibleSourceIndices.contains( sourceIndex ) ) ) continue;
+			bdvHandle = bdvStackSource.getBdvHandle();
+
+			if ( ! BdvUtils.isActive( bdvHandle, bdvStackSource.getSources().get( 0 ).getSpimSource() ) )
+			{
+				continue;
+			}
 
 			if ( ! ( bdvViewable.getSource() instanceof RandomAccessibleIntervalPlateViewerSource ) ) continue;
 
 			sourceToBdvStackSource.put( bdvViewable.getSource(), bdvStackSource );
-			bdvHandle = bdvStackSource.getBdvHandle();
 		}
 
 		if ( sourceToBdvStackSource.keySet().size() == 0)
 		{
-			throw new UnsupportedOperationException( "No sources present, cannot fetch raw data." );
+			throw new UnsupportedOperationException( "No active sources present, cannot fetch raw data." );
 		}
 
 		return sourceToBdvStackSource;
@@ -280,32 +276,4 @@ public class PlateChannelRawDataFetcher
 		return displayRange;
 	}
 
-	public static CompositeImage createCompositeImage(
-			Map< String, RandomAccessibleInterval< UnsignedShortType > > rais,
-			ArrayList< double[] > displayRanges )
-	{
-		final Set< String > channelNames = rais.keySet();
-		final ArrayList< RandomAccessibleInterval< UnsignedShortType > > channelRais = new ArrayList( rais.values() );
-
-		final RandomAccessibleInterval< UnsignedShortType > stack = Views.stack( channelRais );
-		ImagePlus imp = ImageJFunctions.wrap( stack, "Raw" );
-		imp = new Duplicator().run( imp ); // duplicate: otherwise it is virtual and cannot be modified
-
-		final CompositeImage compositeImage = new CompositeImage( imp );
-		int channelIndex = 1;
-		for ( String name : channelNames )
-		{
-			final LUT lut = compositeImage.createLutFromColor( Color.WHITE );
-			compositeImage.setC( channelIndex );
-			compositeImage.setChannelLut( lut );
-			compositeImage.getStack().setSliceLabel( name, channelIndex );
-
-			final double[] range = displayRanges.get( channelIndex - 1 );
-			compositeImage.setDisplayRange( range[ 0 ], range[ 1 ] );
-			channelIndex++;
-		}
-
-		compositeImage.setTitle( "Raw" );
-		return compositeImage;
-	}
 }
