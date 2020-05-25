@@ -3,11 +3,10 @@ package de.embl.cba.plateviewer.screenshot;
 import bdv.util.BdvHandle;
 import bdv.util.BdvStackSource;
 import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
 import de.embl.cba.bdv.utils.BdvUtils;
 import de.embl.cba.bdv.utils.DoubleStatistics;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
-import de.embl.cba.plateviewer.Imglib2ImagePlusConverters;
+import de.embl.cba.plateviewer.util.Imglib2ImagePlusConverters;
 import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import ij.CompositeImage;
@@ -144,7 +143,7 @@ public class PlateChannelRawDataFetcher
 			final YesNoCancelDialog dialog = new YesNoCancelDialog( null, "Large image warning",
 					"You are about to create a very large image with more than 10000 x 1000 pixels.\n" +
 							"It may take some time to create it.\n" +
-							"You could zoom in more and then view the raw data\n." +
+							"You could zoom in more and then ui the raw data\n." +
 							"Are you sure you want to continue?" );
 
 			if ( ! dialog.yesPressed() ) return null;

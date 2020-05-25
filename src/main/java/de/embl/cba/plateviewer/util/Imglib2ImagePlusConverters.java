@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer;
+package de.embl.cba.plateviewer.util;
 
 import ij.CompositeImage;
 import ij.ImagePlus;

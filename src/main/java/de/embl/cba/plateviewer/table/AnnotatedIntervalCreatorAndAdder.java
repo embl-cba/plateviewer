@@ -6,7 +6,7 @@ import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
 import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
 import de.embl.cba.plateviewer.plot.ScatterPlotGridLinesOverlay;
 import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
-import de.embl.cba.plateviewer.view.ImagePlateViewer;
+import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.NumericColoringModelDialog;
@@ -26,7 +26,7 @@ import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableR
 public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTableRow >
 {
 
-	private final ImagePlateViewer< ?, T > imageView;
+	private final PlateViewer< ?, T > imageView;
 	private final String namingScheme;
 	private final TableSource tableSource;
 	private final AssayMetadataRepository repository;
@@ -36,7 +36,7 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 	private List< T > tableRows;
 
 	public AnnotatedIntervalCreatorAndAdder(
-			ImagePlateViewer imageView,
+			PlateViewer imageView,
 			String namingScheme,
 			TableSource tableSource )
 	{
@@ -47,7 +47,7 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 	}
 
 	public AnnotatedIntervalCreatorAndAdder(
-			ImagePlateViewer imageView,
+			PlateViewer imageView,
 			String namingScheme,
 			TableSource tableSource,
 			AssayMetadataRepository repository )

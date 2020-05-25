@@ -49,7 +49,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 	@Override
 	public void load( final SingleCellArrayImg< T, ? > cell ) throws Exception
 	{
-		if ( settings.imagePlateViewer.isImageExisting( cell ) )
+		if ( settings.plateViewer.isImageExisting( cell ) )
 		{
 			applyFilterToSourceAndPutResultIntoCell( cell );
 		}

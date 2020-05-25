@@ -11,11 +11,11 @@ public class FileUtils
 	public static List< File > getFileList( File directory, String fileNameRegExp, boolean includeSubFolders )
 	{
 		final List< File > files = new ArrayList<>();
-		populateFileList( directory, fileNameRegExp,files, includeSubFolders );
+		populateFileList( directory, fileNameRegExp, files, includeSubFolders );
 		return files;
 	}
 
-	private static void populateFileList( File directory, String fileNameRegExp, List< File > files, boolean includeSubFolders ) {
+	public static void populateFileList( File directory, String fileNameRegExp, List< File > files, boolean includeSubFolders ) {
 
 		// Get all the files from a directory.
 		File[] fList = directory.listFiles();

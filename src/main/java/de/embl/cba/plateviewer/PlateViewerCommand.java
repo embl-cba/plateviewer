@@ -1,11 +1,11 @@
 package de.embl.cba.plateviewer;
 
-import de.embl.cba.plateviewer.PlateViewer;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 import java.io.File;
+import java.util.ArrayList;
 
 @Plugin(type = Command.class, menuPath = "Plugins>Screening>PlateViewer..." )
 public class PlateViewerCommand implements Command
@@ -30,8 +30,8 @@ public class PlateViewerCommand implements Command
 
 	public void run()
 	{
-		final PlateViewer plateViewer = new PlateViewer( imagesDirectory, filePattern, loadImageTable, loadWellTable, connectToDatabase, 4, includeSubFolders );
-		plateViewer.run();
+		final PlateViewerInitializer plateViewerInitializer = new PlateViewerInitializer( imagesDirectory, filePattern, loadImageTable, loadWellTable, connectToDatabase, 4, includeSubFolders );
+		plateViewerInitializer.run();
 	}
 
 }

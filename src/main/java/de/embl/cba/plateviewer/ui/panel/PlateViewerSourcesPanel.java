@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.view.panel;
+package de.embl.cba.plateviewer.ui.panel;
 
 import bdv.util.BdvOverlaySource;
 import bdv.util.BdvSource;
@@ -213,7 +213,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
     private void removeSource( String sourceName, BdvStackSource< R > source )
     {
         // remove from bdv
-        mainPanel.getImagePlateViewer().getBdvHandle().getViewerPanel().removeSource(
+        mainPanel.getPlateViewer().getBdvHandle().getViewerPanel().removeSource(
                 source.getSources().get( 0 ).getSpimSource() );
 
         // remove from this panel

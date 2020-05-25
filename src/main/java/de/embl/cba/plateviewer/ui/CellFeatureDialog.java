@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.view;
+package de.embl.cba.plateviewer.ui;
 
 import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
 import ij.gui.GenericDialog;

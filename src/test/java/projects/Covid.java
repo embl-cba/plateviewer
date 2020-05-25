@@ -1,6 +1,6 @@
 package projects;
 
-import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.PlateViewerInitializer;
 import net.imagej.ImageJ;
 
 import java.io.File;
@@ -49,9 +49,11 @@ public class Covid
 
 		pathname = "/Users/tischer/Downloads/test_tischi";
 
-		pathname ="/g/kreshuk/data/covid/data-processed/plateU7rep1_20200519_210009_665";
+		pathname = "/g/kreshuk/data/covid/data-processed/20200417_152052_943";
 
-		final PlateViewer plateViewer = new PlateViewer(
+		//pathname = "/g/kreshuk/data/covid/data-processed/plateU7rep1_20200519_210009_665";
+
+		final PlateViewerInitializer plateViewerInitializer = new PlateViewerInitializer(
 				new File( pathname ),
 				".*.h5",
 				true,
@@ -60,7 +62,7 @@ public class Covid
 				1,
 				false );
 
-		plateViewer.run();
+		plateViewerInitializer.run();
 	}
 
 }

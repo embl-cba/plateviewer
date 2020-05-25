@@ -1,13 +1,11 @@
 package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
-import bdv.util.BdvSource;
 import bdv.util.RandomAccessibleIntervalSource;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.AbstractBdvViewable;
-import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.view.ImagePlateViewer;
+import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.tables.color.ColorUtils;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
@@ -35,7 +33,7 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 	private final long[] siteDimensions;
 	private final double relativeSiteBorderWidth;
 
-	public WellAndSiteOutlinesSource( ImagePlateViewer imageView, double relativeWellBorderWidth, double relativeSiteBorderWidth )
+	public WellAndSiteOutlinesSource( PlateViewer imageView, double relativeWellBorderWidth, double relativeSiteBorderWidth )
 	{
 		this.wellDimensions = imageView.getWellDimensions();
 		this.siteDimensions = imageView.getSiteDimensions();

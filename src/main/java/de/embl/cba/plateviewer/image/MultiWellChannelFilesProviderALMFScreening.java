@@ -20,9 +20,9 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 	final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 	ArrayList< String > wellNames;
 
-	final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
-	public static final int WELL_GROUP = 1;
-	public static final int SITE_GROUP = 2;
+	//final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
+	public static String namingScheme = NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL;
+
 	private boolean zeroBasedSites;
 
 	public MultiWellChannelFilesProviderALMFScreening( List< File > files, int[] imageDimensions )
@@ -61,7 +61,7 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 
 	public static String getWellName( String fileName )
 	{
-		final Matcher matcher = Pattern.compile(  NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM ).matcher( fileName );
+		final Matcher matcher = Pattern.compile( namingScheme ).matcher( fileName );
 
 		if ( matcher.matches() )
 		{
@@ -78,7 +78,7 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 
 	public static String getSiteName( String fileName )
 	{
-		final String pattern = NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM;
+		final String pattern = NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL;
 		final Matcher matcher = Pattern.compile( pattern ).matcher( fileName );
 
 		if ( matcher.matches() )
@@ -104,7 +104,7 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 		{
 			final SingleSiteChannelFile singleSiteChannelFile = new SingleSiteChannelFile(
 					file,
-					getInterval( file, WELL_SITE_CHANNEL_PATTERN, numWellsPerPlate[ 0 ], numSitesPerWell[ 0 ] ),
+					getInterval( file, namingScheme, numWellsPerPlate[ 0 ], numSitesPerWell[ 0 ] ),
 					getSiteName( file.getName() ),
 					getWellName( file.getName() ) );
 
@@ -159,10 +159,10 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 		for ( File file : files )
 		{
 			final Matcher matcher =
-					Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( file.getName() );
+					Pattern.compile( namingScheme ).matcher( file.getName() );
 
 			if ( matcher.matches() )
-				sites.add( Integer.parseInt( matcher.group( SITE_GROUP ) ) );
+				sites.add( Integer.parseInt( matcher.group( "P" ) ) );
 		}
 
 		return sites;
@@ -175,13 +175,13 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 
 		for ( File file : files )
 		{
-			final Matcher matcher = Pattern.compile( WELL_SITE_CHANNEL_PATTERN ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
 
 			matcher.matches();
 
-			wells.add( matcher.group( WELL_GROUP ) );
+			wells.add( matcher.group( "W" ) );
 
-			int wellNum = Integer.parseInt( matcher.group( WELL_GROUP ) );
+			int wellNum = Integer.parseInt( matcher.group( "W" ) );
 
 			if ( wellNum > maxWellNum )
 			{
@@ -216,9 +216,9 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 			int[] wellPosition = new int[ 2 ];
 			int[] sitePosition = new int[ 2 ];
 
-			int wellNum = Integer.parseInt( matcher.group( WELL_GROUP ) ) - 1;
+			int wellNum = Integer.parseInt( matcher.group( "W" ) ) - 1;
 
-			int siteNum = Integer.parseInt( matcher.group( SITE_GROUP ) );
+			int siteNum = Integer.parseInt( matcher.group( "P" ) );
 			if ( ! zeroBasedSites ) siteNum -= 1;
 
 			wellPosition[ 1 ] = wellNum / numWellColumns;

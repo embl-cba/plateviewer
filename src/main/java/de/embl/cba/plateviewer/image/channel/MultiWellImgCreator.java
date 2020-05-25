@@ -12,9 +12,7 @@ public class MultiWellImgCreator
 {
 	public static MultiWellImg create( List< File > fileList, String namingScheme, String channelPattern )
 	{
-		Utils.log( "Fetching channel files..." );
 		List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelPattern );
-
 		return createFromChannelFiles( channelFiles, namingScheme, channelPattern );
 	}
 
@@ -56,6 +54,7 @@ public class MultiWellImgCreator
 
 	private static List< File > getChannelFiles( List < File > fileList, String namingScheme, String channelPattern )
 	{
+		Utils.log( "Fetching channel files..." );
 		List< File > channelFiles;
 		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
@@ -66,6 +65,9 @@ public class MultiWellImgCreator
 			// one channel per file => we need to filter the relevant files
 			channelFiles = FileUtils.filterFiles( fileList, channelPattern );
 		}
+
+		if ( channelFiles.size() == 0 )
+			throw new UnsupportedOperationException( "Could not find files for channel: " + channelPattern );
 
 		return channelFiles;
 	}

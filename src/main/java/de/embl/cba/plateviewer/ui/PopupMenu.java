@@ -1,7 +1,4 @@
-package de.embl.cba.plateviewer.view;
-
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.ui.InteractiveDisplayCanvasComponent;
+package de.embl.cba.plateviewer.ui;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;

@@ -134,7 +134,7 @@ public class Tables
 						    NamingSchemes.BatchLibHdf5.outlierToString );
 			}
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL ) )
 		{
 			final String intervalNameColumn = NamingSchemes.ALMFScreening.addIntervalNameColumn( tableSource, columnNameToColumn );
 

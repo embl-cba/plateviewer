@@ -26,7 +26,7 @@ public class MultiWellChannelFilesProviderFactory
 		{
 			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderScanR( files, imageDimensions );
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
+		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL ) )
 		{
 			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderALMFScreening( files, imageDimensions );
 		}

@@ -39,9 +39,9 @@ public class Channels
 
 			if ( matcher.matches() )
 			{
-				if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL ) )
+				if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL ) )
 				{
-					channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*" );
+					channelPatternSet.add( ".*" + matcher.group( "C" ) );
 				}
 				else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ) )
 				{

@@ -2,7 +2,7 @@ package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.util.Utils;
-import de.embl.cba.plateviewer.view.ImagePlateViewer;
+import de.embl.cba.plateviewer.PlateViewer;
 import net.imglib2.Interval;
 import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.util.Intervals;
@@ -12,9 +12,9 @@ import java.util.Map;
 
 public class WellNamesOverlay extends BdvOverlay
 {
-	private final ImagePlateViewer< ?, ? > plateViewer;
+	private final PlateViewer< ?, ? > plateViewer;
 
-	public WellNamesOverlay( ImagePlateViewer< ?, ? > plateViewer )
+	public WellNamesOverlay( PlateViewer< ?, ? > plateViewer )
 	{
 		super();
 		this.plateViewer = plateViewer;
