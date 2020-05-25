@@ -54,9 +54,6 @@ public class TestNamingSchemeBatchLibHdf5
 		final PlateViewerInitializer plateViewerInitializer = new PlateViewerInitializer(
 				new File( pathname ),
 				".*.h5",
-				false,
-				true,
-				true,
 				1,
 				false );
 

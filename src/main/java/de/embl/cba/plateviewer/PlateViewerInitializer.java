@@ -3,6 +3,7 @@ package de.embl.cba.plateviewer;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
 import de.embl.cba.plateviewer.table.*;
+import de.embl.cba.tables.Logger;
 import ij.IJ;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -16,9 +17,6 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 {
 	private final File imagesDirectories;
 	private final String filePattern;
-	private final boolean loadSiteTable;
-	private final boolean loadWellTable;
-	private final boolean connectToDatabase;
 	private final int numIoThreads;
 	private final boolean includeSubFolders;
 	private String namingScheme;
@@ -26,13 +24,10 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 	private TableSource wellTableSource;
 	private String additionalImagesDirectory;
 
-	public PlateViewerInitializer( File imagesDirectory, String filePattern, boolean loadSiteTable, boolean loadWellTable, boolean connectToDatabase, int numIoThreads, boolean includeSubFolders )
+	public PlateViewerInitializer( File imagesDirectory, String filePattern, int numIoThreads, boolean includeSubFolders )
 	{
 		this.imagesDirectories = imagesDirectory;
 		this.filePattern = filePattern;
-		this.loadSiteTable = loadSiteTable;
-		this.loadWellTable = loadWellTable;
-		this.connectToDatabase = connectToDatabase;
 		this.numIoThreads = numIoThreads;
 		this.includeSubFolders = includeSubFolders;
 	}
@@ -59,25 +54,26 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 					new BatchLibHdf5CellFeatureProvider( imagesDirectories.getAbsolutePath(), plateViewer.getSiteFiles() );
 
 			plateViewer.setCellFeatureProvider( valueProvider );
-		}
 
-		new Thread( () ->
-		{
-			IJ.wait( 3000 );
-
-			if ( loadSiteTable )
+			// TODO: this could be also working for other file types..
+			new Thread( () ->
 			{
-				if ( siteTableSource == null )
-					siteTableSource = getTableSource( namingScheme, imagesDirectories, Sites );
-				addTable( plateViewer, siteTableSource );
-			}
+				IJ.wait( 3000 );
 
-			if ( loadWellTable )
-			{
+				siteTableSource = getTableSource( namingScheme, imagesDirectories, Sites );
+				if ( siteTableSource != null )
+					addTable( plateViewer, siteTableSource );
+				else
+					Logger.warn( "Could not find site table.");
+
 				wellTableSource = getTableSource( namingScheme, imagesDirectories, Wells );
-				addTable( plateViewer, wellTableSource );
-			}
-		}).start();
+				if ( wellTableSource != null )
+					addTable( plateViewer, wellTableSource );
+				else
+					Logger.warn( "Could not find well table.");
+
+			} ).start();
+		}
 	}
 
 	public void setSiteTableSource( TableSource siteTableSource )
@@ -99,13 +95,17 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 
 	public AnnotatedIntervalCreatorAndAdder getAnnotatedIntervalCreatorAndAdder( PlateViewer< R, DefaultAnnotatedIntervalTableRow > imageView, String fileNamingScheme, TableSource tableSource )
 	{
-		if ( connectToDatabase )
+		try
 		{
 			final AssayMetadataRepository repository = getCovid19AssayMetadataRepository( "covid" + ( 2500 + 81 ) );
+			final String plateName = new File( new File( tableSource.filePath ).getParent() ).getName();
+			repository.setPlateName( plateName );
+			repository.getPlateDocument( plateName ); // throws error if repo is not acessible
 			return new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableSource, repository );
 		}
-		else
+		catch ( Exception e )
 		{
+			Logger.warn( "Could not connect to database for table: " + tableSource.intervalType );
 			return new AnnotatedIntervalCreatorAndAdder( imageView, fileNamingScheme, tableSource );
 		}
 	}
@@ -120,6 +120,7 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 			final File tableFile = TableSourceUtils.getTableFileBatchLibHdf5( imagesDirectory, plateName );
+			if ( tableFile == null ) return null;
 
 			tableSource.filePath = tableFile.getAbsolutePath();
 

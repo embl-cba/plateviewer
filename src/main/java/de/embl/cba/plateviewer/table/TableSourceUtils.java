@@ -27,12 +27,6 @@ public class TableSourceUtils
 		tableFile = new File( imagesDirectory, plateName + "_table_serum_corrected.hdf5" );
 		if ( tableFile.exists() ) return tableFile;
 
-		// nothing worked => ask user
-		//
-		final String tableFilePath = IJ.getFilePath( "Please select table file" );
-		if ( tableFilePath != null )
-			return new File( tableFilePath );
-		else
-			return null;
+		return null;
 	}
 }

@@ -1,4 +1,4 @@
-package projects;
+package users.covid;
 
 import de.embl.cba.plateviewer.PlateViewerInitializer;
 import net.imagej.ImageJ;
@@ -56,9 +56,6 @@ public class Covid
 		final PlateViewerInitializer plateViewerInitializer = new PlateViewerInitializer(
 				new File( pathname ),
 				".*.h5",
-				true,
-				true,
-				true,
 				1,
 				false );
 

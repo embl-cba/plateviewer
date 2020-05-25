@@ -23,9 +23,6 @@ public class TestLauraBallina
 		final PlateViewerInitializer plateViewerInitializer = new PlateViewerInitializer(
 				new File( rawImagesFolder ),
 				".*.tif.*",
-				true,
-				false,
-				false,
 				4,
 				true );
 
