@@ -50,30 +50,35 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 
 		if ( plateViewer.getNamingScheme().equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5  ) )
 		{
-			final BatchLibHdf5CellFeatureProvider valueProvider =
-					new BatchLibHdf5CellFeatureProvider( imagesDirectories.getAbsolutePath(), plateViewer.getSiteFiles() );
-
-			plateViewer.setCellFeatureProvider( valueProvider );
-
-			// TODO: this could be also working for other file types..
-			new Thread( () ->
-			{
-				IJ.wait( 3000 );
-
-				siteTableSource = getTableSource( namingScheme, imagesDirectories, Sites );
-				if ( siteTableSource != null )
-					addTable( plateViewer, siteTableSource );
-				else
-					Logger.warn( "Could not find site table.");
-
-				wellTableSource = getTableSource( namingScheme, imagesDirectories, Wells );
-				if ( wellTableSource != null )
-					addTable( plateViewer, wellTableSource );
-				else
-					Logger.warn( "Could not find well table.");
-
-			} ).start();
+			initBatchLibHdf5Data( plateViewer );
 		}
+	}
+
+	public void initBatchLibHdf5Data( PlateViewer< R, DefaultAnnotatedIntervalTableRow > plateViewer )
+	{
+		final BatchLibHdf5CellFeatureProvider valueProvider =
+				new BatchLibHdf5CellFeatureProvider( imagesDirectories.getAbsolutePath(), plateViewer.getSiteFiles() );
+
+		plateViewer.setCellFeatureProvider( valueProvider );
+
+		// TODO: this could be also working for other file types..
+		new Thread( () ->
+		{
+			IJ.wait( 3000 );
+
+			siteTableSource = getTableSource( namingScheme, imagesDirectories, Sites );
+			if ( siteTableSource != null )
+				addTable( plateViewer, siteTableSource );
+			else
+				Logger.warn( "Could not find site table.");
+
+			wellTableSource = getTableSource( namingScheme, imagesDirectories, Wells );
+			if ( wellTableSource != null )
+				addTable( plateViewer, wellTableSource );
+			else
+				Logger.warn( "Could not find well table.");
+
+		} ).start();
 	}
 
 	public void setSiteTableSource( TableSource siteTableSource )

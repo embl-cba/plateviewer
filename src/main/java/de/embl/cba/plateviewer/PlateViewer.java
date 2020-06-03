@@ -27,12 +27,12 @@ import de.embl.cba.plateviewer.screenshot.PlateChannelRawDataFetcher;
 import de.embl.cba.plateviewer.screenshot.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
 import de.embl.cba.plateviewer.ui.CellFeatureDialog;
-import de.embl.cba.plateviewer.ui.PopupMenu;
 import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.*;
 import de.embl.cba.plateviewer.image.channel.MultiWellImg;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import de.embl.cba.plateviewer.ui.panel.PlateViewerMainPanel;
+import de.embl.cba.swing.PopupMenu;
 import de.embl.cba.tables.Logger;
 import de.embl.cba.tables.color.LazyLabelsARGBConverter;
 import de.embl.cba.tables.color.SelectionColoringModel;
@@ -427,6 +427,12 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	public static void addFiles( String inputDirectory, String filePattern, boolean includeSubFolders, List< File > files )
 	{
+		if ( ! new File( inputDirectory ).exists() )
+		{
+			Logger.error( "Could not open: " + inputDirectory );
+			throw new UnsupportedOperationException( "No files found" );
+		}
+
 		Utils.log( "Fetching files in: " + inputDirectory );
 
 		FileUtils.populateFileList( new File( inputDirectory ), filePattern, files, includeSubFolders );
@@ -612,13 +618,13 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		notifySelectionModel( intervalName, intervals, selectionModel );
 	}
 
-	private void notifySelectionModel( String siteName, List< T > interval, SelectionModel< T > siteSelectionModel )
+	private void notifySelectionModel( String intervalName, List< T > intervals, SelectionModel< T > selectionModel )
 	{
-		if ( interval != null )
+		if ( intervals != null )
 		{
-			T selected = getAnnotatedInterval( this.sites, siteName );
-			if ( selected != null && siteSelectionModel != null )
-				this.siteSelectionModel.focus( selected );
+			T selected = getAnnotatedInterval( intervals, intervalName );
+			if ( selected != null && selectionModel != null )
+				selectionModel.focus( selected );
 		}
 	}
 

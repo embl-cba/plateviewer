@@ -4,13 +4,14 @@ import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
 import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
-import de.embl.cba.plateviewer.plot.ScatterPlotGridLinesOverlay;
-import de.embl.cba.plateviewer.plot.TableRowsScatterPlotView;
 import de.embl.cba.plateviewer.PlateViewer;
+import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.NumericColoringModelDialog;
 import de.embl.cba.tables.color.SelectionColoringModel;
+import de.embl.cba.tables.plot.GridLinesOverlay;
+import de.embl.cba.tables.plot.TableRowsScatterPlot;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
 import net.imglib2.Interval;
@@ -94,8 +95,8 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 
 		imageView.addToPanelAndBdv( tableRowsIntervalImage );
 
-		final TableRowsScatterPlotView< DefaultAnnotatedIntervalTableRow > scatterPlotView =
-				new TableRowsScatterPlotView(
+		final TableRowsScatterPlot< DefaultAnnotatedIntervalTableRow > scatterPlotView =
+				new TableRowsScatterPlot(
 						tableRows,
 						tableSource.intervalType.toString(),
 						selectionColoringModel,
@@ -103,7 +104,8 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 						imageView.getPlateName(),
 						NamingSchemes.getDefaultColumnNameX( tableRows ),
 						NamingSchemes.getDefaultColumnNameY( tableRows ),
-						ScatterPlotGridLinesOverlay.Y_N );
+						GridLinesOverlay.Y_N,
+						Utils.bdvTextOverlayFontSize );
 
 		scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );
 
