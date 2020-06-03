@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class TableRowsScatterPlotView< T extends TableRow >
+public class TableRowsScatterPlot< T extends TableRow >
 {
 	private final List< T > tableRows;
 	private Interval dataPlotInterval;
@@ -67,7 +67,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 	private SelectedPointOverlay selectedPointOverlay;
 	private ArrayList< HashMap< String, Double > > labelsToIndices;
 
-	public TableRowsScatterPlotView(
+	public TableRowsScatterPlot(
 			List< T > tableRows,
 			String name,
 			SelectionColoringModel< T > coloringModel,
@@ -197,14 +197,14 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 	private void addGridLinesOverlay()
 	{
-		ScatterPlotGridLinesOverlay scatterPlotGridLinesOverlay = new ScatterPlotGridLinesOverlay( bdvHandle, columnNameX, columnNameY, dataPlotInterval, lineOverlay );
+		GridLinesOverlay gridLinesOverlay = new GridLinesOverlay( bdvHandle, columnNameX, columnNameY, dataPlotInterval, lineOverlay );
 
-		BdvFunctions.showOverlay( scatterPlotGridLinesOverlay, "grid lines overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
+		BdvFunctions.showOverlay( gridLinesOverlay, "grid lines overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
 
 	private void addAxisTickLabelsOverlay()
 	{
-		ScatterPlotAxisTickLabelsOverlay scatterPlotGridLinesOverlay = new ScatterPlotAxisTickLabelsOverlay( xLabelToIndex, yLabelToIndex, dataInterval );
+		AxisTickLabelsOverlay scatterPlotGridLinesOverlay = new AxisTickLabelsOverlay( xLabelToIndex, yLabelToIndex, dataInterval );
 
 		BdvFunctions.showOverlay( scatterPlotGridLinesOverlay, "axis tick labels overlay", BdvOptions.options().addTo( bdvHandle ).is2D() );
 	}
@@ -236,13 +236,13 @@ public class TableRowsScatterPlotView< T extends TableRow >
 
 		popupMenu.addPopupAction( "Change columns...", e ->
 		{
-			lineChoices = new String[]{ ScatterPlotGridLinesOverlay.NONE, ScatterPlotGridLinesOverlay.Y_NX, ScatterPlotGridLinesOverlay.Y_N };
+			lineChoices = new String[]{ GridLinesOverlay.NONE, GridLinesOverlay.Y_NX, GridLinesOverlay.Y_N };
 
 			new Thread( () -> {
 				final GenericDialog gd = new GenericDialog( "Column selection" );
 				gd.addChoice( "Column X", columnNames, columnNameX );
 				gd.addChoice( "Column Y", columnNames, columnNameY );
-				gd.addChoice( "Add lines", lineChoices, ScatterPlotGridLinesOverlay.NONE );
+				gd.addChoice( "Add lines", lineChoices, GridLinesOverlay.NONE );
 				gd.showDialog();
 
 				if ( gd.wasCanceled() ) return;
@@ -447,7 +447,7 @@ public class TableRowsScatterPlotView< T extends TableRow >
 				BdvOptions.options()
 						.is2D()
 						.frameTitle( plateName )
-						.preferredSize( Utils.getBdvWindowSize(), Utils.getBdvWindowSize() )
+						.preferredSize( Utils.proposeBdvWindowSize(), Utils.proposeBdvWindowSize() )
 						.transformEventHandlerFactory( new BehaviourTransformEventHandlerPlanar
 						.BehaviourTransformEventHandlerPlanarFactory() ) );
 

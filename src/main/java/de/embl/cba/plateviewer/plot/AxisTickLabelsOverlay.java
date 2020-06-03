@@ -10,7 +10,7 @@ import java.awt.geom.AffineTransform;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ScatterPlotAxisTickLabelsOverlay extends BdvOverlay
+public class AxisTickLabelsOverlay extends BdvOverlay
 {
 	private final HashMap< String, Double > xLabelToIndex;
 	private final HashMap< String, Double > yLabelToIndex;
@@ -20,7 +20,7 @@ public class ScatterPlotAxisTickLabelsOverlay extends BdvOverlay
 	private int offset;
 	private int fontSize;
 
-	public ScatterPlotAxisTickLabelsOverlay( HashMap< String, Double > xLabelToIndex, HashMap< String, Double > yLabelToIndex, FinalRealInterval dataInterval )
+	public AxisTickLabelsOverlay( HashMap< String, Double > xLabelToIndex, HashMap< String, Double > yLabelToIndex, FinalRealInterval dataInterval )
 	{
 		super();
 		this.xLabelToIndex = xLabelToIndex;

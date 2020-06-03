@@ -707,7 +707,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 				"",
 				Bdv.options()
 						.is2D().frameTitle( plateName )
-						.preferredSize( Utils.getBdvWindowSize(),  Utils.getBdvWindowSize() )
+						.preferredSize( Utils.proposeBdvWindowSize(),  Utils.proposeBdvWindowSize() )
 						.doubleBuffered( false )
 						.transformEventHandlerFactory(
 								new BehaviourTransformEventHandlerPlanar

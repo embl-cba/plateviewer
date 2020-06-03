@@ -48,7 +48,7 @@ public class Utils
 	public static boolean logDebug = false;
 
 
-	public static int getBdvWindowSize()
+	public static int proposeBdvWindowSize()
 	{
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		return screenSize.width / Utils.BDV_RELATIVE_WINDOW_SIZE;

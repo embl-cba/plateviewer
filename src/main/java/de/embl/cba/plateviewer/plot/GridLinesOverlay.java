@@ -10,7 +10,7 @@ import java.awt.*;
 
 import static de.embl.cba.plateviewer.util.Utils.bdvTextOverlayFontSize;
 
-public class ScatterPlotGridLinesOverlay extends BdvOverlay
+public class GridLinesOverlay extends BdvOverlay
 {
 	public static final String NONE = "None";
 	public static final String Y_NX = "y = n * x";
@@ -24,14 +24,14 @@ public class ScatterPlotGridLinesOverlay extends BdvOverlay
 	private final String lineOverlay;
 
 	// TODO: make an own overlay for the axis labels (columnNameX, columnNameY)
-	public ScatterPlotGridLinesOverlay( BdvHandle bdvHandle, String columnNameX, String columnNameY, Interval scatterPlotInterval, String lineOverlay )
+	public GridLinesOverlay( BdvHandle bdvHandle, String columnNameX, String columnNameY, Interval plotInterval, String lineOverlay )
 	{
 		super();
 		this.bdvHandle = bdvHandle;
 		this.columnNameX = columnNameX;
 		this.columnNameY = columnNameY;
-		this.scatterPlotInterval = scatterPlotInterval;
-		dataMaxValue = Math.max( scatterPlotInterval.max( 0 ), scatterPlotInterval.max( 1 ) );
+		this.scatterPlotInterval = plotInterval;
+		dataMaxValue = Math.max( plotInterval.max( 0 ), plotInterval.max( 1 ) );
 		this.lineOverlay = lineOverlay;
 	}
 
@@ -102,23 +102,6 @@ public class ScatterPlotGridLinesOverlay extends BdvOverlay
 						( int ) max[ 0 ], ( int ) n[ 1 ] );
 			}
 		}
-
-//		g.drawLine(
-//				(int) min[ 0 ], (int) min[ 1 ],
-//				(int) min[ 0 ], (int) max[ 1 ] );
-//
-//		g.drawLine(
-//				(int) min[ 0 ], (int) min[ 1 ],
-//				(int) max[ 0 ], (int) min[ 1 ] );
-//
-//		g.drawLine(
-//				(int) min[ 0 ], (int) max[ 1 ],
-//				(int) max[ 0 ], (int) max[ 1 ] );
-//
-//		g.drawLine(
-//				(int) max[ 0 ], (int) min[ 1 ],
-//				(int) max[ 0 ], (int) max[ 1 ] );
-
 	}
 
 	private Font getAdaptedSizeFont( Graphics2D g, int i, String wellName, int fontSize )

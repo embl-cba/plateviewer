@@ -3,7 +3,6 @@ package de.embl.cba.plateviewer.plot;
 import bdv.util.BdvHandle;
 import bdv.util.BdvOverlay;
 import de.embl.cba.bdv.utils.BdvUtils;
-import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.bdv.RelativeTranslationAnimator;
 import de.embl.cba.plateviewer.table.Outlier;
 import de.embl.cba.tables.select.SelectionListener;
@@ -27,11 +26,11 @@ public class SelectedPointOverlay < T extends TableRow > extends BdvOverlay impl
 	private final ArrayList< RealPoint > points;
 	private final String columnNameX;
 	private final String columnNameY;
-	private final TableRowsScatterPlotView< T > plotView;
+	private final TableRowsScatterPlot< T > plotView;
 	private RealPoint selectedPoint;
 	private int selectionCircleWidth;
 
-	public SelectedPointOverlay( TableRowsScatterPlotView< T > plotView )
+	public SelectedPointOverlay( TableRowsScatterPlot< T > plotView )
 	{
 		super();
 		this.bdvHandle = plotView.getBdvHandle();
