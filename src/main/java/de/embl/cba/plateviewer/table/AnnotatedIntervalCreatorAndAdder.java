@@ -101,7 +101,6 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 						tableSource.intervalType.toString(),
 						selectionColoringModel,
 						selectionModel,
-						imageView.getPlateName(),
 						NamingSchemes.getDefaultColumnNameX( tableRows ),
 						NamingSchemes.getDefaultColumnNameY( tableRows ),
 						GridLinesOverlay.Y_N,

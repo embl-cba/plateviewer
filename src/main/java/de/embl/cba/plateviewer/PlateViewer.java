@@ -62,6 +62,7 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -256,27 +257,25 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 		final PopupMenu popupMenu = new PopupMenu();
 
-		popupMenu.addPopupAction( "Report issue...", e ->
-		{
-			new Thread( () -> {
-				final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot(
-						bdvHandle.getViewerPanel(),
-						getOverlays() );
-				screenShot.setTitle( plateName + "-"  + siteName  );
-				final SiteIssueRaiser siteIssueRaiser = new SiteIssueRaiser();
-				siteIssueRaiser.showPlateIssueDialogAndCreateIssue( locationInformation, screenShot );
-			}).start();
-		} );
+		popupMenu.addPopupAction( "Report issue...",
+				() -> {
+					final ImagePlus screenShot = SimpleScreenShotMaker.getSimpleScreenShot(
+							bdvHandle.getViewerPanel(),
+							getOverlays() );
+					screenShot.setTitle( plateName + "-" + siteName );
+					final SiteIssueRaiser siteIssueRaiser = new SiteIssueRaiser();
+					siteIssueRaiser.showPlateIssueDialogAndCreateIssue( locationInformation, screenShot );
+				} );
 
-		popupMenu.addPopupAction( "Focus well", e -> {
+		popupMenu.addPopupAction( "Focus well", () -> {
 			focusWell( wellName );
 		} );
 
-		popupMenu.addPopupAction( "Focus site", e -> {
+		popupMenu.addPopupAction( "Focus site", () -> {
 			focusSite( siteName );
 		} );
 
-		popupMenu.addPopupAction( "Inspect cell features...", e -> {
+		popupMenu.addPopupAction( "Inspect cell features...", () -> {
 			final String sourceName = "cell_segmentation";
 			if ( ! nameToBdvViewable.containsKey( sourceName ) )
 			{
@@ -299,7 +298,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 		} );
 
-		popupMenu.addPopupAction( "Measure pixel values statistics...", e -> {
+		popupMenu.addPopupAction( "Measure pixel values statistics...", () -> {
 			// TODO out everything below in own class (in bdv-utils repo) and improve UI
 			final GenericDialog gd = new GenericDialog( "Radius" );
 			gd.addNumericField( "Radius [pixels]", 5.0, 1 );
@@ -309,7 +308,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 			new Thread( () -> logPixelValueStatistics( locationInformation, radius ) ).start();
 		} );
 
-		popupMenu.addPopupAction( "View raw data", e -> {
+		popupMenu.addPopupAction( "View raw data", () -> {
 			new Thread( () -> {
 				Logger.info( "Fetching raw data, please wait..." );
 				final CompositeImage compositeImage = new PlateChannelRawDataFetcher( nameToBdvViewable ).captureCurrentView( 0 );
@@ -322,7 +321,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		{
 			final T site = getAnnotatedInterval( sites, siteName );
 
-			popupMenu.addPopupAction( "Modify site annotations...", e -> {
+			popupMenu.addPopupAction( "Modify site annotations...", () -> {
 				showIntervalAnnotationDialog( site );
 			} );
 		}
@@ -331,7 +330,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		{
 			final T well = getAnnotatedInterval( wells, wellName );
 
-			popupMenu.addPopupAction( "Modify well annotations...", e -> {
+			popupMenu.addPopupAction( "Modify well annotations...", () -> {
 				showIntervalAnnotationDialog( well );
 			} );
 		}
