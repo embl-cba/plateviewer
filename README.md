@@ -1,6 +1,8 @@
 [![DOI](https://zenodo.org/badge/144602584.svg)](https://zenodo.org/badge/latestdoi/144602584)
 
-# PlateViewer Fiji plugin
+# PlateViewer
+
+Fiji plugin for visual inspection of (multi-well) high throughput microscopy image data.
 
 ## Install
 
