@@ -2,7 +2,7 @@
 
 # PlateViewer
 
-[BigDataViewer] (https://imagej.net/BigDataViewer) based [Fiji](https://fiji.sc/) plugin for visual inspection of (multi-well) high throughput microscopy image data.
+[BigDataViewer](https://imagej.net/BigDataViewer) based [Fiji](https://fiji.sc/) plugin for visual inspection of (multi-well) high throughput microscopy image data.
 
 Features:
 - lazy loading of image data for interactive browsing
@@ -15,7 +15,7 @@ Features:
   - see example issues [here](https://github.com/hci-unihd/antibodies-analysis-issues/issues)
 
 Future directions:
-- it would be fantastic if there was a standardised [CellProfiler](https://cellprofiler.org/) segmentation images and table output that could be directly visualized with this tool.
+- explore whether one could develop standardised [CellProfiler](https://cellprofiler.org/) segmentation images and table outputs that could be directly visualized with this tool.
 
 ## Usage examples
 
@@ -54,7 +54,7 @@ The plugin has been heavily used in a [Microscopy-based assay for semi-quantitat
     - `Load image table`: Check this if you also want to load an associated table, where each row contains information about one image on the plate.
     
     
-## Use
+## Usage instructions
 
 There is more information to come here, but please explore left and right clicking into the different visualisations.
  
