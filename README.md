@@ -2,7 +2,7 @@
 
 # PlateViewer
 
-Fiji plugin for visual inspection of (multi-well) high throughput microscopy image data.
+[BigDataViewer] (https://imagej.net/BigDataViewer) based [Fiji](https://fiji.sc/) plugin for visual inspection of (multi-well) high throughput microscopy image data.
 
 Features:
 - lazy loading of image data for interactive browsing
