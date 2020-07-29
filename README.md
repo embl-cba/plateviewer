@@ -4,6 +4,36 @@
 
 Fiji plugin for visual inspection of (multi-well) high throughput microscopy image data.
 
+Features:
+- lazy loading of image data for interactive browsing
+- support for multi-resolution image data
+- segmentation (label mask) visualisation
+- linked table, scatterplot and image browsing
+- shared coloring model of table scatterplot and image overlay
+- integrated (right-click) github issue reporting for efficient collaborative discussion of imaging or image analysis issues
+  - automated reporting of plate, well and site as well as automated screenshot generation
+  - see example issues [here](https://github.com/hci-unihd/antibodies-analysis-issues/issues)
+
+Future directions:
+- it would be fantastic if there was a standardised [CellProfiler](https://cellprofiler.org/) segmentation images and table output that could be directly visualized with this tool.
+
+## Usage examples
+
+The plugin has been heavily used in a [Microscopy-based assay for semi-quantitative detection of SARS-CoV-2 specific antibodies in human sera](https://www.biorxiv.org/content/10.1101/2020.06.15.152587v1). Below screenshots show data from this study.
+
+#### Plate view
+![image](https://user-images.githubusercontent.com/2157566/88773118-064ec280-d182-11ea-81ee-9806d8de0483.png)
+
+#### Well view
+![image](https://user-images.githubusercontent.com/2157566/88773870-07342400-d183-11ea-802a-670f1f0ad3f3.png)
+
+#### Site view
+![image](https://user-images.githubusercontent.com/2157566/88774283-87f32000-d183-11ea-89b9-76e9ce923cb9.png)
+
+#### Cell segmentation view
+![image](https://user-images.githubusercontent.com/2157566/88774926-5595f280-d184-11ea-8da0-b71afaa10064.png)
+
+
 ## Install
 
 - Please [install Fiji](fiji.sc)
