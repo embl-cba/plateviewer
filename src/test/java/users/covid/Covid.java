@@ -23,8 +23,6 @@ public class Covid
 
 		pathname = "/Users/tischer/Documents/mnt/hci/data-processed/plateK14rep1_20200430_194338_941_IgG";
 
-
-
 //		pathname ="/g/kreshuk/data/covid/data-processed/20200417_152052_943"; // publication
 
 //		pathname = "/g/kreshuk/data/covid/sandbox/merged_table2/plateK12rep1_20200430_155932_313";

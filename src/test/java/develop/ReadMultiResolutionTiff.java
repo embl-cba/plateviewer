@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 import loci.formats.FormatException;
 import loci.formats.IFormatReader;

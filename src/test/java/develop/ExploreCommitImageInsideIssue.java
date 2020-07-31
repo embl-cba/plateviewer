@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 import de.embl.cba.plateviewer.github.SiteIssueRaiser;
 import de.embl.cba.plateviewer.io.JpegOutputStreamWriter;

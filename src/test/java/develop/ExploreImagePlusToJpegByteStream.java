@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 import de.embl.cba.plateviewer.io.JpegOutputStreamWriter;
 import de.embl.cba.tables.github.GitHubFileCommitter;

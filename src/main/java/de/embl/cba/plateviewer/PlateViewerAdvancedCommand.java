@@ -11,7 +11,6 @@ import java.io.File;
 @Plugin(type = Command.class, menuPath = "Plugins>Screening>PlateViewer Advanced..." )
 public class PlateViewerAdvancedCommand extends PlateViewerCommand
 {
-
 	@Parameter (label = "Additional images directory", style = "directory" )
 	public File additionalImagesDirectory;
 

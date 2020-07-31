@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;

@@ -128,20 +128,6 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 			if ( tableFile == null ) return null;
 
 			tableSource.filePath = tableFile.getAbsolutePath();
-
-			switch ( intervalType )
-			{
-				case Sites:
-					tableSource.hdf5Group = "tables/images/default";
-					break;
-				case Wells:
-					tableSource.hdf5Group = "tables/wells/default";
-					break;
-				default:
-					throw new UnsupportedOperationException();
-			}
-
-			return tableSource;
 		}
 		else
 		{
@@ -149,13 +135,26 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 			if ( tableFilePath != null )
 			{
 				tableSource.filePath = tableFilePath;
-				return tableSource;
 			}
 			else
 			{
 				return null;
 			}
 		}
+
+		switch ( intervalType )
+		{
+			case Sites:
+				tableSource.hdf5Group = "tables/images/default";
+				break;
+			case Wells:
+				tableSource.hdf5Group = "tables/wells/default";
+				break;
+			default:
+				throw new UnsupportedOperationException();
+		}
+
+		return tableSource;
 	}
 
 	public void addInputImagesDirectory( String additionalImagesDirectory )

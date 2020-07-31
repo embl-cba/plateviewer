@@ -1,4 +1,4 @@
-package explore;
+package develop;
 
 import loci.common.image.IImageScaler;
 import loci.common.image.SimpleImageScaler;

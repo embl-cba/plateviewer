@@ -2,13 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>de.embl.cba</groupId>
-		<artifactId>pom-embl-cba</artifactId>
-		<version>0.3.12</version>
-		<relativePath>../pom-embl-cba</relativePath>
+		<groupId>org.scijava</groupId>
+		<artifactId>pom-scijava</artifactId>
+		<version>27.0.1</version>
 	</parent>
 	<artifactId>fiji-plugin-plateViewer</artifactId>
-	<version>0.4.2</version>
+	<version>0.5.0</version>
 	<name>Fiji Plugin PlateViewer</name>
 	<url>https://github.com/tischi/fiji-plugin-plateViewer</url>
 	<description>TODO</description>
@@ -107,12 +106,29 @@
 			<artifactId>ij</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer_fiji</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>bigdataviewer-core</artifactId>
+			<!-- Transformed Box Dialog	-->
+			<version>8.0.2-platybrowser</version>
+		</dependency>
+		<dependency>
 			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-cache</artifactId>
+			<artifactId>imglib2</artifactId>
+			<version>5.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
+			<!-- Transformed Box Dialog	-->
+			<version>1.0.0-beta-18-platybrowser</version>
+		</dependency>
+		<dependency>
+			<groupId>net.imglib2</groupId>
+			<artifactId>imglib2-cache</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
