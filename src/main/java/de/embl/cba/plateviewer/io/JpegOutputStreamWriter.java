@@ -3,8 +3,6 @@ package de.embl.cba.plateviewer.io;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
-import org.apache.commons.codec.binary.Base64OutputStream;
-import weka.Run;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -14,8 +12,6 @@ import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.OutputStream;
 import java.util.Base64;
 import java.util.Iterator;
 

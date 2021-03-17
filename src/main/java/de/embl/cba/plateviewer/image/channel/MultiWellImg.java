@@ -26,7 +26,7 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 {
 	protected long[] plateDimensions;
 	protected int[] imageDimensions;
-	protected double[] lutMinMax = new double[]{0, 255};
+	protected double[] contrastLimits = new double[]{0, 255};
 	protected ARGBType argbType;
 
 	protected ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
@@ -91,7 +91,7 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 
 	public double[] getContrastLimits()
 	{
-		return lutMinMax;
+		return contrastLimits;
 	}
 
 	public MultiSiteLoader getLoader()

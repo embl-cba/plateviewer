@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 
 import static de.embl.cba.plateviewer.filter.ImageFilterUI.getImageFilterSettingsFromUI;
 
@@ -294,28 +295,30 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		{
 			SwingUtilities.invokeLater( () ->
 			{
+				// TODO: Move into own class!
 				new Thread( () ->
 				{
-					// TODO: Fix this and move into own class!
-					final MultiWellImg inputSource =
-							plateViewer.getChannelToMultiWellImg().get( imagesSourcesComboBox.getSelectedItem() );
+					// TODO: Why is this not a Bdviewable?
+					final Map< String, MultiWellImg< ? > > channelToMultiWellImg = plateViewer.getChannelToMultiWellImg();
+
+					final MultiWellImg inputSource = channelToMultiWellImg.get( imagesSourcesComboBox.getSelectedItem() );
 
 					ImageFilterSettings settings = configureImageFilterSettings( inputSource );
 					settings = getImageFilterSettingsFromUI( settings );
 					if ( settings == null ) return;
-
 					final ImageFilter imageFilter = new ImageFilter( settings );
 
-					final String imageFilterSourceName = imageFilter.getCachedFilterImgName();
-					removeSource( imageFilterSourceName );
+					// TODO: Implement functionality to remove an image from the view!
+					//   and remove the image instead
+					String imageFilterSourceName = imageFilter.getCachedFilterImgName();
+					while( channelToMultiWellImg.containsKey( imageFilterSourceName ) )
+					{
+						imageFilterSourceName = imageFilterSourceName + " + ";
+					};
 
 					final CachedCellImg filterImg = imageFilter.createCachedFilterImg();
-					final BdvStackSource bdvStackSource = addToViewer( filterImg, imageFilterSourceName );
 
-					// TODO: make all of this a Bdviewable
-					bdvStackSource.setColor( inputSource.getColor() );
-
-					if ( !settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
+					if ( ! settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 					{
 						// TODO: do this via checkbox
 						// inputSource.getBdvSource().setActive( false );
@@ -324,27 +327,23 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 					BdvOverlaySource bdvOverlaySource = null;
 					if ( imageFilter.getBdvOverlay() != null )
 					{
-							bdvOverlaySource =
-									addToViewer( settings,
-									imageFilter.getBdvOverlay(), imageFilterSourceName );
+							bdvOverlaySource = addToViewer( settings, imageFilter.getBdvOverlay(), imageFilterSourceName );
 					}
 
-					final MultiWellImg filteredMultiWellImg =
+					final MultiWellImg filteredImg =
 							new MultiWellFilteredImg(
 									filterImg,
 									imageFilterSourceName,
-									bdvStackSource,
+									inputSource.getColor(),
+									inputSource.getContrastLimits(),
 									bdvOverlaySource );
 
-					// TODO: fix this!!
-					// multiWellImgs.add( filteredMultiWellImg );
+					filteredImg.setInitiallyVisible( true );
+
+					plateViewer.getChannelToMultiWellImg().put( imageFilterSourceName, filteredImg );
+					plateViewer.addToPanelAndBdv( filteredImg );
 
 					previousImageFilterSettings = new ImageFilterSettings( settings );
-
-					SwingUtilities.invokeLater( () ->
-					{
-						updateImagesSourcesComboBoxItems();
-					});
 				}).start();
 			} );
 		}
@@ -374,30 +373,10 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		return bdvOverlaySource;
 	}
 
-	public void removeSource( String name )
-	{
-		// TODO: Fix this, only needed for the image filter
-
-//		for ( MultiWellImg source : multiWellImgs )
-//		{
-//			if ( source.getName().equals( name ) )
-//			{
-//				source.dispose();
-//				multiWellImgs.remove( source );
-//				source = null;
-//				System.gc();
-//				break;
-//			}
-//		}
-//
-//		updateImagesSourcesComboBoxItems();
-	}
-
 	private BdvStackSource addToViewer(
 			CachedCellImg< UnsignedByteType, ? > cachedCellImg,
 			String cachedFilterImgName )
 	{
-
 		final BdvStackSource< Volatile< UnsignedByteType > > bdvStackSource = BdvFunctions.show(
 				VolatileViews.wrapAsVolatile( cachedCellImg, plateViewer.getLoadingQueue() ),
 				cachedFilterImgName,
@@ -443,8 +422,8 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 					return;
 				}
 
-				final String selectedSource = ( String ) comboBox.getSelectedItem();
-				plateViewer.addToPanelAndBdv( selectedSource );
+				final String selectedChannel = ( String ) comboBox.getSelectedItem();
+				plateViewer.addToPanelAndBdv( selectedChannel );
 			} );
 		} );
 

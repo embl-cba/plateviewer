@@ -14,7 +14,6 @@ import java.util.ArrayList;
 
 public class ImageFilter < T extends NativeType< T > & RealType< T > >
 {
-
 	public static String SIMPLE_SEGMENTATION = "Simple segmentation";
 	public static String MEDIAN_DEVIATION = "Local median deviation";
 	public static String INFORMATION = "Information";
@@ -45,7 +44,6 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 	{
 		return bdvOverlay;
 	}
-
 
 	public String getCachedFilterImgName()
 	{
@@ -80,6 +78,7 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 				loader,
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 
+		// TODO: What is this doing? Ah, maybe number of segments?
 		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
 			bdvOverlay = loader.getBdvOverlay();

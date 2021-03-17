@@ -51,6 +51,8 @@ public class Covid
 
 		//pathname = "/g/kreshuk/data/covid/data-processed/plateU7rep1_20200519_210009_665";
 
+		pathname = "/Volumes/kreshuk/data/covid/data-processed/KnopLab_20201113_133630_500";
+
 		final PlateViewerInitializer plateViewerInitializer = new PlateViewerInitializer(
 				new File( pathname ),
 				".*.h5",

@@ -1,6 +1,5 @@
 package de.embl.cba.plateviewer.image.channel;
 
-import bdv.util.BdvSource;
 import de.embl.cba.plateviewer.image.cellloader.MultiSiteImagePlusLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderFactory;
 import de.embl.cba.tables.color.ColorUtils;
@@ -116,9 +115,9 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 
 	private void setLutMinMax( ImagePlus imagePlus )
 	{
-		lutMinMax = new double[ 2 ];
-		lutMinMax[ 0 ] = imagePlus.getProcessor().getMin();
-		lutMinMax[ 1 ] = imagePlus.getProcessor().getMax();
+		contrastLimits = new double[ 2 ];
+		contrastLimits[ 0 ] = imagePlus.getProcessor().getMin();
+		contrastLimits[ 1 ] = imagePlus.getProcessor().getMax();
 	}
 
 	private void setImageDataType( ImagePlus imagePlus )

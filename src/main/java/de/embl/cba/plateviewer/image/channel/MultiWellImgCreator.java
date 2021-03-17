@@ -37,7 +37,6 @@ public class MultiWellImgCreator
 			wellImg = sourceCreator.getMultiWellHdf5CachedCellImage();
 
 			wellImg.setSource( sourceCreator.getSource() );
-
 		}
 		else
 		{
@@ -46,7 +45,6 @@ public class MultiWellImgCreator
 					channelName,
 					namingScheme,
 					0 );
-
 		}
 		return wellImg;
 	}

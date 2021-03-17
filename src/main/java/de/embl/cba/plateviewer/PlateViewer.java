@@ -1,5 +1,7 @@
 package de.embl.cba.plateviewer;
 
+import bdv.TransformEventHandler2D;
+import bdv.TransformEventHandler3D;
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
@@ -10,7 +12,6 @@ import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.bdv.*;
-import de.embl.cba.plateviewer.bdv.BehaviourTransformEventHandlerPlanar;
 import de.embl.cba.plateviewer.channel.ChannelProperties;
 import de.embl.cba.plateviewer.channel.Channels;
 import de.embl.cba.plateviewer.github.SiteIssueRaiser;
@@ -58,6 +59,8 @@ import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.volatiles.VolatileARGBType;
 import net.imglib2.util.Intervals;
+import org.scijava.ui.behaviour.Behaviour;
+import org.scijava.ui.behaviour.BehaviourMap;
 import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
@@ -232,6 +235,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		// TODO: refactor into PlatePopupMenuCreator
 		final RealPoint globalLocation = new RealPoint( 3 );
 		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( globalLocation );
+
 		final String siteName = getIntervalName( globalLocation, intervalToSiteName );
 		final String wellName = getIntervalName( globalLocation, intervalToWellName );
 
@@ -627,6 +631,15 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		}
 	}
 
+	/**
+	 * TODO:
+	 * in principle the information which image is below the mouse cursor
+	 * could also come from the underlying TableRowsIntervalImage, couldn't it?
+	 *
+	 * @param point
+	 * @param intervalToName
+	 * @return
+	 */
 	public String getIntervalName( RealPoint point, Map< Interval, String > intervalToName )
 	{
 		for ( Interval interval : intervalToName.keySet() )
@@ -713,12 +726,11 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 				Bdv.options()
 						.is2D().frameTitle( plateName )
 						.preferredSize( Utils.getBdvWindowSize(),  Utils.getBdvWindowSize() )
-						.doubleBuffered( false )
-						.transformEventHandlerFactory(
-								new BehaviourTransformEventHandlerPlanar
-										.BehaviourTransformEventHandlerPlanarFactory() ) );
+						 );
 
 		bdvHandle = bdvTmpSource.getBdvHandle();
+
+		optimiseBehaviourFor2D();
 
 		// This may interfere with loading of the resolution layers => TODO right click!
 		// new BdvGrayValuesOverlay( bdv, Utils.bdvTextOverlayFontSize );
@@ -733,6 +745,14 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 				mainPanel.getLocation().y );
 
 		return bdvTmpSource;
+	}
+
+	private void optimiseBehaviourFor2D()
+	{
+		final BehaviourMap behaviourMap = new BehaviourMap();
+		final Behaviour behaviour = new Behaviour() {};
+		behaviourMap.put( TransformEventHandler2D.DRAG_ROTATE, behaviour );
+		bdvHandle.getTriggerbindings().addBehaviourMap( "BLOCKMAP", behaviourMap );
 	}
 
 	public void addToPanelAndBdv( BdvViewable bdvViewable )

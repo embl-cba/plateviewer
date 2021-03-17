@@ -102,13 +102,13 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 		try
 		{
 			final double[] lutMinMax = hdf5Reader.float64().getArrayAttr( channelName, LUT_MIN_MAX );
-			this.lutMinMax[ 0 ] = lutMinMax[ 0 ];
-			this.lutMinMax[ 1 ] = lutMinMax[ 1 ];
+			this.contrastLimits[ 0 ] = lutMinMax[ 0 ];
+			this.contrastLimits[ 1 ] = lutMinMax[ 1 ];
 		}
 		catch ( Exception e )
 		{
-			this.lutMinMax[ 0 ] = 0;
-			this.lutMinMax[ 1 ] = 1;
+			this.contrastLimits[ 0 ] = 0;
+			this.contrastLimits[ 1 ] = 1;
 		}
 	}
 

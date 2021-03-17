@@ -26,7 +26,6 @@ import static de.embl.cba.plateviewer.table.Tables.createAnnotatedIntervalTableR
 
 public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTableRow >
 {
-
 	private final PlateViewer< ?, T > imageView;
 	private final String namingScheme;
 	private final TableSource tableSource;
@@ -98,12 +97,10 @@ public class AnnotatedIntervalCreatorAndAdder < T extends AnnotatedIntervalTable
 		final TableRowsScatterPlot< DefaultAnnotatedIntervalTableRow > scatterPlotView =
 				new TableRowsScatterPlot(
 						tableRows,
-						tableSource.intervalType.toString(),
 						selectionColoringModel,
-						selectionModel,
-						NamingSchemes.getDefaultColumnNameX( tableRows ),
-						NamingSchemes.getDefaultColumnNameY( tableRows ),
-						GridLinesOverlay.Y_N,
+						new String[]{ NamingSchemes.getDefaultColumnNameX( tableRows ),
+						NamingSchemes.getDefaultColumnNameY( tableRows ) },
+						new double[]{1,1},
 						Utils.bdvTextOverlayFontSize );
 
 		scatterPlotView.show( imageView.getBdvHandle().getViewerPanel() );

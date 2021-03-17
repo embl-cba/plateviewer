@@ -97,8 +97,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
 
             if ( bdvSource instanceof BdvStackSource )
             {
-                JButton brightnessButton = getBrightnessButton(
-                        channelName, ( BdvStackSource ) bdvSource, buttonDimensions );
+                JButton brightnessButton = getBrightnessButton( channelName, ( BdvStackSource ) bdvSource, buttonDimensions );
                 panel.add( brightnessButton );
             }
             else
@@ -210,6 +209,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         return removeButton;
     }
 
+    // TODO: Properly implement this
     private void removeSource( String sourceName, BdvStackSource< R > source )
     {
         // remove from bdv
@@ -221,7 +221,7 @@ public class PlateViewerSourcesPanel < R extends RealType< R > & NativeType< R >
         sourceNameToPanel.remove( sourceName );
 
         // remove from image list
-        mainPanel.removeSource( sourceName );
+        //mainPanel.removeSource( sourceName );
 
         refreshUI();
     }

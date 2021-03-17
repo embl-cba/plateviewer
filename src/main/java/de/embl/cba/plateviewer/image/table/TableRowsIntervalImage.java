@@ -84,31 +84,16 @@ public class TableRowsIntervalImage < T extends AnnotatedIntervalTableRow > exte
 		{
 			t.setInteger( ListItemsARGBConverter.OUT_OF_BOUNDS_ROW_INDEX );
 
-			for ( T tableRow : tableRows )
+			for ( T annotatedIntervalTableRow : tableRows )
 			{
-				final Interval interval = tableRow.getInterval();
+				final Interval interval = annotatedIntervalTableRow.getInterval();
 				if ( interval == null ) return;
 
 				if ( Intervals.contains( interval, l ) )
 				{
-					t.setInteger( tableRow.rowIndex() );
+					t.setInteger( annotatedIntervalTableRow.rowIndex() );
 				}
 			}
-
-//			final int siteRowIndex = ( int ) ( l.getIntPosition( 0 ) / intervalDimensions[ 0 ] );
-//			final int siteColumnIndex = ( int ) ( l.getIntPosition( 1 ) / intervalDimensions[ 1 ] );
-//
-//			if ( siteRowIndex < 0
-//					|| siteRowIndex >= nameMatrix.length
-//					|| siteColumnIndex < 0
-//					|| siteColumnIndex >= nameMatrix[ 0 ].length )
-//				return;
-//
-//			final String siteName = nameMatrix[ siteRowIndex ][ siteColumnIndex ];
-//
-//			if ( siteName == null ) return;
-
-//			t.setInteger( nameToTableRowIndex.get( siteName ) );
 		};
 
 		final FunctionRandomAccessible< IntType > randomAccessible =
