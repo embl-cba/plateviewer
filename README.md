@@ -57,7 +57,14 @@ The plugin has been heavily used in a [Microscopy-based assay for semi-quantitat
 ## Usage instructions
 
 There is more information to come here, but please explore left and right clicking into the different visualisations.
- 
+
+## Supported file naming schemes
+
+We currently onlly support a number of limited file naming schemes (see below screenshot for examples).
+If you need support for a different naming scheme, please [write an issue](https://github.com/embl-cba/plateviewer/issues).
+
+![image](https://user-images.githubusercontent.com/2157566/154275810-7411594d-b74c-485b-abfe-c61586787605.png)
+
 ## Cite
 
 This github repository can be cited (registered at [ZENODO](https://zenodo.org/)):
