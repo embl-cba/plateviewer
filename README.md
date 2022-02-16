@@ -60,10 +60,16 @@ There is more information to come here, but please explore left and right clicki
 
 ## Supported file naming schemes
 
-We currently onlly support a number of limited file naming schemes (see below screenshot for examples).
+We currently onlly support a number of limited file naming schemes.
 If you need support for a different naming scheme, please [write an issue](https://github.com/embl-cba/plateviewer/issues).
 
-![image](https://user-images.githubusercontent.com/2157566/154275810-7411594d-b74c-485b-abfe-c61586787605.png)
+### ALMF-EMBL (wells and sites)
+
+![image](https://user-images.githubusercontent.com/2157566/154277714-87cc1c6c-2dda-4c0f-b400-779341e8ee90.png)
+
+### MD (wells and sites)
+
+![image](https://user-images.githubusercontent.com/2157566/154277922-59112a9f-fb77-4de4-b20b-63b70b7bd7d2.png)
 
 ## Cite
 
