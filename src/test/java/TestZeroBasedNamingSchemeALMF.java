@@ -7,9 +7,10 @@ public class TestZeroBasedNamingSchemeALMF
 	{
 		new ImageJ().ui().showUI();
 
-		new PlateViewer(
+		final PlateViewer plateViewer = new PlateViewer(
 				"src/test/resources/ALMF-EMBL-ZeroBased-P2-S4-C2-T1",
 				".*.tif",
-				1);
+				1 );
+		plateViewer.run();
 	}
 }

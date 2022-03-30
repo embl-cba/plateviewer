@@ -7,7 +7,7 @@ import org.scijava.plugin.Plugin;
 import java.io.File;
 import java.util.ArrayList;
 
-@Plugin(type = Command.class, menuPath = "Plugins>Screening>PlateViewer..." )
+@Plugin(type = Command.class, menuPath = "Plugins>PlateViewer>PlateViewer..." )
 public class PlateViewerCommand implements Command
 {
 	@Parameter (label = "Plate images directory", style = "directory" )

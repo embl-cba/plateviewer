@@ -4,12 +4,19 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>30.0.0</version>
+		<version>31.1.0</version>
 	</parent>
+
 	<artifactId>plateViewer</artifactId>
-	<version>0.5.2</version>
+	<version>0.7.0-SNAPSHOT</version>
 	<name>Fiji Plugin PlateViewer</name>
-	<url>https://github.com/tischi/fiji-plugin-plateViewer</url>
+
+	<!-- mvn clean compile -Dmaven.test.skip=true -->
+	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-plateViewer.app -->
+	<!-- mvn clean install -Dmaven.test.skip=true -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-plateViewer.app -->
+	<!-- mvn clean install -Dscijava.app.directory=/Users/tischer/Desktop/Fiji/Fiji-plateViewer.app -->
+
+	<url>https://github.com/embl-cba/plateviewer</url>
 	<description>Fiji plugin for inspection of high-throughput microscopy multi-well image data</description>
 	<inceptionYear>2018</inceptionYear>
 	<organization>
@@ -48,14 +55,14 @@
 		</mailingList>
 	</mailingLists>
 	<scm>
-		<connection>scm:git:git://github.com/tischi/fiji-plugin-plateViewer</connection>
-		<developerConnection>scm:git:git@github.com/tischi/fiji-plugin-plateViewer</developerConnection>
+		<connection>scm:git:git://github.com/embl-cba/plateviewer</connection>
+		<developerConnection>scm:git:git@github.com/embl-cba/plateviewer</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/tischi/fiji-plugin-plateViewer</url>
+		<url>https://github.com/embl-cba/plateviewer</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/imglib/fiji-plugin-plateViewer/issues</url>
+		<url>https://github.com/embl-cba/plateviewer/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>
@@ -64,125 +71,57 @@
 		<package-name>de.embl.cba.plateviewer</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
-		<imagej.app.directory>/Users/tischer/Desktop/Fiji-plateViewer.app</imagej.app.directory>
 		<enforcer.skip>true</enforcer.skip>
-
-		<!-- BioFormats -->
-<!--		<bioformats.version>6.1.0-m2</bioformats.version>-->
-
-		<!-- Java 8	Update Site	-->
-		<imglib2.version>5.11.1</imglib2.version>
-		<imglib2-cache.version>1.0.0-beta-16</imglib2-cache.version>
-		<bigdataviewer-core.version>10.2.0</bigdataviewer-core.version>
-		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
-
 		<!-- EMBL CBA -->
-		<imagej-utils.version>0.6.3-SNAPSHOT</imagej-utils.version>
-
+		<imagej-utils.version>0.6.4</imagej-utils.version>
 		<!-- Other -->
 		<mongodb-driver-sync.version>4.0.2</mongodb-driver-sync.version>
-
 	</properties>
 	<repositories>
 		<!-- for SciJava dependencies -->
 		<repository>
-			<id>imagej.public</id>
-			<url>https://maven.imagej.net/content/groups/public</url>
-		</repository>
-		<!-- for CBA dependencies -->
-		<repository>
-			<id>bintray-tischi-snapshots</id>
-			<name>bintray</name>
-			<url>https://dl.bintray.com/tischi/snapshots</url>
-		</repository>
-		<!-- for ITC dependencies -->
-		<repository>
-			<id>bintray-image-transform-converters-image-transform-converters</id>
-			<name>image-transform-converters-image-transform-converters</name>
-			<url>https://dl.bintray.com/image-transform-converters/image-transform-converters</url>
+			<id>scijava.public</id>
+			<url>https://maven.scijava.org/content/groups/public</url>
 		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej-legacy</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>imagej-common</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.imagej</groupId>
-			<artifactId>ij</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2</artifactId>
-			<version>${imglib2.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-cache</artifactId>
-			<version>${imglib2-cache.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>${bigdataviewer-core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-vistools</artifactId>
-			<version>${bigdataviewer-vistools.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>ome</groupId>
-			<artifactId>formats-api</artifactId>
-<!--			<version>${bioformats.version}</version>-->
-		</dependency>
-		<dependency>
-			<groupId>ome</groupId>
-			<artifactId>formats-bsd</artifactId>
-<!--			<version>${bioformats.version}</version>-->
-		</dependency>
-		<dependency>
-			<groupId>ome</groupId>
-			<artifactId>formats-gpl</artifactId>
-<!--			<version>${bioformats.version}</version>-->
-		</dependency>
-		<dependency>
-			<groupId>org.openmicroscopy</groupId>
-			<artifactId>ome-common</artifactId>
-<!--			<version>6.0.1</version>-->
-		</dependency>
-		<dependency>
-			<groupId>cisd</groupId>
-			<artifactId>jhdf5</artifactId>
-		</dependency>
-		<!-- CBA -->
 		<dependency>
 			<groupId>de.embl.cba</groupId>
 			<artifactId>imagej-utils</artifactId>
 			<version>${imagej-utils.version}</version>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>com.konghq</groupId>-->
-<!--			<artifactId>unirest-java</artifactId>-->
-<!--			<version>3.7.02</version>-->
-<!--		</dependency>-->
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-<!--			<version>2.10.2</version>-->
-		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
 			<version>${mongodb-driver-sync.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.4.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.4.2</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

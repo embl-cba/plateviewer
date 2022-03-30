@@ -78,6 +78,8 @@ public class ImageFilter < T extends NativeType< T > & RealType< T > >
 				loader,
 				ReadOnlyCachedCellImgOptions.options().cellDimensions( cellDimensions ) );
 
+		cachedFilterImg.randomAccess();
+
 		// TODO: What is this doing? Ah, maybe number of segments?
 		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
