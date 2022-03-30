@@ -4,18 +4,18 @@ import de.embl.cba.plateviewer.PlateViewer;
 import net.imagej.ImageJ;
 import org.junit.jupiter.api.Test;
 
-public class TestOneBasedNamingSchemeALMF
+public class TestNamingSchemeSCANRMultiSite
 {
 	public static void main( String[] args )
 	{
-		new TestOneBasedNamingSchemeALMF().run();
+		new TestNamingSchemeSCANRMultiSite().run();
 	}
 
 	@Test
 	public void run()
 	{
 		final PlateViewer plateViewer = new PlateViewer(
-				"src/test/resources/ALMF-EMBL-OneBased-P2-S16-C3-T1",
+				"src/test/resources/SCANR-S9-C1-T1",
 				".*.tif",
 				1 );
 		plateViewer.run();
