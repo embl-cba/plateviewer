@@ -10,8 +10,6 @@ import de.embl.cba.tables.color.ColoringLuts;
 import de.embl.cba.tables.color.LazyCategoryColoringModel;
 import de.embl.cba.tables.color.NumericColoringModelDialog;
 import de.embl.cba.tables.color.SelectionColoringModel;
-import de.embl.cba.tables.plot.GridLinesOverlay;
-import de.embl.cba.tables.plot.TableRowsScatterPlot;
 import de.embl.cba.tables.select.DefaultSelectionModel;
 import de.embl.cba.tables.view.TableRowsTableView;
 import net.imglib2.Interval;
