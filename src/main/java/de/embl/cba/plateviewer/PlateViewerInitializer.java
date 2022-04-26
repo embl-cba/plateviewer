@@ -52,6 +52,14 @@ public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, 
 		{
 			initBatchLibHdf5Data( plateViewer );
 		}
+		else
+		{
+			if ( siteTableSource != null )
+			{
+				final AnnotatedIntervalCreatorAndAdder intervalCreatorAndAdder = new AnnotatedIntervalCreatorAndAdder( plateViewer, namingScheme, siteTableSource );
+				intervalCreatorAndAdder.createAndAddAnnotatedIntervals();
+			}
+		}
 	}
 
 	public void initBatchLibHdf5Data( PlateViewer< R, DefaultAnnotatedIntervalTableRow > plateViewer )

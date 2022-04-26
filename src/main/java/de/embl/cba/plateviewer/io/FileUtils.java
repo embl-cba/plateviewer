@@ -26,6 +26,9 @@ public class FileUtils
 			{
 				final Matcher matcher = Pattern.compile( fileNameRegExp ).matcher( file.getName() );
 
+				if ( file.getName().equals( ".DS_Store" ) )
+					continue;
+
 				if ( matcher.matches() )
 				{
 					files.add( file );
