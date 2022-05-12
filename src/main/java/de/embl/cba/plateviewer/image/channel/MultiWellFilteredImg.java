@@ -1,7 +1,6 @@
 package de.embl.cba.plateviewer.image.channel;
 
 import bdv.util.BdvOverlaySource;
-import bdv.util.BdvSource;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
@@ -16,7 +15,7 @@ public class MultiWellFilteredImg< T extends RealType< T > & NativeType< T > > e
 			double[] contrastLimits,
 			BdvOverlaySource bdvOverlaySource )
 	{
-		super( null, null, 0 );
+		super( null, null, 0, channelName );
 		this.cachedCellImg = cachedCellImg;
 		this.channelName = channelName;
 		this.argbType = color;

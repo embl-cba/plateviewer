@@ -6,21 +6,21 @@ import de.embl.cba.plateviewer.table.IntervalType;
 import de.embl.cba.plateviewer.table.TableSource;
 import de.embl.cba.tables.tablerow.TableRow;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public abstract class NamingSchemes
 {
-	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_s(.*)_w([0-9]{1}).*.tif";
-	public static final String PATTERN_MD_A01_SITE = ".*_([A-Z]{1}[0-9]{2})_s([0-9]{1}).*.tif";
+	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_s(.*)_w([0-9]{1}).*";
+	public static final String PATTERN_MD_A01_SITE = ".*_([A-Z]{1}[0-9]{2})_s([0-9]{1}).*";
 	public static final String PATTERN_MD_A01_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
-	//public static final String PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL = ".*--W([0-9]{4})--P([0-9]{3}).*--C([0-9]{2}).*";
 	public static final String PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL = ".*--(.*)--(.*)--W(?<W>[0-9]{4})--P(?<P>[0-9]{3})--T[0-9]{4,5}--Z[0-9]{3}--(?<C>.*)";
 	public static final String PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL = ".*--W([0-9]{5})--P([0-9]{5}).*--.*--(.*)\\..*";
-	public static final String PATTERN_SCANR_WELLNAME_WELLNUM = "(.*--W[0-9]{5})--.*\\..*";
 	public static final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
 
 	public static String getDefaultColumnNameX( List< ? extends TableRow > tableRows )
@@ -50,6 +50,26 @@ public abstract class NamingSchemes
 		else
 			return (String) new ArrayList( columnNames ).get( 1 );
 			//throw new UnsupportedOperationException( "Default column not found!" );
+	}
+
+	public static String getNamingScheme( File file )
+	{
+		String filePath = file.getAbsolutePath();
+
+		if ( Pattern.compile( PATTERN_NIKON_TI2_HDF5 ).matcher( filePath ).matches() )
+			return PATTERN_NIKON_TI2_HDF5;
+		else if ( Pattern.compile( PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() )
+			return PATTERN_MD_A01_SITE_WAVELENGTH;
+		else if ( Pattern.compile( PATTERN_MD_A01_SITE ).matcher( filePath ).matches() )
+			return PATTERN_MD_A01_SITE;
+		else if ( Pattern.compile( PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() )
+			return PATTERN_MD_A01_WAVELENGTH;
+		else if ( Pattern.compile( PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL ).matcher( filePath ).matches() )
+			return PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL;
+		else if ( Pattern.compile( PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ).matcher( filePath ).matches() )
+			return PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL;
+		else
+			throw new UnsupportedOperationException( "Could not match file name: " + file );
 	}
 
 	public static abstract class BatchLibHdf5

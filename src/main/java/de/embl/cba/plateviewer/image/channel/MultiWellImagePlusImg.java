@@ -22,10 +22,7 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 {
 	public MultiWellImagePlusImg( List< File > files, String channelName, String namingScheme, int resolutionLevel )
 	{
-		super( files, namingScheme, resolutionLevel );
-
-		// TODO: move into super()
-		this.channelName = channelName;
+		super( files, namingScheme, resolutionLevel, channelName );
 
 		setImagePlusProperties( files.get( 0 ) );
 

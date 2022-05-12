@@ -1,7 +1,6 @@
 package de.embl.cba.plateviewer;
 
 import bdv.TransformEventHandler2D;
-import bdv.TransformEventHandler3D;
 import bdv.util.*;
 import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
@@ -48,13 +47,11 @@ import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
-import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.converter.Converters;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.LongArray;
-import net.imglib2.img.list.ListImg;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.logic.BitType;
@@ -67,7 +64,6 @@ import org.scijava.ui.behaviour.ClickBehaviour;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 import org.scijava.ui.behaviour.util.Behaviours;
 
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -425,7 +421,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	public static String determineImageNamingScheme( List< File > fileList )
 	{
-		final String namingScheme = Utils.getNamingScheme( fileList.get( 0 ) );
+		final String namingScheme = NamingSchemes.getNamingScheme( fileList.get( 0 ) );
 		Utils.log( "Detected naming scheme: " + namingScheme );
 		return namingScheme;
 	}

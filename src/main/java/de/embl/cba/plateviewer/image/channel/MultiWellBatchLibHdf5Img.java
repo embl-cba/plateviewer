@@ -30,7 +30,7 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 
 	public MultiWellBatchLibHdf5Img( List< File > files, String namingScheme, String channelName, int resolutionLevel )
 	{
-		super( files, namingScheme, resolutionLevel );
+		super( files, namingScheme, resolutionLevel, channelName );
 
 		this.channelName = channelName;
 

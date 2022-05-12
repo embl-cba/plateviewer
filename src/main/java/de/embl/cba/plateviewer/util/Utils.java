@@ -202,26 +202,6 @@ public class Utils
 		return value;
 	}
 
-	public static String getNamingScheme( File file )
-	{
-		String filePath = file.getAbsolutePath();
-
-		if ( Pattern.compile( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_NIKON_TI2_HDF5;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_SITE ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_MD_A01_SITE;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL;
-		else if ( Pattern.compile( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ).matcher( filePath ).matches() )
-			return NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL;
-		else
-			throw new UnsupportedOperationException( "Could not match file name: " + file );
-	}
-
 	public static int[] guessWellDimensions( int[] maximalPositionsInData )
 	{
 		int[] wellDimensions = new int[ 2 ];

@@ -52,7 +52,6 @@ public class MultiWellChannelFilesProviderMolDevSingleSite implements MultiWellC
 
 	private void createImageFileList()
 	{
-
 		configWells( files );
 		configSites( files );
 
@@ -106,7 +105,6 @@ public class MultiWellChannelFilesProviderMolDevSingleSite implements MultiWellC
 		siteDimensions = new int[ 2 ];
 		Arrays.fill( siteDimensions, 1 );
 
-		Utils.log( "Distinct sites: " +  numSites );
 		Utils.log( "Site dimensions [ 0 ] : " +  siteDimensions[ 0 ] );
 		Utils.log( "Site dimensions [ 1 ] : " +  siteDimensions[ 1 ] );
 	}

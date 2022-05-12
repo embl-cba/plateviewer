@@ -47,11 +47,12 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	protected boolean isInitiallyVisible;
 	protected MultiWellChannelFilesProvider multiWellChannelFilesProvider;
 
-	public MultiWellImg( List< File > files, String namingScheme, int resolutionLevel )
+	public MultiWellImg( List< File > files, String namingScheme, int resolutionLevel, String channelName )
 	{
 		this.channelFiles = files;
 		this.namingScheme = namingScheme;
 		this.resolutionLevel = resolutionLevel;
+		this.channelName = channelName;
 	}
 
 	public void dispose()

@@ -27,9 +27,7 @@ public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellCh
 	public static final int WELL_GROUP = 1;
 	public static final int SITE_GROUP = 2;
 
-	public MultiWellChannelFilesProviderMolDevMultiSite( List< File > files,
-														 int[] imageDimensions,
-														 String namingScheme )
+	public MultiWellChannelFilesProviderMolDevMultiSite( List< File > files, int[] imageDimensions, String namingScheme )
 	{
 		this.files = files;
 		this.imageDimensions = imageDimensions;
@@ -117,7 +115,7 @@ public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellCh
 
 		for ( File file : files )
 		{
-			final String pattern = Utils.getNamingScheme( file );
+			final String pattern = NamingSchemes.getNamingScheme( file );
 
 			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
 
