@@ -22,10 +22,11 @@ public class MultiWellChannelFilesProviderMolDevSingleSite implements MultiWellC
 	final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
 	final static String NAMING_SCHEME = NamingSchemes.PATTERN_MD_A01_WAVELENGTH;
-	public static final int NAMING_SCHEME_WELL_GROUP = 1;
 
 	final ArrayList< String > wellNames;
 
+	// TODO: merge with multi-site
+	@Deprecated
 	public MultiWellChannelFilesProviderMolDevSingleSite( List< File > files, int[] imageDimensions )
 	{
 		this.files = files;
@@ -37,7 +38,7 @@ public class MultiWellChannelFilesProviderMolDevSingleSite implements MultiWellC
 
 		createImageFileList();
 
-		wellNames = Utils.getWellNames( files, NAMING_SCHEME, NAMING_SCHEME_WELL_GROUP );
+		wellNames = Utils.getWellNames( files, NAMING_SCHEME );
 	}
 
 	public ArrayList< SingleSiteChannelFile > getSingleSiteChannelFiles()
@@ -79,8 +80,7 @@ public class MultiWellChannelFilesProviderMolDevSingleSite implements MultiWellC
 
 		if ( matcher.matches() )
 		{
-			final String well = matcher.group( NAMING_SCHEME_WELL_GROUP );
-			return well;
+			return matcher.group( NamingSchemes.WELL );
 		}
 		else
 		{

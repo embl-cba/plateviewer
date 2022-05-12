@@ -10,31 +10,21 @@ public class MultiWellChannelFilesProviderFactory
 			String namingScheme,
 			int[] imageDimensions )
 	{
-		MultiWellChannelFilesProvider multiWellChannelFilesProvider = null;
-
-		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) || namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) || namingScheme.equals(  NamingSchemes.PATTERN_MD_A01_WAVELENGTH) )
 		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevMultiSite(
-					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH  );
-		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) )
-		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevMultiSite(
-					files, imageDimensions, NamingSchemes.PATTERN_MD_A01_SITE );
+			return new DefaultMultiWellMultiSiteChannelFilesProvider( files, imageDimensions, namingScheme  );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ) )
 		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderScanR( files, imageDimensions );
+			return new MultiWellChannelFilesProviderScanR( files, imageDimensions );
 		}
 		else if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL ) )
 		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderALMFScreening( files, imageDimensions );
+			return new MultiWellChannelFilesProviderALMFScreening( files, imageDimensions );
 		}
-		else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
+		else
 		{
-			multiWellChannelFilesProvider = new MultiWellChannelFilesProviderMolDevSingleSite( files, imageDimensions );
+			return new DefaultMultiWellMultiSiteChannelFilesProvider( files, imageDimensions, namingScheme  );
 		}
-
-		return multiWellChannelFilesProvider;
 	}
 }

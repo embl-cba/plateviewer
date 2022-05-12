@@ -16,12 +16,17 @@ import java.util.regex.Pattern;
 
 public abstract class NamingSchemes
 {
-	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_s(.*)_w([0-9]{1}).*";
-	public static final String PATTERN_MD_A01_SITE = ".*_([A-Z]{1}[0-9]{2})_s([0-9]{1}).*";
-	public static final String PATTERN_MD_A01_WAVELENGTH = ".*_([A-Z]{1}[0-9]{2})_(.*).tif";
-	public static final String PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL = ".*--(.*)--(.*)--W(?<W>[0-9]{4})--P(?<P>[0-9]{3})--T[0-9]{4,5}--Z[0-9]{3}--(?<C>.*)";
-	public static final String PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL = ".*--W([0-9]{5})--P([0-9]{5}).*--.*--(.*)\\..*";
+	public static final String WELL = "W";
+	public static final String SITE = "S";
+	public static final String CHANNEL = "C";
+	
+	public static final String PATTERN_MD_A01_SITE_WAVELENGTH = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">.*)_w(?<"+CHANNEL+">[0-9]{1}).*";
+	public static final String PATTERN_MD_A01_SITE = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_s(?<"+SITE+">[0-9]{1}).*";
+	public static final String PATTERN_MD_A01_WAVELENGTH = ".*_(?<"+WELL+">[A-Z]{1}[0-9]{2})_(?<"+CHANNEL+">.*).tif";
+	public static final String PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL = ".*--(.*)--(.*)--W(?<"+WELL+">[0-9]{4})--P(?<"+SITE+">[0-9]{3})--T[0-9]{4,5}--Z[0-9]{3}--(?<"+CHANNEL+">.*)";
+	public static final String PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL = ".*--W(?<"+WELL+">[0-9]{5})--P(?<"+SITE+">[0-9]{5}).*--.*--(?<"+CHANNEL+">.*)\\..*";
 	public static final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
+	
 
 	public static String getDefaultColumnNameX( List< ? extends TableRow > tableRows )
 	{
@@ -29,8 +34,8 @@ public abstract class NamingSchemes
 
 		if ( columnNames.contains( "n_cells" ) )
 			return "n_cells";
-		else if ( columnNames.contains( "Count_Cells" ) )
-			return "Count_Cells";
+		else if ( columnNames.contains( CHANNEL + "ount_Cells" ) )
+			return CHANNEL + "ount_Cells";
 		else if ( columnNames.contains( "Metadata_WellFolder" ) )
 			return "Metadata_WellFolder";
 		else
@@ -45,8 +50,8 @@ public abstract class NamingSchemes
 			return "score";
 		else if ( columnNames.contains( "Metadata_WellFolder" ) )
 			return "Metadata_WellFolder";
-		else if ( columnNames.contains( "Count_Cells" ) )
-			return "Count_Cells";
+		else if ( columnNames.contains( CHANNEL + "ount_Cells" ) )
+			return CHANNEL + "ount_Cells";
 		else
 			return (String) new ArrayList( columnNames ).get( 1 );
 			//throw new UnsupportedOperationException( "Default column not found!" );
@@ -69,7 +74,7 @@ public abstract class NamingSchemes
 		else if ( Pattern.compile( PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ).matcher( filePath ).matches() )
 			return PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL;
 		else
-			throw new UnsupportedOperationException( "Could not match file name: " + file );
+			throw new UnsupportedOperationException( CHANNEL + "ould not match file name: " + file );
 	}
 
 	public static abstract class BatchLibHdf5
@@ -115,7 +120,7 @@ public abstract class NamingSchemes
 
 	public static abstract class ALMFScreening
 	{
-		public static final String qcColumnName = "QC";
+		public static final String qcColumnName = "Q" + CHANNEL;
 
 		public static final Function< String, Boolean > stringToOutlier = s -> s.equals( "1" ) ? false : true;
 
@@ -142,7 +147,7 @@ public abstract class NamingSchemes
 
 			if ( fileNameColumnName == null )
 			{
-				throw new RuntimeException( "Could not find a column that would allow to construct proper site names." );
+				throw new RuntimeException( CHANNEL + "ould not find a column that would allow to construct proper site names." );
 			}
 			return fileNameColumnName;
 		}

@@ -22,16 +22,19 @@ import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils
 {
-
-	public static final String WELL_PLATE_96 = "96 plate plate";
-	public static final String PATTERN_NO_MATCH = "PATTERN_NO_MATCH";
 	public static final String CAPITAL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	public static final String H5_BYTE = "INTEGER(1)";
@@ -320,7 +323,7 @@ public class Utils
 		return labelRegions;
 	}
 
-	public static ArrayList< String > getWellNames( List< File > files, String namingScheme, int wellGroup )
+	public static ArrayList< String > getWellNames( List< File > files, String namingScheme )
 	{
 		Set< String > wellNameSet = new HashSet<>(  );
 
@@ -330,7 +333,7 @@ public class Utils
 
 			matcher.matches();
 
-			wellNameSet.add(  matcher.group( wellGroup ) );
+			wellNameSet.add(  matcher.group( NamingSchemes.WELL ) );
 		}
 
 		final ArrayList< String > wellNames = new ArrayList<>( wellNameSet );

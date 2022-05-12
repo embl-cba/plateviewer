@@ -20,7 +20,8 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 	final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 	ArrayList< String > wellNames;
 
-	//final String WELL_SITE_CHANNEL_PATTERN = NamingSchemes.PATTERN_ALMF_SCREENING_WELL_SITE_CHANNEL;
+	// TODO: add to constructor
+	//  the issue however is that some of the methods are called statically, which is weird anyway
 	public static String namingScheme = NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL;
 
 	private boolean zeroBasedSites;
@@ -56,7 +57,6 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 		}
 
 		return new ArrayList<>( wellNameSet );
-
 	}
 
 	public static String getWellName( String fileName )
@@ -85,8 +85,8 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 		{
 			String name = matcher.group( 1 );
 			name += "--" + matcher.group( 2 );
-			name += "--W" + matcher.group( 3 );
-			name += "--P" + matcher.group( 4 );
+			name += "--W" + matcher.group( NamingSchemes.WELL );
+			name += "--P" + matcher.group( NamingSchemes.SITE );
 			return name;
 		}
 		else
@@ -162,7 +162,7 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 					Pattern.compile( namingScheme ).matcher( file.getName() );
 
 			if ( matcher.matches() )
-				sites.add( Integer.parseInt( matcher.group( "P" ) ) );
+				sites.add( Integer.parseInt( matcher.group( NamingSchemes.SITE ) ) );
 		}
 
 		return sites;
@@ -179,9 +179,9 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 
 			matcher.matches();
 
-			wells.add( matcher.group( "W" ) );
+			wells.add( matcher.group( NamingSchemes.WELL ) );
 
-			int wellNum = Integer.parseInt( matcher.group( "W" ) );
+			int wellNum = Integer.parseInt( matcher.group( NamingSchemes.WELL ) );
 
 			if ( wellNum > maxWellNum )
 			{
@@ -216,9 +216,9 @@ public class MultiWellChannelFilesProviderALMFScreening implements MultiWellChan
 			int[] wellPosition = new int[ 2 ];
 			int[] sitePosition = new int[ 2 ];
 
-			int wellNum = Integer.parseInt( matcher.group( "W" ) ) - 1;
+			int wellNum = Integer.parseInt( matcher.group( NamingSchemes.WELL ) ) - 1;
 
-			int siteNum = Integer.parseInt( matcher.group( "P" ) );
+			int siteNum = Integer.parseInt( matcher.group( NamingSchemes.SITE ) );
 			if ( ! zeroBasedSites ) siteNum -= 1;
 
 			wellPosition[ 1 ] = wellNum / numWellColumns;

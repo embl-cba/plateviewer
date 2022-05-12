@@ -225,7 +225,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 		behaviours.behaviour( ( ClickBehaviour ) ( x, y ) -> {
 			showPopupMenu( x, y );
-		}, "context menu", "button3", "P" ) ;
+		}, "context menu", "button3", NamingSchemes.SITE ) ;
 	}
 
 	private void showPopupMenu( int x, int y )

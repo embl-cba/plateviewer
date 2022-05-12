@@ -41,19 +41,15 @@ public class Channels
 			{
 				if ( namingScheme.equals( NamingSchemes.PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL ) )
 				{
-					channelPatternSet.add( ".*" + matcher.group( "C" ) );
+					channelPatternSet.add( ".*" + matcher.group( NamingSchemes.CHANNEL ) );
 				}
-				else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ) )
+				else if ( namingScheme.equals( NamingSchemes.PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ) || namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
 				{
-					channelPatternSet.add( ".*" + matcher.group( 3 ) + "\\..*"  );
+					channelPatternSet.add( ".*" + matcher.group( NamingSchemes.CHANNEL ) + "\\..*"  );
 				}
 				else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) )
 				{
-					channelPatternSet.add( ".*_s.*_w" + matcher.group( 3 ) + ".*" );
-				}
-				else if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_WAVELENGTH ) )
-				{
-					channelPatternSet.add( ".*" + matcher.group( 2 ) + "\\..*" );
+					channelPatternSet.add( ".*_s.*_w" + matcher.group( NamingSchemes.CHANNEL ) + ".*" );
 				}
 			}
 		}

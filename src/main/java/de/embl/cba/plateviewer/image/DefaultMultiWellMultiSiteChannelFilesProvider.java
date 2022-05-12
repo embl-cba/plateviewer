@@ -11,7 +11,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellChannelFilesProvider
+import static de.embl.cba.plateviewer.image.NamingSchemes.WELL;
+
+public class DefaultMultiWellMultiSiteChannelFilesProvider implements MultiWellChannelFilesProvider
 {
 	final List< File > files;
 
@@ -22,22 +24,17 @@ public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellCh
 
 	final private ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 	final private ArrayList< String > wellNames;
-
 	final private String namingScheme;
-	public static final int WELL_GROUP = 1;
-	public static final int SITE_GROUP = 2;
 
-	public MultiWellChannelFilesProviderMolDevMultiSite( List< File > files, int[] imageDimensions, String namingScheme )
+	// This assumes an A01 naming scheme for the wells
+	public DefaultMultiWellMultiSiteChannelFilesProvider( List< File > files, int[] imageDimensions, String namingScheme )
 	{
 		this.files = files;
 		this.imageDimensions = imageDimensions;
 		this.namingScheme = namingScheme;
-
 		this.singleSiteChannelFiles = new ArrayList<>();
-
 		setImageSources();
-
-		wellNames = Utils.getWellNames( files, this.namingScheme, WELL_GROUP );
+		wellNames = Utils.getWellNames( files, namingScheme );
 	}
 
 	public ArrayList< SingleSiteChannelFile > getSingleSiteChannelFiles()
@@ -100,7 +97,7 @@ public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellCh
 
 		if ( matcher.matches() )
 		{
-			final String well = matcher.group( WELL_GROUP );
+			final String well = matcher.group( WELL );
 			return well;
 		}
 		else
@@ -115,13 +112,14 @@ public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellCh
 
 		for ( File file : files )
 		{
-			final String pattern = NamingSchemes.getNamingScheme( file );
-
-			final Matcher matcher = Pattern.compile( pattern ).matcher( file.getName() );
+			final Matcher matcher = Pattern.compile( namingScheme ).matcher( file.getName() );
 
 			if ( matcher.matches() )
 			{
-				sites.add( matcher.group( SITE_GROUP ) );
+				if ( matcher.group( NamingSchemes.SITE ) != null )
+					sites.add( matcher.group( NamingSchemes.SITE ) );
+				else
+					break; // naming scheme does not have sites
 			}
 		}
 
@@ -146,7 +144,8 @@ public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellCh
 
 			matcher.matches();
 
-			int[] wellPosition = Utils.getWellPositionFromA01( matcher.group( WELL_GROUP ) );
+			final String well = matcher.group( WELL );
+			int[] wellPosition = Utils.getWellPositionFromA01( well );
 
 			for ( int d = 0; d < wellPosition.length; ++d )
 			{
@@ -168,8 +167,8 @@ public class MultiWellChannelFilesProviderMolDevMultiSite implements MultiWellCh
 
 		if ( matcher.matches() )
 		{
-			int[] wellPosition = Utils.getWellPositionFromA01( matcher.group( WELL_GROUP ) );
-			int[] sitePosition = getSitePositionFromSiteIndex( matcher.group( SITE_GROUP ) );
+			int[] wellPosition = Utils.getWellPositionFromA01( matcher.group( WELL ) );
+			int[] sitePosition = getSitePositionFromSiteIndex( matcher.group( NamingSchemes.SITE ) );
 
 			final FinalInterval interval = Utils.createInterval( wellPosition, sitePosition, siteDimensions, imageDimensions );
 
