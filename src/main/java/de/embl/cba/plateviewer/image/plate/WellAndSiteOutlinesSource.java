@@ -25,10 +25,10 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 {
 	public static final String IMAGE_NAME = "plate outlines";
 	private Interval plateInterval;
-	private RandomAccessibleInterval< FloatType > rai;
+	private RandomAccessibleInterval< UnsignedByteType > rai;
 	private double[] contrastLimits;
 	private final long[] wellDimensions;
-	private RandomAccessibleIntervalSource< FloatType > source;
+	private RandomAccessibleIntervalSource< UnsignedByteType > source;
 	private final double relativeWellBorderWidth;
 	private final long[] siteDimensions;
 	private final double relativeSiteBorderWidth;
@@ -60,14 +60,13 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 
 		};
 
-		final FunctionRandomAccessible< FloatType > randomAccessible =
-				new FunctionRandomAccessible( 2, biConsumer, UnsignedByteType::new );
+		final FunctionRandomAccessible< UnsignedByteType > randomAccessible = new FunctionRandomAccessible( 2, biConsumer, UnsignedByteType::new );
 
 		rai = Views.interval( randomAccessible, plateInterval );
 
 		rai = Views.addDimension( rai, 0, 0 );
 
-		source = new RandomAccessibleIntervalSource<>( rai, Util.getTypeFromInterval( rai ), IMAGE_NAME );
+		source = new RandomAccessibleIntervalSource<>( rai, new UnsignedByteType(), IMAGE_NAME );
 
 		contrastLimits[ 0 ] = 0;
 		contrastLimits[ 1 ] = 255;

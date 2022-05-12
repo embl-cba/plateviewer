@@ -8,7 +8,7 @@
 	</parent>
 
 	<artifactId>plateViewer</artifactId>
-	<version>0.7.2-SNAPSHOT</version>
+	<version>0.7.3-SNAPSHOT</version>
 	<name>Fiji Plugin PlateViewer</name>
 
 	<!-- mvn clean compile -Dmaven.test.skip=true -->
