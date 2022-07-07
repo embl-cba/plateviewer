@@ -193,18 +193,6 @@ public class Utils
 		}
 	}
 
-	public static Double parseDouble( String cell )
-	{
-		Double value;
-		if ( cell.equalsIgnoreCase( "nan" ) ||  cell.equalsIgnoreCase( "na" )  || cell.equals( "" ) )
-			value = Double.NaN;
-		else if ( cell.equalsIgnoreCase( "inf" ) )
-			value = Double.POSITIVE_INFINITY;
-		else
-			value = Double.parseDouble( cell );
-		return value;
-	}
-
 	public static int[] guessWellDimensions( int[] maximalPositionsInData )
 	{
 		int[] wellDimensions = new int[ 2 ];
