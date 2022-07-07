@@ -196,9 +196,9 @@ public class Utils
 	public static Double parseDouble( String cell )
 	{
 		Double value;
-		if ( cell.toLowerCase().equals( "nan" ) || cell.equals( "" ) )
+		if ( cell.equalsIgnoreCase( "nan" ) ||  cell.equalsIgnoreCase( "na" )  || cell.equals( "" ) )
 			value = Double.NaN;
-		else if ( cell.toLowerCase().equals( "inf" ) )
+		else if ( cell.equalsIgnoreCase( "inf" ) )
 			value = Double.POSITIVE_INFINITY;
 		else
 			value = Double.parseDouble( cell );

@@ -11,10 +11,10 @@ import java.io.File;
 @Plugin(type = Command.class, menuPath = "Plugins>PlateViewer>PlateViewer Advanced..." )
 public class PlateViewerAdvancedCommand extends PlateViewerCommand
 {
-	@Parameter (label = "Additional images directory", style = "directory" )
+	@Parameter (label = "Additional images directory", style = "directory", required = false )
 	public File additionalImagesDirectory;
 
-	@Parameter (label = "Images table file", style = "file" )
+	@Parameter (label = "Images table file", style = "file", required = false )
 	public File imageTableFile;
 
 	public void run()
