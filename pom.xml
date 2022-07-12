@@ -72,9 +72,7 @@
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<enforcer.skip>true</enforcer.skip>
-		<!-- EMBL CBA -->
-		<imagej-utils.version>0.6.4</imagej-utils.version>
-		<!-- Other -->
+		<imagej-utils.version>0.6.9-SNAPSHOT</imagej-utils.version>
 		<mongodb-driver-sync.version>4.0.2</mongodb-driver-sync.version>
 	</properties>
 	<repositories>
