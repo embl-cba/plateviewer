@@ -11,13 +11,6 @@ public class DevelopNamingSchemeOperetta
 {
 	public static void main( String[] args )
 	{
-		new DevelopNamingSchemeOperetta().run();
-	}
-
-	@Test
-	public void run()
-	{
-
 		final boolean matches = Pattern.compile( PATTERN_OPERETTA ).matcher( "r01c02f05p01-ch2sk1fk1fl1.tiff" ).matches();
 
 		if ( ! matches )

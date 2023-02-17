@@ -133,6 +133,9 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 		channelNamesToProperties = Channels.getChannels( siteFiles, namingScheme );
 
+		if ( channelNamesToProperties.size() == 0 )
+			throw new RuntimeException("Could not detect any channels!");
+
 		logChannelNames();
 
 		fetchReferenceWellImg( );

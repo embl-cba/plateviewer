@@ -214,12 +214,10 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		setComboBoxDimensions( siteNamesComboBox );
 
-		final ArrayList< String > siteNames = plateViewer.getSiteNames();
-
+		final ArrayList< String > siteNames =  plateViewer.getSiteNames();
+		Collections.sort( siteNames );
 		for ( String siteName : siteNames )
-		{
 			siteNamesComboBox.addItem( siteName );
-		}
 
 		final JButton button = new JButton( "focus");
 		button.addActionListener( e ->
@@ -411,7 +409,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 		final JPanel horizontalLayoutPanel = SwingUtils.horizontalLayoutPanel();
 
-		final JButton action = new JButton( "view");
+		final JButton action = new JButton( "add");
 		action.addActionListener( e ->
 		{
 			SwingUtilities.invokeLater( () ->
