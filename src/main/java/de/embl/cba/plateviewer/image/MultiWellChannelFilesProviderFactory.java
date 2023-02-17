@@ -10,7 +10,7 @@ public class MultiWellChannelFilesProviderFactory
 			String namingScheme,
 			int[] imageDimensions )
 	{
-		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) || namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) || namingScheme.equals(  NamingSchemes.PATTERN_MD_A01_WAVELENGTH) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE_WAVELENGTH ) || namingScheme.equals( NamingSchemes.PATTERN_MD_A01_SITE ) || namingScheme.equals(  NamingSchemes.PATTERN_MD_A01_WAVELENGTH) || namingScheme.equals( NamingSchemes.PATTERN_OPERETTA ))
 		{
 			return new DefaultMultiWellMultiSiteChannelFilesProvider( files, imageDimensions, namingScheme  );
 		}

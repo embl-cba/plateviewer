@@ -421,7 +421,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	public static String determineImageNamingScheme( List< File > fileList )
 	{
-		final String namingScheme = NamingSchemes.getNamingScheme( fileList.get( 0 ) );
+		final String namingScheme = NamingSchemes.fromFile( fileList.get( 0 ) );
 		Utils.log( "Detected naming scheme: " + namingScheme );
 		return namingScheme;
 	}
@@ -565,7 +565,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 		if ( duration == 0 )
 		{
-			bdvHandle.getViewerPanel().setCurrentViewerTransform( affineTransform3D );
+			bdvHandle.getViewerPanel().state().setViewerTransform( affineTransform3D );
 		}
 		else
 		{

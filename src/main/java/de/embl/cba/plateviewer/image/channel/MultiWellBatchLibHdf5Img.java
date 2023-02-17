@@ -97,7 +97,7 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 
 	private void setLutMinMax( IHDF5Reader hdf5Reader )
 	{
-		if ( ! hdf5Reader.hasAttribute( channelName, LUT_MIN_MAX ) ) return;
+		if ( ! hdf5Reader.object().hasAttribute( channelName, LUT_MIN_MAX ) ) return;
 
 		try
 		{

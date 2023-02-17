@@ -148,12 +148,8 @@ public class DefaultMultiWellMultiSiteChannelFilesProvider implements MultiWellC
 			int[] wellPosition = Utils.getWellPositionFromA01( well );
 
 			for ( int d = 0; d < wellPosition.length; ++d )
-			{
 				if ( wellPosition[ d ] > maximalWellPosition[ d ] )
-				{
 					maximalWellPosition[ d ] = wellPosition[ d ];
-				}
-			}
 		}
 
 		return maximalWellPosition;

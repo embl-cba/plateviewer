@@ -237,7 +237,7 @@ public class Tables
 			}
 		}
 
-		if ( hdf5Reader.hasAttribute( "/", "batchlib_commit" ) )
+		if ( hdf5Reader.object().hasAttribute( "/", "batchlib_commit" ) )
 		{
 			final String batchlibCommit = hdf5Reader.string().getAttr( "/", "batchlib_commit" );
 

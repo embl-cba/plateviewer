@@ -26,6 +26,8 @@ public abstract class NamingSchemes
 	public static final String PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL = ".*--(.*)--(.*)--W(?<"+WELL+">[0-9]{4})--P(?<"+SITE+">[0-9]{3})--T[0-9]{4,5}--Z[0-9]{3}--(?<"+CHANNEL+">.*)";
 	public static final String PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL = ".*--W(?<"+WELL+">[0-9]{5})--P(?<"+SITE+">[0-9]{5}).*--.*--(?<"+CHANNEL+">.*)\\..*";
 	public static final String PATTERN_NIKON_TI2_HDF5 = ".*Well([A-Z]{1}[0-9]{2})_Point[A-Z]{1}[0-9]{2}_([0-9]{4})_.*h5$";
+	public static final String PATTERN_OPERETTA = ".*(?<"+WELL+">r[0-9]{2}c[0-9]{2})f(?<"+SITE+">[0-9]{2})p[0-9]{2}.*-ch(?<"+CHANNEL+">[0-9])sk.*.tiff$";
+
 	
 
 	public static String getDefaultColumnNameX( List< ? extends TableRow > tableRows )
@@ -57,7 +59,7 @@ public abstract class NamingSchemes
 			//throw new UnsupportedOperationException( "Default column not found!" );
 	}
 
-	public static String getNamingScheme( File file )
+	public static String fromFile( File file )
 	{
 		String filePath = file.getAbsolutePath();
 
@@ -73,6 +75,8 @@ public abstract class NamingSchemes
 			return PATTERN_ALMF_TREAT1_TREAT2_WELLNUM_POSNUM_CHANNEL;
 		else if ( Pattern.compile( PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL ).matcher( filePath ).matches() )
 			return PATTERN_SCANR_WELLNUM_SITENUM_CHANNEL;
+		else if ( Pattern.compile( PATTERN_OPERETTA ).matcher( filePath ).matches() )
+			return PATTERN_OPERETTA;
 		else
 			throw new UnsupportedOperationException( CHANNEL + "ould not match file name: " + file );
 	}

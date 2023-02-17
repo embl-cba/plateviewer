@@ -71,7 +71,7 @@ public class Channels
 		final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
 		for ( String groupMember : groupMembers )
 		{
-			if ( ! hdf5Reader.hasAttribute( groupMember, MultiWellBatchLibHdf5Img.SKIP ) )
+			if ( ! hdf5Reader.object().hasAttribute( groupMember, MultiWellBatchLibHdf5Img.SKIP ) )
 			{
 				continue;
 			}
