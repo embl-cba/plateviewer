@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>31.1.0</version>
+		<version>33.2.0</version>
 	</parent>
 
 	<artifactId>plateViewer</artifactId>
@@ -72,7 +72,7 @@
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<enforcer.skip>true</enforcer.skip>
-		<imagej-utils.version>0.6.9-SNAPSHOT</imagej-utils.version>
+		<imagej-utils.version>0.6.9</imagej-utils.version>
 		<mongodb-driver-sync.version>4.0.2</mongodb-driver-sync.version>
 	</properties>
 	<repositories>
