@@ -3,6 +3,7 @@ package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.Bdv;
 import bdv.util.BdvOverlay;
+import bdv.viewer.InteractiveDisplayCanvas;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import de.embl.cba.plateviewer.image.cellloader.MultiSiteLoader;
 import net.imglib2.RealPoint;
@@ -18,49 +19,53 @@ import static de.embl.cba.plateviewer.util.Utils.bdvTextOverlayFontSize;
 
 public class SiteAndWellNameOverlay extends BdvOverlay implements MouseMotionListener
 {
-	final int numDimensions;
-	final Bdv bdv;
+	private final int numDimensions;
+	private final Bdv bdv;
 	final MultiSiteLoader multiSiteLoader;
-	private final AffineTransform3D affineTransform3D;
 	private String wellName;
 	private String siteName;
+	private final RealPoint globalMouseCoordinates;
+	private final AffineTransform3D sourceToViewerTransform;
+	private final double[] sourceCoordinates;
+	private final int distanceToWindowBottom;
+	private final Font font;
+	private final InteractiveDisplayCanvas display;
 
-	public SiteAndWellNameOverlay( Bdv bdv, MultiSiteLoader multiSiteLoader, AffineTransform3D affineTransform3D )
+	public SiteAndWellNameOverlay( Bdv bdv, MultiSiteLoader multiSiteLoader )
 	{
 		super();
 		this.bdv = bdv;
 		this.multiSiteLoader = multiSiteLoader;
-		this.affineTransform3D = affineTransform3D;
 		this.numDimensions = 2;
 
-		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );
+		display = bdv.getBdvHandle().getViewerPanel().getDisplay();
+		display.addMouseMotionListener( this );
 
 		wellName = "";
 		siteName = "";
+		globalMouseCoordinates = new RealPoint( 3 );
+		sourceToViewerTransform = new AffineTransform3D();
+		sourceCoordinates = new double[ 3 ];
+
+		font = new Font( "Monospaced", Font.PLAIN, bdvTextOverlayFontSize );
+		distanceToWindowBottom = 1 * ( bdvTextOverlayFontSize + 5 );
 	}
 
 	@Override
 	protected void draw( final Graphics2D g )
 	{
 		g.setColor( Color.WHITE );
+		g.setFont( font );
 
-		int fontSize = bdvTextOverlayFontSize;
+		final int bdvWindowHeight = display.getHeight();
+		final int bdvWindowWidth = display.getWidth();
 
-		g.setFont( new Font("TimesRoman", Font.PLAIN, fontSize ) );
-
-		int bdvWindowHeight = bdv.getBdvHandle().getViewerPanel().getDisplay().getHeight();
-		int bdvWindowWidth = bdv.getBdvHandle().getViewerPanel().getDisplay().getWidth();
-
-		int distanceToWindowBottom = 2 * ( fontSize + 5 );
-
-		g.drawString( wellName,
-				bdvWindowWidth / 5,
-				bdvWindowHeight - distanceToWindowBottom  );
-
-		distanceToWindowBottom = 1 * ( fontSize + 5 );
+		//g.drawString( wellName,
+		//		bdvWindowWidth - bdvWindowWidth / 2,
+		//		bdvWindowHeight - distanceToWindowBottom - bdvTextOverlayFontSize  );
 
 		g.drawString( siteName,
-				bdvWindowWidth / 5,
+				bdvWindowWidth - bdvWindowWidth / 2,
 				bdvWindowHeight - distanceToWindowBottom );
 	}
 
@@ -72,31 +77,31 @@ public class SiteAndWellNameOverlay extends BdvOverlay implements MouseMotionLis
 
 	private long[] getArrayCoordinates( RealPoint globalMouseCoordinates )
 	{
-		final double[] arrayCoordinates = new double[ 3 ];
-		sourceTransform.inverse().apply( globalMouseCoordinates.positionAsDoubleArray(), arrayCoordinates );
-		final long[] longs = Arrays.stream( arrayCoordinates ).mapToLong( x -> ( long ) x ).toArray();
-		return longs;
+		getCurrentTransform3D( sourceToViewerTransform );
+		sourceTransform.inverse().apply( globalMouseCoordinates.positionAsDoubleArray(), sourceCoordinates );
+		return Arrays.stream( sourceCoordinates ).mapToLong( x -> ( long ) x ).toArray();
 	}
 
 	@Override
 	public void mouseMoved( MouseEvent e )
 	{
-		RealPoint globalMouseCoordinates = new RealPoint( 3 );
 		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalMouseCoordinates );
 
-		final long[] coordinates = getArrayCoordinates( globalMouseCoordinates );
+		getCurrentTransform3D( sourceToViewerTransform );
+		sourceTransform.inverse().apply( globalMouseCoordinates.positionAsDoubleArray(), sourceCoordinates );
+		final long[] longs = Arrays.stream( sourceCoordinates ).mapToLong( x -> ( long ) x ).toArray();
 
-		final SingleSiteChannelFile singleSiteChannelFile = multiSiteLoader.getSingleSiteFile( coordinates );
-		if ( singleSiteChannelFile != null )
-		{
-			wellName = singleSiteChannelFile.getWellName() + " " + singleSiteChannelFile.getWellInformation();
-			siteName = singleSiteChannelFile.getSiteName() + " " + singleSiteChannelFile.getSiteInformation();
-		}
-		else
+		final SingleSiteChannelFile singleSiteChannelFile = multiSiteLoader.getSingleSiteFile( longs );
+
+		if ( singleSiteChannelFile == null )
 		{
 			wellName = "";
 			siteName = "";
+			return;
 		}
+
+		wellName = singleSiteChannelFile.getWellName() + " " + singleSiteChannelFile.getWellInformation();
+		siteName = singleSiteChannelFile.getSiteName() + " " + singleSiteChannelFile.getSiteInformation();
 	}
 }
 

@@ -408,15 +408,14 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		//
 		BdvOverlay bdvOverlay = new SiteAndWellNameOverlay(
 				bdvHandle,
-				multiWellSource.getLoader(),
-				sourceTransform );
+				multiWellSource.getLoader() );
 
 		overlays.add( bdvOverlay );
 
 		BdvFunctions.showOverlay(
 				bdvOverlay,
 				"site and plate information",
-				BdvOptions.options().addTo( bdvHandle ) );
+				BdvOptions.options().addTo( bdvHandle ).sourceTransform( getSourceTransform() ) );
 	}
 
 	private void addWellNamesOverlay()

@@ -58,11 +58,8 @@ public abstract class MultiSiteLoader implements CellLoader
 	{
 		final Point point = new Point( coordinates[ 0 ], coordinates[ 1 ] );
 		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
-		{
-			FinalInterval interval = singleSiteChannelFile.getInterval();
-			if ( Intervals.contains( interval, point ) )
-					return singleSiteChannelFile;
-		}
+			if ( Intervals.contains( singleSiteChannelFile.getInterval(), point ) )
+				return singleSiteChannelFile;
 
 		return null;
 	}
