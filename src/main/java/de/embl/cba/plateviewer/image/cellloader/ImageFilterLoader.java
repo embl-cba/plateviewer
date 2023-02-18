@@ -2,8 +2,8 @@ package de.embl.cba.plateviewer.image.cellloader;
 
 
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
-import de.embl.cba.plateviewer.bdv.TextOverlay;
+import de.embl.cba.plateviewer.image.plate.VolatileTextOverlay;
+import de.embl.cba.plateviewer.image.plate.TextOverlay;
 import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.filter.FastFilters;
 import de.embl.cba.plateviewer.filter.ImageFilter;
@@ -41,7 +41,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 
 		if ( settings.filterType.equals( ImageFilter.SIMPLE_SEGMENTATION ) )
 		{
-			bdvOverlay = new BdvVolatileTextOverlay();
+			bdvOverlay = new VolatileTextOverlay();
 		}
 
 	}
@@ -90,7 +90,7 @@ public class ImageFilterLoader < T extends NativeType< T > & RealType< T > > imp
 
 		int numValidObjects = paintValidObjectsIntoCell( cell, labelRegions, settings.minObjectSize );
 
-		((BdvVolatileTextOverlay)bdvOverlay).addTextOverlay(
+		(( VolatileTextOverlay )bdvOverlay).addTextOverlay(
 				new TextOverlay(
 						"" + numValidObjects,
 						Utils.getCenter( cell ),

@@ -12,12 +12,12 @@ import net.imglib2.type.numeric.ARGBType;
 
 import java.awt.*;
 
-public class OverlayBdvViewable extends AbstractBdvViewable
+public class BdvViewableOverlay extends AbstractBdvViewable
 {
 	private final BdvOverlay overlay;
 	private final String name;
 
-	public OverlayBdvViewable( BdvOverlay overlay, String name )
+	public BdvViewableOverlay( BdvOverlay overlay, String name )
 	{
 		this.overlay = overlay;
 		this.name = name;

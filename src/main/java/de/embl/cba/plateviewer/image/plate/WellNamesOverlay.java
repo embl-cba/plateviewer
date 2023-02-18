@@ -2,9 +2,8 @@ package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.util.Utils;
-import de.embl.cba.plateviewer.PlateViewer;
 import net.imglib2.Interval;
-import net.imglib2.realtransform.AffineTransform2D;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Intervals;
 
 import java.awt.*;
@@ -12,12 +11,12 @@ import java.util.Map;
 
 public class WellNamesOverlay extends BdvOverlay
 {
-	private final PlateViewer< ?, ? > plateViewer;
+	private Map< String, Interval > wellNameToInterval;
 
-	public WellNamesOverlay( PlateViewer< ?, ? > plateViewer )
+	public WellNamesOverlay( Map< String, Interval > wellNameToInterval )
 	{
 		super();
-		this.plateViewer = plateViewer;
+		this.wellNameToInterval = wellNameToInterval;
 	}
 
 	@Override
@@ -25,16 +24,14 @@ public class WellNamesOverlay extends BdvOverlay
 	{
 		g.setColor( Color.WHITE );
 
-		final AffineTransform2D globalToViewerTransform = new AffineTransform2D();
-		getCurrentTransform2D( globalToViewerTransform );
-
-		final Map< String, Interval > wellNameToInterval = plateViewer.getWellNameToInterval();
+		final AffineTransform3D sourceToViewerTransform = new AffineTransform3D();
+		getCurrentTransform3D( sourceToViewerTransform );
 
 		for ( String wellName : wellNameToInterval.keySet() )
 		{
-			final Interval globalInterval = wellNameToInterval.get( wellName );
+			final Interval wellInterval = wellNameToInterval.get( wellName );
 
-			final Interval viewerInterval = Utils.createViewerInterval( globalToViewerTransform, globalInterval );
+			final Interval viewerInterval = Utils.toViewerInterval( wellInterval, sourceToViewerTransform );
 
 			final int[] dimensions = Intervals.dimensionsAsIntArray( viewerInterval );
 			Utils.setFont( g, dimensions, wellName );

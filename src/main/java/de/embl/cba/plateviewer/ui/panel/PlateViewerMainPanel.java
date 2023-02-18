@@ -9,7 +9,7 @@ import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.plateviewer.screenshot.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.filter.ImageFilter;
 import de.embl.cba.plateviewer.filter.ImageFilterSettings;
-import de.embl.cba.plateviewer.image.channel.MultiWellImg;
+import de.embl.cba.plateviewer.image.channel.MultiWellSource;
 import de.embl.cba.tables.SwingUtils;
 import net.imglib2.Volatile;
 import net.imglib2.cache.img.CachedCellImg;
@@ -187,7 +187,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 	{
 		imagesSourcesComboBox.removeAllItems();
 
-		for( MultiWellImg img : plateViewer.getChannelToMultiWellImg().values() )
+		for( MultiWellSource img : plateViewer.getChannelToMultiWellImg().values() )
 		{
 			imagesSourcesComboBox.addItem( img.getName() );
 		}
@@ -297,9 +297,9 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 				new Thread( () ->
 				{
 					// TODO: Why is this not a Bdviewable?
-					final Map< String, MultiWellImg< ? > > channelToMultiWellImg = plateViewer.getChannelToMultiWellImg();
+					final Map< String, MultiWellSource< ? > > channelToMultiWellImg = plateViewer.getChannelToMultiWellImg();
 
-					final MultiWellImg inputSource = channelToMultiWellImg.get( imagesSourcesComboBox.getSelectedItem() );
+					final MultiWellSource inputSource = channelToMultiWellImg.get( imagesSourcesComboBox.getSelectedItem() );
 
 					ImageFilterSettings settings = configureImageFilterSettings( inputSource );
 					settings = getImageFilterSettingsFromUI( settings );
@@ -328,7 +328,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 							bdvOverlaySource = addToViewer( settings, imageFilter.getBdvOverlay(), imageFilterSourceName );
 					}
 
-					final MultiWellImg filteredImg =
+					final MultiWellSource filteredImg =
 							new MultiWellFilteredImg(
 									filterImg,
 									imageFilterSourceName,
@@ -349,7 +349,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 
 	}
 
-	public ImageFilterSettings configureImageFilterSettings( MultiWellImg inputSource )
+	public ImageFilterSettings configureImageFilterSettings( MultiWellSource inputSource )
 	{
 		ImageFilterSettings settings = new ImageFilterSettings( previousImageFilterSettings );
 		settings.filterType = (String) imageFiltersComboBox.getSelectedItem();

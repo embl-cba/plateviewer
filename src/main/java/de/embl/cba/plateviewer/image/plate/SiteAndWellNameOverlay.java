@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.bdv;
+package de.embl.cba.plateviewer.image.plate;
 
 
 import bdv.util.Bdv;
@@ -6,29 +6,31 @@ import bdv.util.BdvOverlay;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import de.embl.cba.plateviewer.image.cellloader.MultiSiteLoader;
 import net.imglib2.RealPoint;
+import net.imglib2.realtransform.AffineTransform3D;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.*;
+import java.util.Arrays;
 
 import static de.embl.cba.plateviewer.util.Utils.bdvTextOverlayFontSize;
 
 
-public class BdvSiteAndWellInformationOverlay extends BdvOverlay implements MouseMotionListener
+public class SiteAndWellNameOverlay extends BdvOverlay implements MouseMotionListener
 {
 	final int numDimensions;
 	final Bdv bdv;
 	final MultiSiteLoader multiSiteLoader;
+	private final AffineTransform3D affineTransform3D;
 	private String wellName;
 	private String siteName;
 
-	public BdvSiteAndWellInformationOverlay(
-			Bdv bdv,
-			MultiSiteLoader multiSiteLoader )
+	public SiteAndWellNameOverlay( Bdv bdv, MultiSiteLoader multiSiteLoader, AffineTransform3D affineTransform3D )
 	{
 		super();
 		this.bdv = bdv;
 		this.multiSiteLoader = multiSiteLoader;
+		this.affineTransform3D = affineTransform3D;
 		this.numDimensions = 2;
 
 		bdv.getBdvHandle().getViewerPanel().getDisplay().addMouseMotionListener( this );
@@ -68,16 +70,12 @@ public class BdvSiteAndWellInformationOverlay extends BdvOverlay implements Mous
 	{
 	}
 
-	public static long[] getCoordinate2D( RealPoint globalMouseCoordinates )
+	private long[] getArrayCoordinates( RealPoint globalMouseCoordinates )
 	{
-		long[] xyCoordinate = new long[ 2 ];
-
-		for( int d = 0; d < xyCoordinate.length; ++d )
-		{
-			xyCoordinate[ d ] = ( long ) Math.ceil( globalMouseCoordinates.getDoublePosition( d ) );
-		}
-
-		return xyCoordinate;
+		final double[] arrayCoordinates = new double[ 3 ];
+		sourceTransform.inverse().apply( globalMouseCoordinates.positionAsDoubleArray(), arrayCoordinates );
+		final long[] longs = Arrays.stream( arrayCoordinates ).mapToLong( x -> ( long ) x ).toArray();
+		return longs;
 	}
 
 	@Override
@@ -86,9 +84,9 @@ public class BdvSiteAndWellInformationOverlay extends BdvOverlay implements Mous
 		RealPoint globalMouseCoordinates = new RealPoint( 3 );
 		bdv.getBdvHandle().getViewerPanel().getGlobalMouseCoordinates( globalMouseCoordinates );
 
-		final long[] coordinate2D = getCoordinate2D( globalMouseCoordinates );
+		final long[] coordinates = getArrayCoordinates( globalMouseCoordinates );
 
-		final SingleSiteChannelFile singleSiteChannelFile = multiSiteLoader.getChannelSource( coordinate2D );
+		final SingleSiteChannelFile singleSiteChannelFile = multiSiteLoader.getSingleSiteFile( coordinates );
 		if ( singleSiteChannelFile != null )
 		{
 			wellName = singleSiteChannelFile.getWellName() + " " + singleSiteChannelFile.getWellInformation();

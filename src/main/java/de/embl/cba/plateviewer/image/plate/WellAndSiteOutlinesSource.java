@@ -7,10 +7,12 @@ import de.embl.cba.bdv.utils.sources.Metadata;
 import de.embl.cba.plateviewer.image.channel.AbstractBdvViewable;
 import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.tables.color.ColorUtils;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.Interval;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.position.FunctionRandomAccessible;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -32,14 +34,16 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 	private final double relativeWellBorderWidth;
 	private final long[] siteDimensions;
 	private final double relativeSiteBorderWidth;
+	private VoxelDimensions voxelDimensions;
 
-	public WellAndSiteOutlinesSource( PlateViewer imageView, double relativeWellBorderWidth, double relativeSiteBorderWidth )
+	public WellAndSiteOutlinesSource( PlateViewer plateViewer, double relativeWellBorderWidth, double relativeSiteBorderWidth )
 	{
-		this.wellDimensions = imageView.getWellDimensions();
-		this.siteDimensions = imageView.getSiteDimensions();
+		wellDimensions = plateViewer.getWellDimensions();
+		siteDimensions = plateViewer.getSiteDimensions();
+		voxelDimensions = plateViewer.getVoxelDimensions();
 		this.relativeWellBorderWidth = relativeWellBorderWidth;
 		this.relativeSiteBorderWidth = relativeSiteBorderWidth;
-		this.plateInterval = Intervals.expand( imageView.getPlateInterval(),
+		plateInterval = Intervals.expand( plateViewer.getPlateInterval(),
 				(int) ( wellDimensions[ 0 ] * relativeWellBorderWidth ) );
 		contrastLimits = new double[ 2 ];
 		createBordersImage();
@@ -65,7 +69,9 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 
 		rai = Views.addDimension( rai, 0, 0 );
 
-		source = new RandomAccessibleIntervalSource<>( rai, new UnsignedByteType(), IMAGE_NAME );
+		final AffineTransform3D sourceTransform = new AffineTransform3D();
+		sourceTransform.scale( voxelDimensions.dimension( 0 ), voxelDimensions.dimension( 1 ), voxelDimensions.dimension(2) );
+		source = new RandomAccessibleIntervalSource<>( rai, new UnsignedByteType(), sourceTransform, IMAGE_NAME );
 
 		contrastLimits[ 0 ] = 0;
 		contrastLimits[ 1 ] = 255;
@@ -104,6 +110,7 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 	}
 
 	@Override
+	@Deprecated // use getSource()
 	public RandomAccessibleInterval< ? > getRAI()
 	{
 		return rai;

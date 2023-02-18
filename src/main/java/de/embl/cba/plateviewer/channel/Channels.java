@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.channel;
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
 import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
+import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Source;
 
 import java.io.File;
 import java.util.*;
@@ -76,12 +76,12 @@ public class Channels
 		final List< String > groupMembers = hdf5Reader.getGroupMembers( "/" );
 		for ( String groupMember : groupMembers )
 		{
-			if ( ! hdf5Reader.object().hasAttribute( groupMember, MultiWellBatchLibHdf5Img.SKIP ) )
+			if ( ! hdf5Reader.object().hasAttribute( groupMember, MultiWellBatchLibHdf5Source.SKIP ) )
 			{
 				continue;
 			}
 
-			final boolean skip = hdf5Reader.bool().getAttr( groupMember, MultiWellBatchLibHdf5Img.SKIP );
+			final boolean skip = hdf5Reader.bool().getAttr( groupMember, MultiWellBatchLibHdf5Source.SKIP );
 
 			if ( skip )
 			{
@@ -89,7 +89,7 @@ public class Channels
 			}
 
 
-			final boolean visible = hdf5Reader.bool().getAttr( groupMember, MultiWellBatchLibHdf5Img.VISIBLE );
+			final boolean visible = hdf5Reader.bool().getAttr( groupMember, MultiWellBatchLibHdf5Source.VISIBLE );
 
 			final ChannelProperties properties = new ChannelProperties( groupMember, groupMember, visible );
 

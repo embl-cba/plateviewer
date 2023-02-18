@@ -10,7 +10,7 @@ import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.bdv.*;
+import de.embl.cba.plateviewer.image.plate.SiteAndWellNameOverlay;
 import de.embl.cba.plateviewer.channel.ChannelProperties;
 import de.embl.cba.plateviewer.channel.Channels;
 import de.embl.cba.plateviewer.github.SiteIssueRaiser;
@@ -19,7 +19,7 @@ import de.embl.cba.plateviewer.image.channel.BdvViewable;
 import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
 import de.embl.cba.plateviewer.image.plate.QCOverlay;
 import de.embl.cba.plateviewer.image.plate.WellAndSiteOutlinesSource;
-import de.embl.cba.plateviewer.image.plate.OverlayBdvViewable;
+import de.embl.cba.plateviewer.image.plate.BdvViewableOverlay;
 import de.embl.cba.plateviewer.image.plate.WellNamesOverlay;
 import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import de.embl.cba.plateviewer.io.FileUtils;
@@ -29,7 +29,7 @@ import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
 import de.embl.cba.plateviewer.ui.CellFeatureDialog;
 import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.*;
-import de.embl.cba.plateviewer.image.channel.MultiWellImg;
+import de.embl.cba.plateviewer.image.channel.MultiWellSource;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import de.embl.cba.plateviewer.ui.panel.PlateViewerMainPanel;
 import de.embl.cba.swing.PopupMenu;
@@ -43,6 +43,7 @@ import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
@@ -90,8 +91,8 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 	private final boolean includeSubFolders;
 	private BdvSource dummySource;
 	private List< File > siteFiles;
-	private Map< String, MultiWellImg< ? > > channelToMultiWellImg;
-	private MultiWellImg referenceWellImg;
+	private Map< String, MultiWellSource< ? > > channelToMultiWellSource;
+	private MultiWellSource referenceWellImg;
 	private Map< String, ChannelProperties > channelNamesToProperties;
 	private Set< BdvOverlay > overlays;
 	private Map< String, BdvViewable > nameToBdvViewable;
@@ -100,6 +101,8 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 	private BatchLibHdf5CellFeatureProvider cellFeatureProvider;
 	private CellFeatureDialog cellFeatureDialog;
 	private ArrayList< String > inputDirectories;
+	private VoxelDimensions voxelDimensions;
+	private AffineTransform3D sourceTransform;
 
 	public PlateViewer( String inputDirectory, String filterPattern, int numIoThreads )
 	{
@@ -111,7 +114,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		plateName = new File( inputDirectory ).getName();
 		this.filterPattern = filterPattern;
 		this.includeSubFolders = includeSubFolders;
-		channelToMultiWellImg = new HashMap<>();
+		channelToMultiWellSource = new HashMap<>();
 		nameToBdvViewable = new HashMap<>();
 		inputDirectories = new ArrayList<>();
 		inputDirectories.add( inputDirectory );
@@ -138,7 +141,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 		logChannelNames();
 
-		fetchReferenceWellImg( );
+		createReferenceWellSource( );
 
 		initMainPanel();
 
@@ -399,13 +402,14 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		return namingScheme;
 	}
 
-	private void addWellAndSiteInformationOverlay( MultiWellImg multiWellImg )
+	private void addWellAndSiteInformationOverlay( MultiWellSource multiWellSource )
 	{
 		// Add overlay showing the site and well information in the bottom
 		//
-		BdvOverlay bdvOverlay = new BdvSiteAndWellInformationOverlay(
+		BdvOverlay bdvOverlay = new SiteAndWellNameOverlay(
 				bdvHandle,
-				multiWellImg.getLoader() );
+				multiWellSource.getLoader(),
+				sourceTransform );
 
 		overlays.add( bdvOverlay );
 
@@ -417,9 +421,9 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	private void addWellNamesOverlay()
 	{
-		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( this );
+		final WellNamesOverlay wellNamesOverlay = new WellNamesOverlay( wellNameToInterval );
 		this.overlays.add( wellNamesOverlay  );
-		addToPanelAndBdv( new OverlayBdvViewable( wellNamesOverlay, "well names" ) );
+		addToPanelAndBdv( new BdvViewableOverlay( wellNamesOverlay, "well names" ) );
 	}
 
 	public static String determineImageNamingScheme( List< File > fileList )
@@ -444,7 +448,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		Utils.log( "Number of files: " + files.size() );
 	}
 
-	public void fetchReferenceWellImg( )
+	public void createReferenceWellSource( )
 	{
 		for ( ChannelProperties properties : channelNamesToProperties.values() )
 		{
@@ -454,7 +458,9 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 				referenceWellImg.setInitiallyVisible( true );
 
-				channelToMultiWellImg.put( properties.name, referenceWellImg );
+				channelToMultiWellSource.put( properties.name, referenceWellImg );
+
+				voxelDimensions = referenceWellImg.getSource().getVoxelDimensions();
 
 				return;
 			}
@@ -473,7 +479,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 	}
 
 
-	public void setSiteDimensions( MultiWellImg wellImg )
+	public void setSiteDimensions( MultiWellSource wellImg )
 	{
 		siteDimensions = new long[ 2 ];
 		wellImg.getLoader().getSingleSiteChannelFiles().get( 0 ).getInterval().dimensions( siteDimensions );
@@ -484,19 +490,19 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		return siteDimensions;
 	}
 
-	public void setPlateInterval( MultiWellImg wellImg )
+	public void setPlateInterval( MultiWellSource wellImg )
 	{
 		plateInterval = wellImg.getRAI();
 	}
 
 	// TODO: base this on the list of sites rather than the multiWellImg?
-	public void mapSiteNamesToIntervals( MultiWellImg multiWellImg )
+	public void mapSiteNamesToIntervals( MultiWellSource multiWellSource )
 	{
 		siteNameToInterval = new HashMap<>();
 		intervalToSiteName = new HashMap<>();
 
 		final ArrayList< SingleSiteChannelFile > siteChannelFiles =
-				multiWellImg.getLoader().getSingleSiteChannelFiles();
+				multiWellSource.getLoader().getSingleSiteChannelFiles();
 
 		for ( SingleSiteChannelFile channelFile : siteChannelFiles )
 		{
@@ -512,33 +518,26 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		}
 	}
 
-	public void mapWellNamesToIntervals( MultiWellImg< R > multiWellImg )
+	public void mapWellNamesToIntervals( MultiWellSource< R > multiWellSource )
 	{
 		wellNameToInterval = new HashMap<>();
 		intervalToWellName = new HashMap<>();
 
 		final ArrayList< SingleSiteChannelFile > singleSiteChannelFiles =
-				multiWellImg.getLoader().getSingleSiteChannelFiles();
+				multiWellSource.getLoader().getSingleSiteChannelFiles();
 
-		final ArrayList< String > wellNames = multiWellImg.getWellNames();
+		final ArrayList< String > wellNames = multiWellSource.getWellNames();
 
 		for ( String wellName : wellNames )
 		{
 			FinalInterval union = null;
 
 			for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
-			{
 				if ( singleSiteChannelFile.getWellName().equals( wellName ) )
-				{
 					if ( union == null )
-					{
 						union = new FinalInterval( singleSiteChannelFile.getInterval() );
-					} else
-					{
+					else
 						union = Intervals.union( singleSiteChannelFile.getInterval(), union );
-					}
-				}
-			}
 
 			wellNameToInterval.put( wellName, union );
 			intervalToWellName.put( union, wellName );
@@ -670,7 +669,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	public boolean isImageExisting ( final SingleCellArrayImg< R, ? > cell )
 	{
-		final SingleSiteChannelFile imageFile = referenceWellImg.getLoader().getChannelSource( cell );
+		final SingleSiteChannelFile imageFile = referenceWellImg.getLoader().getSingleSiteFile( cell );
 
 		if ( imageFile != null ) return true;
 		else return false;
@@ -761,9 +760,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		if ( nameToBdvViewable.containsKey( bdvViewable.getName() ) ) return;
 
 		if ( bdvHandle == null )
-		{
 			dummySource = initBdvAndBehaviours();
-		}
 
 		BdvSource bdvSource = addToBdv( bdvViewable );
 
@@ -804,7 +801,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 			return BdvFunctions.showOverlay(
 					bdvViewable.getOverlay(),
 					bdvViewable.getName(),
-					BdvOptions.options().addTo( bdvHandle ) );
+					BdvOptions.options().addTo( bdvHandle ).sourceTransform( getSourceTransform() ) );
 		}
 		else if ( bdvViewable.getSource() != null )
 		{
@@ -850,34 +847,6 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 					bdvViewable.getName(),
 					BdvOptions.options().addTo( bdvHandle ) );
 		}
-	}
-
-	private void showImageName ( )
-	{
-		final long[] coordinates = getMouseCoordinates();
-
-		final SingleSiteChannelFile singleSiteChannelFile = referenceWellImg.getLoader().getChannelSource( coordinates );
-
-		if ( singleSiteChannelFile != null )
-		{
-			Utils.log( singleSiteChannelFile.getFile().getName() );
-		}
-	}
-
-	private long[] getMouseCoordinates ( )
-	{
-		final RealPoint position = new RealPoint( 3 );
-
-		bdvHandle.getViewerPanel().getGlobalMouseCoordinates( position );
-
-		long[] cellPos = new long[ 2 ];
-
-		for ( int d = 0; d < 2; ++d )
-		{
-			cellPos[ d ] = ( long ) ( position.getDoublePosition( d ) );
-		}
-
-		return cellPos;
 	}
 
 	public void addAnnotatedSiteIntervals(
@@ -936,7 +905,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 			@Override
 			public void focusEvent( T selection )
 			{
-				final SingleSiteChannelFile singleSiteChannelFile = referenceWellImg.getLoader().getChannelSource( selection.getName() );
+				final SingleSiteChannelFile singleSiteChannelFile = referenceWellImg.getLoader().getSingleSiteFile( selection.getName() );
 
 				if ( singleSiteChannelFile == null )
 				{
@@ -962,52 +931,69 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 	{
 		final QCOverlay overlay = new QCOverlay( intervals );
 		overlays.add( overlay );
-		addToPanelAndBdv( new OverlayBdvViewable( overlay, name ) );
+		addToPanelAndBdv( new BdvViewableOverlay( overlay, name ) );
 	}
 
 	public void addToPanelAndBdv( String channel )
 	{
-		MultiWellImg multiWellImg = getMultiWellImg( channel );
+		MultiWellSource multiWellSource = getMultiWellImg( channel );
 
-		multiWellImg.setInitiallyVisible( true );
+		multiWellSource.setInitiallyVisible( true );
 
-		addToPanelAndBdv( multiWellImg );
+		addToPanelAndBdv( multiWellSource );
 	}
 
-	public MultiWellImg getMultiWellImg( String channel )
+	public MultiWellSource getMultiWellImg( String channel )
 	{
-		if ( channelToMultiWellImg.containsKey( channel ) )
+		if ( channelToMultiWellSource.containsKey( channel ) )
 		{
-			return channelToMultiWellImg.get( channel );
+			return channelToMultiWellSource.get( channel );
 		}
 		else
 		{
-			MultiWellImg multiWellImg = createMultiWellImg( channel );
-			channelToMultiWellImg.put( channel, multiWellImg );
-			return  multiWellImg;
+			MultiWellSource multiWellSource = createMultiWellImg( channel );
+			channelToMultiWellSource.put( channel, multiWellSource );
+			return multiWellSource;
 		}
 	}
 
-	public MultiWellImg createMultiWellImg( String channel )
+	public MultiWellSource createMultiWellImg( String channel )
 	{
 		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 			// All channels are in the same files, thus we do not have to fetch them again.
 			return MultiWellImgCreator.createFromChannelFiles( referenceWellImg.getChannelFiles(), namingScheme, channel );
-		} else
+		}
+		else
 		{
 			return MultiWellImgCreator.create( siteFiles, namingScheme, channel );
 		}
 	}
 
-	public Map< String, MultiWellImg< ? > > getChannelToMultiWellImg()
+	public Map< String, MultiWellSource< ? > > getChannelToMultiWellImg()
 	{
-		return channelToMultiWellImg;
+		return channelToMultiWellSource;
 	}
 
 	public void setCellFeatureProvider( BatchLibHdf5CellFeatureProvider cellFeatureProvider )
 	{
 		this.cellFeatureProvider = cellFeatureProvider;
 		cellFeatureDialog = new CellFeatureDialog( cellFeatureProvider );
+	}
+
+	public VoxelDimensions getVoxelDimensions()
+	{
+		return voxelDimensions;
+	}
+
+	public AffineTransform3D getSourceTransform()
+	{
+		if ( sourceTransform == null )
+		{
+			sourceTransform = new AffineTransform3D();
+			channelToMultiWellSource.values().iterator().next().getSource().getSourceTransform( 0, 0, sourceTransform );
+		}
+
+		return sourceTransform.copy();
 	}
 }

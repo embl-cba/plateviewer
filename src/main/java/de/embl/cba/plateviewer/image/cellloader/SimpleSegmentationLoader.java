@@ -3,9 +3,9 @@ package de.embl.cba.plateviewer.image.cellloader;
 
 import bdv.util.*;
 import de.embl.cba.plateviewer.util.Utils;
-import de.embl.cba.plateviewer.bdv.BdvVolatileTextOverlay;
-import de.embl.cba.plateviewer.bdv.TextOverlay;
-import de.embl.cba.plateviewer.image.channel.MultiWellImg;
+import de.embl.cba.plateviewer.image.plate.VolatileTextOverlay;
+import de.embl.cba.plateviewer.image.plate.TextOverlay;
+import de.embl.cba.plateviewer.image.channel.MultiWellSource;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -22,29 +22,29 @@ import java.awt.*;
 
 public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T > > implements CellLoader< UnsignedByteType >
 {
-	final MultiWellImg multiWellImg;
+	final MultiWellSource multiWellSource;
 	final RandomAccessibleInterval< T > input;
 	final double realThreshold;
 	final Bdv bdv;
-	final BdvVolatileTextOverlay volatileTextBdvOverlay;
+	final VolatileTextOverlay volatileTextBdvOverlay;
 	final BdvOverlaySource< BdvOverlay > objectNumberBdvOverlay;
 	private final long minSize;
 	public static final UnsignedByteType ONE = new UnsignedByteType( 255 );
 	public static final UnsignedByteType ZERO = new UnsignedByteType( 0 );
 
 	public SimpleSegmentationLoader(
-			MultiWellImg multiWellImg,
+			MultiWellSource multiWellSource,
 			RandomAccessibleInterval< T > input,
 			final double realThreshold,
 			long minSize,
 			final Bdv bdv )
 	{
-		this.multiWellImg = multiWellImg;
+		this.multiWellSource = multiWellSource;
 		this.input = input;
 		this.realThreshold = realThreshold;
 		this.bdv = bdv;
 		this.minSize = minSize;
-		this.volatileTextBdvOverlay = new BdvVolatileTextOverlay();
+		this.volatileTextBdvOverlay = new VolatileTextOverlay();
 		this.objectNumberBdvOverlay = BdvFunctions.showOverlay( volatileTextBdvOverlay, "overlay", BdvOptions.options().addTo( bdv ) );
 
 	}
@@ -57,7 +57,7 @@ public class SimpleSegmentationLoader< T extends NativeType< T > & RealType< T >
 	@Override
 	public void load( final SingleCellArrayImg< UnsignedByteType, ? > cell ) throws Exception
 	{
-		if ( multiWellImg.getLoader().getChannelSource( cell ) == null ) return;
+		if ( multiWellSource.getLoader().getSingleSiteFile( cell ) == null ) return;
 
 		thresholdImageSourceAndPutResultIntoCell( cell );
 

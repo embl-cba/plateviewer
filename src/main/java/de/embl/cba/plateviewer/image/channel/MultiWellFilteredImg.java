@@ -6,7 +6,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 
-public class MultiWellFilteredImg< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
+public class MultiWellFilteredImg< T extends RealType< T > & NativeType< T > > extends MultiWellSource< T >
 {
 	public MultiWellFilteredImg(
 			CachedCellImg< T, ? > cachedCellImg,

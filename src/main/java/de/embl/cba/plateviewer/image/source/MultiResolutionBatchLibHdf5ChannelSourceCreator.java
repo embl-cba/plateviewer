@@ -1,13 +1,10 @@
 package de.embl.cba.plateviewer.image.source;
 
-import bdv.cache.SharedQueue;
-import bdv.viewer.Source;
+import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Source;
 import de.embl.cba.plateviewer.util.Utils;
-import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
 import mpicbg.spim.data.sequence.FinalVoxelDimensions;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.Volatile;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Util;
@@ -23,7 +20,7 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 	private final String channelName;
 	private final List< File > channelFiles;
 	private RandomAccessibleIntervalPlateViewerSource< R > source;
-	private MultiWellBatchLibHdf5Img< R > multiWellHdf5CachedCellImage;
+	private MultiWellBatchLibHdf5Source< R > multiWellHdf5CachedCellImage;
 
 	public MultiResolutionBatchLibHdf5ChannelSourceCreator( String namingScheme,
 															String channelName,
@@ -34,9 +31,9 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 		this.channelFiles = channelFiles;
 	}
 
-	public void create()
+	public MultiWellBatchLibHdf5Source< R > createMultiWellHdf5CachedCellImage()
 	{
-		final int[] scaleFactors = MultiWellBatchLibHdf5Img.getScaleFactors( channelFiles.get( 0 ), channelName );
+		final int[] scaleFactors = MultiWellBatchLibHdf5Source.getScaleFactors( channelFiles.get( 0 ), channelName );
 
 		RandomAccessibleInterval< R >[] rais = new RandomAccessibleInterval[ scaleFactors.length ];
 		double[][] mipmapScales = new double[ scaleFactors.length ][ NUM_DIMENSIONS ];
@@ -45,8 +42,8 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 
 		for ( int resolutionLevel = 0; resolutionLevel < scaleFactors.length; resolutionLevel++ )
 		{
-			final MultiWellBatchLibHdf5Img< R > cachedCellImage
-					= new MultiWellBatchLibHdf5Img<>(
+			final MultiWellBatchLibHdf5Source< R > cachedCellImage
+					= new MultiWellBatchLibHdf5Source<>(
 						channelFiles,
 						namingScheme,
 						channelName,
@@ -83,15 +80,9 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 				mipmapScales,
 				voxelDimensions,
 				channelName );
-	}
 
-	public Source< R > getSource()
-	{
-		return source;
-	}
+		multiWellHdf5CachedCellImage.setSource( source );
 
-	public MultiWellBatchLibHdf5Img< R > getMultiWellHdf5CachedCellImage()
-	{
 		return multiWellHdf5CachedCellImage;
 	}
 }

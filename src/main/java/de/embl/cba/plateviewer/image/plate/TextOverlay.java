@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.bdv;
+package de.embl.cba.plateviewer.image.plate;
 
 import java.awt.*;
 

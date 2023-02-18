@@ -15,6 +15,7 @@ public interface BdvViewable
 
 	double[] getContrastLimits();
 
+	@Deprecated // use getSource();
 	RandomAccessibleInterval< ? > getRAI();
 
 	Source< ? > getSource();

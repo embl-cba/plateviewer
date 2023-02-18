@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > > extends AbstractBdvViewable
+public abstract class MultiWellSource< T extends RealType< T > & NativeType< T > > extends AbstractBdvViewable
 {
 	protected long[] plateDimensions;
 	protected int[] imageDimensions;
@@ -49,7 +49,7 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	protected boolean isInitiallyVisible;
 	protected MultiWellChannelFilesProvider multiWellChannelFilesProvider;
 
-	public MultiWellImg( List< File > files, String namingScheme, int resolutionLevel, String channelName )
+	public MultiWellSource( List< File > files, String namingScheme, int resolutionLevel, String channelName )
 	{
 		this.channelFiles = files;
 		this.namingScheme = namingScheme;
@@ -57,7 +57,7 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 		this.channelName = channelName;
 	}
 
-	public void dispose()
+	public void close()
 	{
 		if( bdvSource != null ) bdvSource.removeFromBdv();
 		if ( bdvOverlaySource != null ) bdvOverlaySource.removeFromBdv();

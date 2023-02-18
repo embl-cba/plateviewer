@@ -20,7 +20,7 @@ public class MultiSiteImagePlusLoader extends MultiSiteLoader
 	@Override
 	public synchronized void load( final SingleCellArrayImg cell )
 	{
-		SingleSiteChannelFile singleSiteChannelFile = getChannelSource( cell );
+		SingleSiteChannelFile singleSiteChannelFile = getSingleSiteFile( cell );
 
 		if ( singleSiteChannelFile != null )
 		{

@@ -10,6 +10,7 @@ import net.imglib2.algorithm.labeling.ConnectedComponents;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.realtransform.AffineTransform2D;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegions;
 import net.imglib2.type.numeric.ARGBType;
@@ -23,7 +24,6 @@ import net.imglib2.view.Views;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -164,25 +164,17 @@ public class Utils
 		return font.getSize();
 	}
 
-	public static Interval createViewerInterval( AffineTransform2D globalToViewerTransform, Interval globalInterval )
+	public static Interval toViewerInterval( Interval interval, AffineTransform3D sourceToViewerTransform )
 	{
-		final long[] globalWellPosMin = new long[ 2 ];
-		final long[] globalWellPosMax = new long[ 2 ];
-		final double[] screenWellPosMin = new double[ 2 ];
-		final double[] screenWellPosMax = new double[ 2 ];
+		double[] min = new double[ 3 ];
+		double[] max = new double[ 3 ];
+		interval.realMin( min );
+		interval.realMax( max );
+		final FinalRealInterval sourceRealInterval = new FinalRealInterval( min, max );
 
-		globalInterval.min( globalWellPosMin );
-		globalInterval.max( globalWellPosMax );
+		final FinalRealInterval viewerRealInterval = sourceToViewerTransform.estimateBounds( sourceRealInterval );
 
-		globalToViewerTransform.apply(
-				Arrays.stream( globalWellPosMin ).mapToDouble( x -> x ).toArray(),
-				screenWellPosMin );
-
-		globalToViewerTransform.apply(
-				Arrays.stream( globalWellPosMax ).mapToDouble( x -> x ).toArray(),
-				screenWellPosMax );
-
-		return Intervals.smallestContainingInterval( new FinalRealInterval( screenWellPosMin, screenWellPosMax ) );
+		return Intervals.smallestContainingInterval( viewerRealInterval );
 	}
 
 	public static class SortIgnoreCase implements Comparator<Object> {

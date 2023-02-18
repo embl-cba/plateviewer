@@ -2,25 +2,30 @@ package de.embl.cba.plateviewer.image.channel;
 
 import de.embl.cba.plateviewer.image.cellloader.MultiSiteImagePlusLoader;
 import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderFactory;
+import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
 import de.embl.cba.tables.color.ColorUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.LUT;
+import mpicbg.spim.data.sequence.FinalVoxelDimensions;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.util.Util;
+import net.imglib2.view.Views;
 
 import java.awt.*;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.util.List;
 
-public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
+public class MultiWellImagePlusSource< T extends RealType< T > & NativeType< T > > extends MultiWellSource< T >
 {
-	public MultiWellImagePlusImg( List< File > files, String channelName, String namingScheme, int resolutionLevel )
+	public MultiWellImagePlusSource( List< File > files, String channelName, String namingScheme, int resolutionLevel )
 	{
 		super( files, namingScheme, resolutionLevel, channelName );
 
@@ -37,6 +42,24 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 		loader = new MultiSiteImagePlusLoader( singleSiteChannelFiles );
 
 		createCachedCellImg();
+
+		createSource( channelName );
+	}
+
+	private void createSource( String channelName )
+	{
+		double[][] mipmapScales = new double[ 1 ][ 3 ];
+		for ( int d = 0; d < 3; d++ )
+			mipmapScales[ 0 ][ d ] = voxelSizes[ d ];
+
+		final RandomAccessibleInterval< ? > rai3D = cachedCellImg.numDimensions() == 2 ? Views.addDimension( cachedCellImg, 0, 0 ) : cachedCellImg;
+
+		source = new RandomAccessibleIntervalPlateViewerSource<>(
+				new RandomAccessibleInterval[]{ rai3D },
+				Util.getTypeFromInterval( cachedCellImg ),
+				mipmapScales,
+				new FinalVoxelDimensions( voxelUnit, voxelSizes ),
+				channelName );
 	}
 
 	private void setImagePlusProperties( File file )

@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.bdv;
+package de.embl.cba.plateviewer.image.plate;
 
 import bdv.util.BdvOverlay;
 import net.imglib2.realtransform.AffineTransform2D;
@@ -6,12 +6,12 @@ import net.imglib2.realtransform.AffineTransform2D;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class BdvVolatileTextOverlay extends BdvOverlay
+public class VolatileTextOverlay extends BdvOverlay
 {
 	private final ArrayList< TextOverlay > textOverlays;
 	private final int numDimensions;
 
-	public BdvVolatileTextOverlay( )
+	public VolatileTextOverlay( )
 	{
 		super();
 		this.textOverlays = new ArrayList<>( );

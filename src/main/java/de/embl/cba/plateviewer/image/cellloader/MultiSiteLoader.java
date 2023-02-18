@@ -4,6 +4,8 @@ import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.SingleSiteChannelFile;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
+import net.imglib2.Localizable;
+import net.imglib2.Point;
 import net.imglib2.cache.img.CellLoader;
 import net.imglib2.util.Intervals;
 
@@ -18,7 +20,7 @@ public abstract class MultiSiteLoader implements CellLoader
 		this.singleSiteChannelFiles = singleSiteChannelFiles;
 	}
 
-	public SingleSiteChannelFile getChannelSource( String siteName )
+	public SingleSiteChannelFile getSingleSiteFile( String siteName )
 	{
 		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
 			if ( singleSiteChannelFile.getSiteName().equals( siteName ) )
@@ -27,7 +29,7 @@ public abstract class MultiSiteLoader implements CellLoader
 		throw new UnsupportedOperationException( "Could not find image " + siteName );
 	}
 
-	public SingleSiteChannelFile getChannelSource( int index )
+	public SingleSiteChannelFile getSingleSiteFile( int index )
 	{
 		return singleSiteChannelFiles.get( index );
 	}
@@ -37,8 +39,7 @@ public abstract class MultiSiteLoader implements CellLoader
 		return singleSiteChannelFiles;
 	}
 
-
-	public SingleSiteChannelFile getChannelSource( Interval cell )
+	public SingleSiteChannelFile getSingleSiteFile( Interval cell )
 	{
 		Interval requestedInterval = Intervals.largestContainedInterval( cell );
 
@@ -53,29 +54,16 @@ public abstract class MultiSiteLoader implements CellLoader
 		return null;
 	}
 
-	public SingleSiteChannelFile getChannelSource( long[] coordinates )
+	public SingleSiteChannelFile getSingleSiteFile( long[] coordinates )
 	{
-		boolean matches = false;
-
+		final Point point = new Point( coordinates[ 0 ], coordinates[ 1 ] );
 		for ( SingleSiteChannelFile singleSiteChannelFile : singleSiteChannelFiles )
 		{
 			FinalInterval interval = singleSiteChannelFile.getInterval();
-
-			for ( int d = 0; d < interval.numDimensions(); ++d )
-			{
-				if ( interval.min( d ) <= coordinates[ d ] && coordinates[ d ] <= interval.max( d ) )
-				{
-					matches = true;
-				}
-				else
-				{
-					matches = false;
-					break;
-				}
-			}
-
-			if ( matches ) return singleSiteChannelFile;
+			if ( Intervals.contains( interval, point ) )
+					return singleSiteChannelFile;
 		}
+
 		return null;
 	}
 }

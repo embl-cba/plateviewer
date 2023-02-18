@@ -18,7 +18,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.List;
 
-public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T > > extends MultiWellImg< T >
+public class MultiWellBatchLibHdf5Source< T extends RealType< T > & NativeType< T > > extends MultiWellSource< T >
 {
 	public static final String LUT_MIN_MAX = "ContrastLimits";
 	public static final String COLOR = "Color";
@@ -28,7 +28,7 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 
 	private final String hdf5DataSetName;
 
-	public MultiWellBatchLibHdf5Img( List< File > files, String namingScheme, String channelName, int resolutionLevel )
+	public MultiWellBatchLibHdf5Source( List< File > files, String namingScheme, String channelName, int resolutionLevel )
 	{
 		super( files, namingScheme, resolutionLevel, channelName );
 

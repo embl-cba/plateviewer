@@ -10,43 +10,39 @@ import java.util.List;
 
 public class MultiWellImgCreator
 {
-	public static MultiWellImg create( List< File > fileList, String namingScheme, String channelPattern )
+	public static MultiWellSource create( List< File > fileList, String namingScheme, String channelPattern )
 	{
 		List< File > channelFiles = getChannelFiles( fileList, namingScheme, channelPattern );
 		return createFromChannelFiles( channelFiles, namingScheme, channelPattern );
 	}
 
-	public static MultiWellImg createFromChannelFiles( List< File > channelFiles, String namingScheme, String channelPattern )
+	public static MultiWellSource createFromChannelFiles( List< File > channelFiles, String namingScheme, String channelPattern )
 	{
-		MultiWellImg wellImg;
-
 		final String channelName = channelPattern;
 
 		Utils.log( "Creating channel: " + channelName );
 
 		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
-			final MultiResolutionBatchLibHdf5ChannelSourceCreator sourceCreator =
+			final MultiResolutionBatchLibHdf5ChannelSourceCreator hdf5SourceCreator =
 					new MultiResolutionBatchLibHdf5ChannelSourceCreator(
 							namingScheme,
 							channelName,
 							channelFiles );
 
-			sourceCreator.create();
 
-			wellImg = sourceCreator.getMultiWellHdf5CachedCellImage();
+			MultiWellSource< ? > wellImg = hdf5SourceCreator.createMultiWellHdf5CachedCellImage();
 
-			wellImg.setSource( sourceCreator.getSource() );
+			return wellImg;
 		}
 		else
 		{
-			wellImg = new MultiWellImagePlusImg(
+			return new MultiWellImagePlusSource(
 					channelFiles,
 					channelName,
 					namingScheme,
 					0 );
 		}
-		return wellImg;
 	}
 
 
