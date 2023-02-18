@@ -150,9 +150,7 @@ public class PlateViewerMainPanel< R extends RealType< R > & NativeType< R > >
 		imageFiltersComboBox = new JComboBox();
 
 		for( String filter : ImageFilter.getFilters() )
-		{
 			imageFiltersComboBox.addItem( filter );
-		}
 
 		horizontalLayoutPanel.add( imageFiltersComboBox );
 

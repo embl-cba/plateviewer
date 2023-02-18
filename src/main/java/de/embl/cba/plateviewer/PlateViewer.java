@@ -45,6 +45,7 @@ import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
@@ -562,7 +563,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	public void zoomToInterval( Interval interval, int duration )
 	{
-		final AffineTransform3D affineTransform3D = getImageZoomTransform( interval );
+		final AffineTransform3D affineTransform3D = getZoomToIntervalTransform( interval );
 
 		if ( duration == 0 )
 		{
@@ -674,39 +675,40 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 		else return false;
 	}
 
-	public AffineTransform3D getImageZoomTransform ( Interval interval )
+	private AffineTransform3D getZoomToIntervalTransform( Interval interval )
 	{
-		int[] bdvWindowSize = getBdvWindowSize();
+		final FinalRealInterval globalInterval = sourceTransform.estimateBounds( interval );
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();
 
-		double[] shift = new double[ 3 ];
-
-		for ( int d = 0; d < 2; ++d )
+		double[] centerPosition = new double[ 3 ];
+		for( int d = 0; d < 3; ++d )
 		{
-			shift[ d ] = -( interval.min( d ) + interval.dimension( d ) / 2.0 );
+			final double center = ( globalInterval.realMin( d ) + globalInterval.realMax( d ) ) / 2.0;
+			centerPosition[ d ] = - center;
 		}
+		affineTransform3D.translate( centerPosition );
 
-		affineTransform3D.translate( shift );
+		int[] bdvWindowDimensions = getBdvWindowSize();
 
-		final long minSize = Math.min( interval.dimension( 0 ), interval.dimension( 1 ) );
-
-		// make is slightly smaller not to start fetching other images
-		affineTransform3D.scale( 1.1 * bdvWindowSize[ 0 ] / minSize );
+		double scale = Double.MAX_VALUE;
+		for ( int d = 0; d < 2; d++ )
+		{
+			final double size = globalInterval.realMax( d ) - globalInterval.realMin( d );
+			scale = Math.min( scale, 1.0 * bdvWindowDimensions[ d ] / size );
+		}
+		affineTransform3D.scale( scale );
 
 		double[] shiftToBdvWindowCenter = new double[ 3 ];
-
-		for ( int d = 0; d < 2; ++d )
-		{
-			shiftToBdvWindowCenter[ d ] += bdvWindowSize[ d ] / 2.0;
-		}
+		for( int d = 0; d < 2; ++d )
+			shiftToBdvWindowCenter[ d ] += bdvWindowDimensions[ d ] / 2.0;
 
 		affineTransform3D.translate( shiftToBdvWindowCenter );
 
 		return affineTransform3D;
 	}
 
-	private int[] getBdvWindowSize ( )
+	private int[] getBdvWindowSize()
 	{
 		int[] bdvWindowDimensions = new int[ 2 ];
 		bdvWindowDimensions[ 0 ] = BdvUtils.getBdvWindowWidth( bdvHandle );

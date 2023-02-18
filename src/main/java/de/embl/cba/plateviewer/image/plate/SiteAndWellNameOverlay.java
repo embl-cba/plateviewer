@@ -60,9 +60,11 @@ public class SiteAndWellNameOverlay extends BdvOverlay implements MouseMotionLis
 		final int bdvWindowHeight = display.getHeight();
 		final int bdvWindowWidth = display.getWidth();
 
-		//g.drawString( wellName,
-		//		bdvWindowWidth - bdvWindowWidth / 2,
-		//		bdvWindowHeight - distanceToWindowBottom - bdvTextOverlayFontSize  );
+		/*
+		g.drawString( wellName,
+				bdvWindowWidth - bdvWindowWidth / 2,
+				bdvWindowHeight - distanceToWindowBottom - bdvTextOverlayFontSize  );
+		*/
 
 		g.drawString( siteName,
 				bdvWindowWidth - bdvWindowWidth / 2,
