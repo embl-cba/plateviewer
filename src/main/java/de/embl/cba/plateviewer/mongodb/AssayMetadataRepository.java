@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.mongo;
+package de.embl.cba.plateviewer.mongodb;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

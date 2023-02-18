@@ -39,8 +39,7 @@ public class WellAndSiteOutlinesSource extends AbstractBdvViewable
 		this.siteDimensions = imageView.getSiteDimensions();
 		this.relativeWellBorderWidth = relativeWellBorderWidth;
 		this.relativeSiteBorderWidth = relativeSiteBorderWidth;
-		this.plateInterval = Intervals.expand(
-				imageView.getPlateInterval(),
+		this.plateInterval = Intervals.expand( imageView.getPlateInterval(),
 				(int) ( wellDimensions[ 0 ] * relativeWellBorderWidth ) );
 		contrastLimits = new double[ 2 ];
 		createBordersImage();

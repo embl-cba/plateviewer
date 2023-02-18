@@ -3,7 +3,7 @@ package de.embl.cba.plateviewer.table;
 import de.embl.cba.bdv.utils.lut.GlasbeyARGBLut;
 import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.plateviewer.image.table.TableRowsIntervalImage;
-import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
+import de.embl.cba.plateviewer.mongodb.AssayMetadataRepository;
 import de.embl.cba.plateviewer.PlateViewer;
 import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.tables.color.ColoringLuts;

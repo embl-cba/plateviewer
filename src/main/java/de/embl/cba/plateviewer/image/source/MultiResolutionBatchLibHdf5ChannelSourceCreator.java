@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.image.source;
 
-import bdv.util.volatiles.SharedQueue;
+import bdv.cache.SharedQueue;
 import bdv.viewer.Source;
 import de.embl.cba.plateviewer.util.Utils;
 import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Img;
@@ -88,11 +88,6 @@ public class MultiResolutionBatchLibHdf5ChannelSourceCreator< R extends NativeTy
 	public Source< R > getSource()
 	{
 		return source;
-	}
-
-	public Source< ? extends Volatile< R > > getVolatileSource()
-	{
-		return source.asVolatile( new SharedQueue( 1 ) );
 	}
 
 	public MultiWellBatchLibHdf5Img< R > getMultiWellHdf5CachedCellImage()

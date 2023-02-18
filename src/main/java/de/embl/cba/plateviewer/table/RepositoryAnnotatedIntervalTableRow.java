@@ -1,8 +1,8 @@
 package de.embl.cba.plateviewer.table;
 
 import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
-import de.embl.cba.plateviewer.mongo.OutlierStatus;
+import de.embl.cba.plateviewer.mongodb.AssayMetadataRepository;
+import de.embl.cba.plateviewer.mongodb.OutlierStatus;
 import de.embl.cba.tables.tablerow.AbstractTableRow;
 import net.imglib2.Interval;
 

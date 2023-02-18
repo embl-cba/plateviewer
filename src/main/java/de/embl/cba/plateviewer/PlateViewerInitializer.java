@@ -1,7 +1,7 @@
 package de.embl.cba.plateviewer;
 
 import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.mongo.AssayMetadataRepository;
+import de.embl.cba.plateviewer.mongodb.AssayMetadataRepository;
 import de.embl.cba.plateviewer.table.*;
 import de.embl.cba.tables.Logger;
 import ij.IJ;
@@ -10,7 +10,7 @@ import net.imglib2.type.numeric.RealType;
 
 import java.io.File;
 
-import static de.embl.cba.plateviewer.mongo.AssayMetadataRepository.getCovid19AssayMetadataRepository;
+import static de.embl.cba.plateviewer.mongodb.AssayMetadataRepository.getCovid19AssayMetadataRepository;
 import static de.embl.cba.plateviewer.table.IntervalType.*;
 
 public class PlateViewerInitializer< R extends NativeType< R > & RealType< R >, T extends AnnotatedInterval >

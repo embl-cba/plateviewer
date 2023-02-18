@@ -41,19 +41,9 @@ public class SingleSiteChannelFile
 		return siteInformation;
 	}
 
-	public void setSiteInformation( String siteInformation )
-	{
-		this.siteInformation = siteInformation;
-	}
-
 	public String getWellInformation()
 	{
 		return wellInformation;
-	}
-
-	public void setWellInformation( String wellInformation )
-	{
-		this.wellInformation = wellInformation;
 	}
 
 	public String getWellName()

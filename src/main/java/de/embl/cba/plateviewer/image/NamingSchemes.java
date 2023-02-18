@@ -1,7 +1,6 @@
 package de.embl.cba.plateviewer.image;
 
-import de.embl.cba.plateviewer.mongo.OutlierStatus;
-import de.embl.cba.plateviewer.table.AnnotatedIntervalTableRow;
+import de.embl.cba.plateviewer.mongodb.OutlierStatus;
 import de.embl.cba.plateviewer.table.IntervalType;
 import de.embl.cba.plateviewer.table.TableSource;
 import de.embl.cba.tables.tablerow.TableRow;

@@ -36,7 +36,7 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 
 		loader = new MultiSiteImagePlusLoader( singleSiteChannelFiles );
 
-		setCachedCellImg();
+		createCachedCellImg();
 	}
 
 	private void setImagePlusProperties( File file )
@@ -48,6 +48,16 @@ public class MultiWellImagePlusImg< T extends RealType< T > & NativeType< T > > 
 		setImageDataType( imagePlus );
 
 		setImageDimensions( imagePlus );
+
+		setImageCalibration( imagePlus );
+	}
+
+	private void setImageCalibration( ImagePlus imagePlus )
+	{
+		voxelSizes[ 0 ] = imagePlus.getCalibration().pixelWidth;
+		voxelSizes[ 1 ] = imagePlus.getCalibration().pixelHeight;
+		voxelSizes[ 2 ] = imagePlus.getCalibration().pixelDepth;
+		voxelUnit = imagePlus.getCalibration().getUnit();
 	}
 
 	private void setLut( ImagePlus imagePlus )

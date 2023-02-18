@@ -47,7 +47,7 @@ public class MultiWellBatchLibHdf5Img< T extends RealType< T > & NativeType< T >
 
 		loader = new MultiSiteHdf5Loader( singleSiteChannelFiles );
 
-		setCachedCellImg();
+		createCachedCellImg();
 	}
 
 	public static int[] getScaleFactors( File file, String channel )

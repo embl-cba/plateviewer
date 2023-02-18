@@ -31,8 +31,8 @@ package de.embl.cba.plateviewer.image.source;
 
 import java.util.function.Supplier;
 
+import bdv.cache.SharedQueue;
 import bdv.util.AbstractSource;
-import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileTypeMatcher;
 import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;

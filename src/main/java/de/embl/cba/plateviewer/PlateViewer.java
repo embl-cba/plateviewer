@@ -1,8 +1,8 @@
 package de.embl.cba.plateviewer;
 
 import bdv.TransformEventHandler2D;
+import bdv.cache.SharedQueue;
 import bdv.util.*;
-import bdv.util.volatiles.SharedQueue;
 import bdv.util.volatiles.VolatileViews;
 import bdv.viewer.Source;
 import de.embl.cba.bdv.utils.BdvUtils;
@@ -812,7 +812,7 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 			if ( source instanceof RandomAccessibleIntervalPlateViewerSource )
 			{
-				source = (( RandomAccessibleIntervalPlateViewerSource ) source ).asVolatile( new SharedQueue( 1 ) );
+				source = ( ( RandomAccessibleIntervalPlateViewerSource ) source ).asVolatile( new SharedQueue( 1 ) );
 			}
 
 			if ( bdvViewable.getType().equals( Metadata.Type.Segmentation ) )
@@ -990,17 +990,14 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	public MultiWellImg createMultiWellImg( String channel )
 	{
-		MultiWellImg multiWellImg;
-		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5  ) )
+		if ( namingScheme.equals( NamingSchemes.PATTERN_NIKON_TI2_HDF5 ) )
 		{
 			// All channels are in the same files, thus we do not have to fetch them again.
-			multiWellImg = MultiWellImgCreator.createFromChannelFiles( referenceWellImg.getChannelFiles(), namingScheme, channel );
-		}
-		else
+			return MultiWellImgCreator.createFromChannelFiles( referenceWellImg.getChannelFiles(), namingScheme, channel );
+		} else
 		{
-			multiWellImg = MultiWellImgCreator.create( siteFiles, namingScheme, channel );
+			return MultiWellImgCreator.create( siteFiles, namingScheme, channel );
 		}
-		return multiWellImg;
 	}
 
 	public Map< String, MultiWellImg< ? > > getChannelToMultiWellImg()

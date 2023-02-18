@@ -28,6 +28,8 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 	protected int[] imageDimensions;
 	protected double[] contrastLimits = new double[]{0, 255};
 	protected ARGBType argbType;
+	protected double[] voxelSizes = new double[]{1,1,1};
+	protected String voxelUnit = "pixel";
 
 	protected ArrayList< SingleSiteChannelFile > singleSiteChannelFiles;
 
@@ -100,12 +102,13 @@ public abstract class MultiWellImg < T extends RealType< T > & NativeType< T > >
 		return loader;
 	}
 
+	@Deprecated // use getSource() instead to have calibrated voxel sizes
 	public RandomAccessibleInterval< T > getRAI( )
 	{
 		return cachedCellImg;
 	}
 
-	protected void setCachedCellImg()
+	protected void createCachedCellImg()
 	{
 		setCachedCellImgDimensions( singleSiteChannelFiles );
 

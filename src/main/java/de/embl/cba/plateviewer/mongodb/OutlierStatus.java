@@ -1,4 +1,4 @@
-package de.embl.cba.plateviewer.mongo;
+package de.embl.cba.plateviewer.mongodb;
 
 public enum OutlierStatus {
     OUTLIER(1), VALID(0), UNKNOWN(-1);
