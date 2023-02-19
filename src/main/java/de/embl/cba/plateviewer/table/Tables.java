@@ -2,8 +2,8 @@ package de.embl.cba.plateviewer.table;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.image.MultiWellChannelFilesProviderBatchLibHdf5;
-import de.embl.cba.plateviewer.image.NamingSchemes;
+import de.embl.cba.plateviewer.source.MultiWellChannelFilesProviderBatchLibHdf5;
+import de.embl.cba.plateviewer.source.NamingSchemes;
 import de.embl.cba.plateviewer.mongodb.AssayMetadataRepository;
 import de.embl.cba.tables.TableColumns;
 import net.imglib2.Interval;

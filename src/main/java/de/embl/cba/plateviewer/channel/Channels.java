@@ -2,8 +2,8 @@ package de.embl.cba.plateviewer.channel;
 
 import ch.systemsx.cisd.hdf5.HDF5Factory;
 import ch.systemsx.cisd.hdf5.IHDF5Reader;
-import de.embl.cba.plateviewer.image.NamingSchemes;
-import de.embl.cba.plateviewer.image.channel.MultiWellBatchLibHdf5Source;
+import de.embl.cba.plateviewer.source.NamingSchemes;
+import de.embl.cba.plateviewer.source.channel.MultiWellBatchLibHdf5Source;
 
 import java.io.File;
 import java.util.*;

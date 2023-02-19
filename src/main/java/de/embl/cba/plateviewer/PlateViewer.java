@@ -10,26 +10,26 @@ import de.embl.cba.bdv.utils.converters.RandomARGBConverter;
 import de.embl.cba.bdv.utils.measure.PixelValueStatistics;
 import de.embl.cba.bdv.utils.sources.ARGBConvertedRealSource;
 import de.embl.cba.bdv.utils.sources.Metadata;
-import de.embl.cba.plateviewer.image.plate.SiteAndWellNameOverlay;
+import de.embl.cba.plateviewer.source.plate.SiteAndWellNameOverlay;
 import de.embl.cba.plateviewer.channel.ChannelProperties;
 import de.embl.cba.plateviewer.channel.Channels;
 import de.embl.cba.plateviewer.github.SiteIssueRaiser;
 import de.embl.cba.plateviewer.location.LocationInformation;
-import de.embl.cba.plateviewer.image.channel.BdvViewable;
-import de.embl.cba.plateviewer.image.channel.MultiWellImgCreator;
-import de.embl.cba.plateviewer.image.plate.QCOverlay;
-import de.embl.cba.plateviewer.image.plate.WellAndSiteOutlinesSource;
-import de.embl.cba.plateviewer.image.plate.BdvViewableOverlay;
-import de.embl.cba.plateviewer.image.plate.WellNamesOverlay;
-import de.embl.cba.plateviewer.image.source.RandomAccessibleIntervalPlateViewerSource;
+import de.embl.cba.plateviewer.source.channel.BdvViewable;
+import de.embl.cba.plateviewer.source.channel.MultiWellImgCreator;
+import de.embl.cba.plateviewer.source.plate.QCOverlay;
+import de.embl.cba.plateviewer.source.plate.WellAndSiteOutlinesSource;
+import de.embl.cba.plateviewer.source.plate.BdvViewableOverlay;
+import de.embl.cba.plateviewer.source.plate.WellNamesOverlay;
+import de.embl.cba.plateviewer.source.source.RandomAccessibleIntervalPlateViewerSource;
 import de.embl.cba.plateviewer.io.FileUtils;
 import de.embl.cba.plateviewer.screenshot.PlateChannelRawDataFetcher;
 import de.embl.cba.plateviewer.screenshot.SimpleScreenShotMaker;
 import de.embl.cba.plateviewer.table.BatchLibHdf5CellFeatureProvider;
 import de.embl.cba.plateviewer.ui.CellFeatureDialog;
 import de.embl.cba.plateviewer.util.Utils;
-import de.embl.cba.plateviewer.image.*;
-import de.embl.cba.plateviewer.image.channel.MultiWellSource;
+import de.embl.cba.plateviewer.source.*;
+import de.embl.cba.plateviewer.source.channel.MultiWellSource;
 import de.embl.cba.plateviewer.table.AnnotatedInterval;
 import de.embl.cba.plateviewer.ui.panel.PlateViewerMainPanel;
 import de.embl.cba.swing.PopupMenu;
@@ -677,6 +677,9 @@ public class PlateViewer< R extends NativeType< R > & RealType< R >, T extends A
 
 	private AffineTransform3D getZoomToIntervalTransform( Interval interval )
 	{
+		if ( interval.numDimensions() == 2 )
+			interval = Intervals.addDimension( interval, 0, 0 );
+
 		final FinalRealInterval globalInterval = sourceTransform.estimateBounds( interval );
 
 		final AffineTransform3D affineTransform3D = new AffineTransform3D();

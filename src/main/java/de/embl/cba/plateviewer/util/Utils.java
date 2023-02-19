@@ -1,6 +1,6 @@
 package de.embl.cba.plateviewer.util;
 
-import de.embl.cba.plateviewer.image.NamingSchemes;
+import de.embl.cba.plateviewer.source.NamingSchemes;
 import ij.IJ;
 import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
@@ -9,7 +9,6 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.labeling.ConnectedComponents;
 import net.imglib2.cache.img.SingleCellArrayImg;
 import net.imglib2.img.array.ArrayImgs;
-import net.imglib2.realtransform.AffineTransform2D;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.roi.labeling.ImgLabeling;
 import net.imglib2.roi.labeling.LabelRegions;

@@ -1,11 +1,10 @@
 package develop;
 
 import de.embl.cba.plateviewer.PlateViewer;
-import org.junit.jupiter.api.Test;
 
 import java.util.regex.Pattern;
 
-import static de.embl.cba.plateviewer.image.NamingSchemes.PATTERN_OPERETTA;
+import static de.embl.cba.plateviewer.source.NamingSchemes.PATTERN_OPERETTA;
 
 public class DevelopNamingSchemeOperetta
 {

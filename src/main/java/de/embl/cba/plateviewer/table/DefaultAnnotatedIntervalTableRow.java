@@ -1,6 +1,5 @@
 package de.embl.cba.plateviewer.table;
 
-import de.embl.cba.plateviewer.image.NamingSchemes;
 import de.embl.cba.tables.tablerow.AbstractTableRow;
 import net.imglib2.Interval;
 

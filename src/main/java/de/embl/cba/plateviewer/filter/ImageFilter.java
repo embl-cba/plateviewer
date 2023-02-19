@@ -1,7 +1,7 @@
 package de.embl.cba.plateviewer.filter;
 
 import bdv.util.BdvOverlay;
-import de.embl.cba.plateviewer.image.cellloader.ImageFilterLoader;
+import de.embl.cba.plateviewer.source.cellloader.ImageFilterLoader;
 import net.imglib2.cache.img.CachedCellImg;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgFactory;
 import net.imglib2.cache.img.ReadOnlyCachedCellImgOptions;
